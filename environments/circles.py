@@ -4,6 +4,7 @@ from numpy import linspace
 from random import uniform
 from wise.training.samplers.anonymous import AnonymousSampler
 from wise.training.samplers.feeddict import FeedDictSampler
+from wise.training.samplers.resampled import BinomialResampler
 
 
 class Circles:
@@ -56,7 +57,8 @@ class Circles:
         matches them with the satisfaction of the constraint.
         """
         sampler = AnonymousSampler(single=Circles._make_environment)
-        return FeedDictSampler(sampler, {
+        resampled = BinomialResampler.halves_on_last_element_head(sampler)
+        return FeedDictSampler(resampled, {
             constraint_input: lambda t: t[0],
             solution_input: lambda t: t[1],
             satisfaction_input: lambda t: t[2]
@@ -74,7 +76,8 @@ class Circles:
             pixels = Circles.as_image(cons, sol, fidelity)
             return pixels, satisfied
         sampler = AnonymousSampler(single=generate_pixels)
-        return FeedDictSampler(sampler, {
+        resampled = BinomialResampler.halves_on_last_element_head(sampler)
+        return FeedDictSampler(resampled, {
             pixels_input: lambda t: t[0],
             satisfaction_input: lambda t: t[1]
         })

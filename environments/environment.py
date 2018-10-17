@@ -17,7 +17,9 @@ class ContinuousEnvironment:
         """
         Object? -> Object? -> Object? -> FeedDictSampler ([Float], [Float], [Float])
         Return a sampler that generates random constraint/solution pairs and
-        matches them with the satisfaction of the constraint.
+        matches them with the satisfaction of the constraint.  The output should be
+        resampled such that the probability of a satisfied pair being produced is
+        exactly half.
         """
         raise NotImplementedError()
 
@@ -44,5 +46,7 @@ class DrawableEnvironment:
         Object? -> Object? -> Object? -> FeedDictSampler ([[Float]], [Float])
         Sample from the space of environments, returning them as the output of
         a FeedDictSampler in pixel format, grouped with their satisfaction.
+        The output should be resampled such that the probability of a satisfied
+        pair being produced is exactly half.
         """
         raise NotImplementedError()
