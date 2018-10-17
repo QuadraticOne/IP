@@ -1,4 +1,5 @@
-from environments.environment import ContinuousEnvironment
+from environments.environment \
+    import ContinuousEnvironment, DrawableEnvironment
 from math import sqrt
 from numpy import linspace
 from random import uniform
@@ -7,7 +8,7 @@ from wise.training.samplers.feeddict import FeedDictSampler
 from wise.training.samplers.resampled import BinomialResampler
 
 
-class Circles:
+class Circles(ContinuousEnvironment, DrawableEnvironment):
     """
     Defines an environment which consists of two circles: one constraint,
     and one design.  Each circle is parameterised by their x- and y-coordinates,
@@ -17,6 +18,18 @@ class Circles:
     The constraint is considered satisfied if it does not overlap with the
     solution at all.
     """
+
+    def constraint_shape():
+        """
+        () -> [Int]
+        """
+        return [3]
+
+    def solution_shape():
+        """
+        () -> [Int]
+        """
+        return [3]
 
     def solve(constraint, solution):
         """

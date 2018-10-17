@@ -4,6 +4,20 @@ class ContinuousEnvironment:
     constraint space are both continuous.
     """
 
+    def constraint_shape():
+        """
+        () -> [Int]
+        Return the shape of a valid constraint tensor.
+        """
+        raise NotImplementedError()
+
+    def solution_shape():
+        """
+        () -> [Int]
+        Return the shape of a valid solution tensor.
+        """
+        raise NotImplementedError()
+
     def solve(constraint, solution):
         """
         [Float] -> [Float] -> Bool
@@ -29,6 +43,14 @@ class DrawableEnvironment:
     Base class for an environment in which the solution space and
     constraint space can both be represented by a 2D greyscale image.
     """
+
+    def image_shape(fidelity=None):
+        """
+        () -> [Int]
+        Return the shape of images output by this environment with the given
+        fidelity settings.
+        """
+        raise NotImplementedError()
 
     def as_image(constraint, solution, fidelity=None):
         """
