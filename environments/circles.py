@@ -31,6 +31,12 @@ class Circles(ContinuousEnvironment, DrawableEnvironment):
         """
         return [3]
 
+    def image_shape(fidelity=None):
+        """
+        () -> [Int]
+        """
+        return [fidelity, fidelity]
+
     def solve(constraint, solution):
         """
         [Float] -> [Float] -> Bool
@@ -52,7 +58,7 @@ class Circles(ContinuousEnvironment, DrawableEnvironment):
         """
         cons_x, cons_y, cons_r = constraint[0], constraint[1], constraint[2]
         sol_x, sol_y, sol_r = solution[0], solution[1], solution[2]
-        steps = linspace(-1, 1, fidelity + 1)
+        steps = linspace(-1, 1, fidelity)
         reversed_steps = steps[::-1]
         def inside_circle(x, y):
             return _distance(x, y, cons_x, cons_y) < cons_r \
