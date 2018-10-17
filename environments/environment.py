@@ -1,3 +1,6 @@
+from maths.activations import identity
+
+
 class ContinuousEnvironment:
     """
     Base class for an environment in which the solution space and
@@ -27,13 +30,14 @@ class ContinuousEnvironment:
         raise NotImplementedError()
 
     def environment_sampler(constraint_input='constraint', solution_input='solution',
-            satisfaction_input='satisfaction'):
+            satisfaction_input='satisfaction', sampler_transform=identity):
         """
-        Object? -> Object? -> Object? -> FeedDictSampler ([Float], [Float], [Float])
+        Object? -> Object? -> Object? -> (Sampler a -> Sampler a)?
+            -> FeedDictSampler ([Float], [Float], [Float])
         Return a sampler that generates random constraint/solution pairs and
-        matches them with the satisfaction of the constraint.  The output should be
-        resampled such that the probability of a satisfied pair being produced is
-        exactly half.
+        matches them with the satisfaction of the constraint.  The raw sampler is
+        mapped through a user-provided transform, optionally producing a mapped
+        sampler, before being extracted into a FeedDictSampler.
         """
         raise NotImplementedError()
 
@@ -62,13 +66,14 @@ class DrawableEnvironment:
         """
         raise NotImplementedError()
 
-    def pixel_environment_sampler(pixels_input='pixels',
-            satisfaction_input='satisfaction', fidelity=None):
+    def pixel_environment_sampler(pixels_input='pixels', satisfaction_input='satisfaction',
+            fidelity=None, sampler_transform=identity):
         """
-        Object? -> Object? -> Object? -> FeedDictSampler ([[Float]], [Float])
+        Object? -> Object? -> Object? -> (Sampler a -> Sampler a)?
+            -> FeedDictSampler ([[Float]], [Float])
         Sample from the space of environments, returning them as the output of
         a FeedDictSampler in pixel format, grouped with their satisfaction.
-        The output should be resampled such that the probability of a satisfied
-        pair being produced is exactly half.
+        The raw sampler is mapped through a user-provided transform, optionally producing
+        a mapped sampler, before being extracted into a FeedDictSampler.
         """
         raise NotImplementedError()

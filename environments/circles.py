@@ -62,25 +62,28 @@ class Circles(ContinuousEnvironment, DrawableEnvironment):
                 for y in reversed_steps
         ]
 
-    def environment_sampler(constraint_input='constraint', solution_input='solution',
-            satisfaction_input='satisfaction'):
+    def environment_sampler(constraint_input='constraint',
+            solution_input='solution', satisfaction_input='satisfaction',
+            sampler_transform=BinomialResampler.halves_on_last_element_head):
         """
-        Object? -> Object? -> Object? -> FeedDictSampler ([Float], [Float], [Float])
+        Object? -> Object? -> Object? -> (Sampler a -> Sampler a)?
+            -> FeedDictSampler ([Float], [Float], [Float])
         Return a sampler that generates random constraint/solution pairs and
         matches them with the satisfaction of the constraint.
         """
         sampler = AnonymousSampler(single=Circles._make_environment)
-        resampled = BinomialResampler.halves_on_last_element_head(sampler)
-        return FeedDictSampler(resampled, {
+        return FeedDictSampler(sampler_transform(sampler), {
             constraint_input: lambda t: t[0],
             solution_input: lambda t: t[1],
             satisfaction_input: lambda t: t[2]
         })
 
     def pixel_environment_sampler(pixels_input='pixels',
-            satisfaction_input='satisfaction', fidelity=10):
+            satisfaction_input='satisfaction', fidelity=10,
+            sampler_transform=BinomialResampler.halves_on_last_element_head):
         """
-        Object? -> Object? -> Int? -> FeedDictSampler ([[Float]], [Float])
+        Object? -> Object? -> Int? -> (Sampler a -> Sampler a)?
+            -> FeedDictSampler ([[Float]], [Float])
         Return a sampler that generates pixel representations of environments and
         puts them into a feed dict along with their satisfactions.
         """
@@ -89,8 +92,7 @@ class Circles(ContinuousEnvironment, DrawableEnvironment):
             pixels = Circles.as_image(cons, sol, fidelity)
             return pixels, satisfied
         sampler = AnonymousSampler(single=generate_pixels)
-        resampled = BinomialResampler.halves_on_last_element_head(sampler)
-        return FeedDictSampler(resampled, {
+        return FeedDictSampler(sampler_transform(sampler), {
             pixels_input: lambda t: t[0],
             satisfaction_input: lambda t: t[1]
         })
