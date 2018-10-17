@@ -1,3 +1,4 @@
+from environments.environment import ContinuousEnvironment
 from math import sqrt
 from numpy import linspace
 from random import uniform
@@ -64,7 +65,7 @@ class Circles:
     def pixel_environment_sampler(pixels_input='pixels',
             satisfaction_input='satisfaction', fidelity=10):
         """
-        Object? -> Object? -> Object? -> Int? -> FeedDictSampler ([[Float]], [Float])
+        Object? -> Object? -> Int? -> FeedDictSampler ([[Float]], [Float])
         Return a sampler that generates pixel representations of environments and
         puts them into a feed dict along with their satisfactions.
         """
