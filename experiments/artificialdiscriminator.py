@@ -3,6 +3,7 @@ from wise.networks.deterministic.feedforwardnetwork \
 from wise.networks.activation import Activation
 from wise.util.tensors import placeholder_node
 from wise.util.training import classification_metrics
+from wise.training.routines import fit
 from environments.circles import Circles
 import tensorflow as tf
 
@@ -11,7 +12,7 @@ class Params:
     environment = Circles
     session = tf.Session()
     # Do not include output layer shape:
-    internal_layer_shapes = [[16], [16]]
+    internal_layer_shapes = [[8]]
     activation = Activation.all_except_last(
         Activation.LEAKY_RELU, Activation.SIGMOID)
     save_location = None
@@ -77,7 +78,6 @@ def run():
     feed_dict = {cons_in: dummy_data, soln_in: dummy_data,
         target: [[0]] * Params.batch_size}
     disc.get_session().run(tf.global_variables_initializer())
-    print(disc.feed([loss, accuracy], sampler.batch(128)))
-    for _ in range(10000):
-        disc.feed(optimiser, sampler.batch(32))
-    print(disc.feed([loss, accuracy], sampler.batch(128)))
+
+    fit(disc.get_session(), optimiser, sampler, 100, 2000, 32,
+        [('Loss', loss), ('Accuracy', accuracy)])
