@@ -6,6 +6,7 @@ from wise.util.training import classification_metrics
 from wise.training.routines import fit
 from wise.training.samplers.resampled import BinomialResampler
 from wise.training.samplers.dataset import DataSetSampler
+from wise.visualisation.spaceplot import evaluate_surface, plot_surface
 from environments.circles import Circles
 import tensorflow as tf
 
@@ -19,7 +20,7 @@ class Params:
         Activation.LEAKY_RELU, Activation.SIGMOID)
     save_location = None
     batch_size = 32
-    data_set_size = 512
+    data_set_size = 64
 
 
 def make_discriminator():
@@ -83,7 +84,14 @@ def run():
     disc.get_session().run(tf.global_variables_initializer())
 
     fit(disc.get_session(), optimiser, training_set_sampler,
-        100, 2000, 32, [('Loss', loss), ('Accuracy', accuracy)])
+        250, 2000, 32, [('Loss', loss), ('Accuracy', accuracy)])
 
     print('Validation accuracy: {}'.format(disc.feed(
         accuracy, test_set_sampler.batch(1024))))
+
+    plot_surface(evaluate_surface(lambda x, y: Circles.solve(
+        [0, 0, 0.25], [x, y, 0.25]), (-1, 1, 0.08), (-1, 1, 0.08)))
+
+    plot_surface(evaluate_surface(lambda x, y: disc.feed(disc.output_node,
+        {cons_in: [[0, 0, 0.25]], soln_in: [[x, y, 0.25]]})[0],
+        (-1, 1, 0.08), (-1, 1, 0.08)))
