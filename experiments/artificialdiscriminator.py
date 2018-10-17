@@ -71,11 +71,13 @@ def run():
     """
     cons_in, soln_in, disc = make_discriminator()
     target, loss, accuracy, optimiser = make_training_nodes(disc)
+    sampler = make_sampler(cons_in, soln_in, target)
+
     dummy_data = [[0, 0, 0]] * Params.batch_size
     feed_dict = {cons_in: dummy_data, soln_in: dummy_data,
         target: [[0]] * Params.batch_size}
     disc.get_session().run(tf.global_variables_initializer())
-    print(disc.feed(loss, feed_dict))
-    for _ in range(1000):
-        disc.feed(optimiser, feed_dict)
-    print(disc.feed(loss, feed_dict))
+    print(disc.feed([loss, accuracy], sampler.batch(128)))
+    for _ in range(10000):
+        disc.feed(optimiser, sampler.batch(32))
+    print(disc.feed([loss, accuracy], sampler.batch(128)))
