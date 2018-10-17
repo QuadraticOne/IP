@@ -80,9 +80,6 @@ def run():
     training_set_sampler = make_sampler(cons_in, soln_in, target)
     test_set_sampler = make_sampler(cons_in, soln_in, target)
 
-    dummy_data = [[0, 0, 0]] * Params.batch_size
-    feed_dict = {cons_in: dummy_data, soln_in: dummy_data,
-        target: [[0]] * Params.batch_size}
     disc.get_session().run(tf.global_variables_initializer())
 
     fit(disc.get_session(), optimiser, training_set_sampler,
