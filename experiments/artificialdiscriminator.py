@@ -90,8 +90,12 @@ def run():
         accuracy, test_set_sampler.batch(1024))))
 
     plot_surface(evaluate_surface(lambda x, y: Circles.solve(
-        [0, 0, 0.25], [x, y, 0.25]), (-1, 1, 0.08), (-1, 1, 0.08)))
+        [0, 0, 0.25], [x, y, 0.25]), (-1, 1, 0.08), (-1, 1, 0.08)),
+        x_label='Solution x', y_label='Solution y',
+        z_label='p(satisfied | x, y)')
 
     plot_surface(evaluate_surface(lambda x, y: disc.feed(disc.output_node,
         {cons_in: [[0, 0, 0.25]], soln_in: [[x, y, 0.25]]})[0],
-        (-1, 1, 0.08), (-1, 1, 0.08)))
+        (-1, 1, 0.08), (-1, 1, 0.08)),
+        x_label='Solution x', y_label='Solution y',
+        z_label='p(satisfied | x, y)')
