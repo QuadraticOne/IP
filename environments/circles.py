@@ -47,7 +47,7 @@ class Circles(ContinuousEnvironment, DrawableEnvironment):
         """
         cons_x, cons_y, cons_r = constraint[0], constraint[1], constraint[2]
         sol_x, sol_y, sol_r = solution[0], solution[1], solution[2]
-        return _distance(cons_x, cons_y, sol_x, sol_y) > cons_r + sol_r
+        return _distance(cons_x, cons_y, sol_x, sol_y) < cons_r + sol_r
 
     def as_image(constraint, solution, fidelity=10):
         """
