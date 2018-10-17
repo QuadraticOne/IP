@@ -38,12 +38,13 @@ class Circles:
         cons_x, cons_y, cons_r = constraint[0], constraint[1], constraint[2]
         sol_x, sol_y, sol_r = solution[0], solution[1], solution[2]
         steps = linspace(-1, 1, fidelity + 1)
+        reversed_steps = steps[::-1]
         def inside_circle(x, y):
             return _distance(x, y, cons_x, cons_y) < cons_r \
-                and _distance(x, y, sol_x, sol_y) < sol_r
+                or _distance(x, y, sol_x, sol_y) < sol_r
         return [
             [1. if inside_circle(x, y) else 0. for x in steps] \
-                for y in steps
+                for y in reversed_steps
         ]
 
     def environment_sampler(constraint_input='constraint', solution_input='solution',
@@ -53,7 +54,7 @@ class Circles:
         Return a sampler that generates random constraint/solution pairs and
         matches them with the satisfaction of the constraint.
         """
-        sampler = AnonymousSampler(single=Circle._make_environment)
+        sampler = AnonymousSampler(single=Circles._make_environment)
         return FeedDictSampler(sampler, {
             constraint_input: lambda t: t[0],
             solution_input: lambda t: t[1],
@@ -68,8 +69,8 @@ class Circles:
         puts them into a feed dict along with their satisfactions.
         """
         def generate_pixels():
-            cons, sol, satisfied = Circle._make_environment()
-            pixels = Circle.as_image(cons, sol, fidelity)
+            cons, sol, satisfied = Circles._make_environment()
+            pixels = Circles.as_image(cons, sol, fidelity)
             return pixels, satisfied
         sampler = AnonymousSampler(single=generate_pixels)
         return FeedDictSampler(sampler, {
@@ -81,9 +82,9 @@ class Circles:
         return [uniform(-1, 1), uniform(-1, 1), uniform(0, 1)]
 
     def _make_environment():
-        cons = Circle._make_circle()
-        sol = Circle._make_circle()
-        satisfied = [1] if Circle.solve(cons, sol) else [0]
+        cons = Circles._make_circle()
+        sol = Circles._make_circle()
+        satisfied = [1] if Circles.solve(cons, sol) else [0]
         return cons, sol, satisfied
 
 
