@@ -2,6 +2,7 @@ from wise.networks.deterministic.feedforwardnetwork \
     import FeedforwardNetwork
 from wise.networks.activation import Activation
 from wise.util.tensors import placeholder_node
+from wise.util.training import classification_metrics
 from environments.circles import Circles
 import tensorflow as tf
 
@@ -14,6 +15,7 @@ class Params:
     activation = Activation.all_except_last(
         Activation.LEAKY_RELU, Activation.SIGMOID)
     save_location = None
+    batch_size = 32
 
 
 def make_discriminator():
@@ -41,6 +43,26 @@ def make_discriminator():
     )
 
 
+def make_training_nodes(discriminator):
+    """
+    FeedforwardNetwork -> (TargetNode, LossNode, Accuracy, Optimiser)
+    Create training nodes relevant to the problem.
+    """
+    return classification_metrics([1], discriminator.output_node,
+        'discriminator_training', variables=discriminator.get_variables())
+
+
+def make_sampler(constraint_node, solution_node, satisfaction_node):
+    """
+    () -> FeedDictSampler
+    """
+    return Params.environment.environment_sampler(
+        constraint_input=constraint_node,
+        solution_input=solution_node,
+        satisfaction_input=satisfaction_node
+    )
+
+
 def run():
     """
     () -> ()
@@ -48,5 +70,12 @@ def run():
     of a continuously defined environment.  
     """
     cons_in, soln_in, disc = make_discriminator()
-    disc.initialise_variables()
-    print(disc.feed(disc.output_node, {cons_in: [[0, 0, 0]], soln_in: [[0.2, 0.3, 0.4]]}))
+    target, loss, accuracy, optimiser = make_training_nodes(disc)
+    dummy_data = [[0, 0, 0]] * Params.batch_size
+    feed_dict = {cons_in: dummy_data, soln_in: dummy_data,
+        target: [[0]] * Params.batch_size}
+    disc.get_session().run(tf.global_variables_initializer())
+    print(disc.feed(loss, feed_dict))
+    for _ in range(1000):
+        disc.feed(optimiser, feed_dict)
+    print(disc.feed(loss, feed_dict))
