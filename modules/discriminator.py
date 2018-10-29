@@ -5,6 +5,7 @@ from wise.networks.stochastic.noise import GaussianNoiseLayer
 from wise.networks.network import Network
 from wise.networks.activation import Activation
 from wise.util.tensors import placeholder_node
+from wise.util.training import classification_metrics, regression_metrics
 
 
 class LearnedObjectiveFunction(Network):
@@ -45,6 +46,7 @@ class LearnedObjectiveFunction(Network):
             self.input_builder)
         self.network_builder.build(self.name, self.get_session(),
             self.transformed_input_builder)
+        self.error_builder.build(self.name, self.get_session(), self.network_builder)
 
     def data_dictionary(self):
         """
@@ -55,7 +57,8 @@ class LearnedObjectiveFunction(Network):
         return {
             'input': self.input_builder.data_dictionary(),
             'input_transform': self.transformed_input_builder.data_dictionary(),
-            'network': self.network_builder.data_dictionary()
+            'network': self.network_builder.data_dictionary(),
+            'error': self.error_builder.data_dictionary()
         }
 
     class InputBuilder:
@@ -143,7 +146,8 @@ class LearnedObjectiveFunction(Network):
             return {
                 'hidden_layer_shapes': self.hidden_layer_shapes,
                 'batch_normalisation': self.batch_normalisation,
-                'bayesian_network': self.bayesian
+                'bayesian_network': self.bayesian,
+                'output_shape': self.output_shape
                 # TODO: represent activations in JSON
             }
 
@@ -151,7 +155,28 @@ class LearnedObjectiveFunction(Network):
         pass
 
     class ErrorBuilder:
-        pass
+        def __init__(self, classification=True):
+            self.classification = classification
+            self.target_node = None
+            self.error_node = None
+            self.accuracy_node = None
+
+        def build(self, name, session, network_builder):
+            if self.classification:
+                self.target_node, self.error_node, self.accuracy_node, _ = \
+                    classification_metrics(network_builder.output_shape,
+                    network_builder.output_node, name + '.classification_metrics',
+                    variables=network_builder.network.get_variables())
+            else:
+                self.target_node, self.error_node, _ = regression_metrics(
+                    network_builder.output_shape, network_builder.output_node,
+                    name + '.regression_metrics', variables=
+                    network_builder.network.get_variables())
+
+        def data_dictionary(self):
+            return {
+                'classification': self.classification
+            }
 
     class LossBuilder:
         pass
