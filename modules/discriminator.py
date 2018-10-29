@@ -1,6 +1,7 @@
 import tensorflow as tf
 from wise.networks.stochastic.noise import GaussianNoiseLayer
 from wise.networks.network import Network
+from wise.networks.activation import Activation
 from wise.util.tensors import placeholder_node
 
 
@@ -38,6 +39,19 @@ class LearnedObjectiveFunction(Network):
         () -> ()
         """
         self.input_builder.build(self.name, self.get_session(), self.environment)
+        self.transformed_input_builder.build(self.name, self.get_session(),
+            self.input_builder)
+
+    def data_dictionary(self):
+        """
+        () -> Dict
+        Return the properties of this learned objective function as a dictionary
+        which can be logged as a JSON file.
+        """
+        return {
+            'input': self.input_builder.data_dictionary(),
+            'input_transform': self.transformed_input_builder.data_dictionary()
+        }
 
     class InputBuilder:
         def __init__(self):
@@ -74,7 +88,27 @@ class LearnedObjectiveFunction(Network):
             }
 
     class TransformedInputBuilder:
-        pass
+        def __init__(self, input_noise_stddev=None):
+            self.input_noise_stddev = input_noise_stddev
+
+            self.raw_input = None
+            self.transformed_input = None
+            self.transformed_input_shape = None
+
+        def build(self, name, session, input_builder):
+            self.raw_input = input_builder.joint_input
+            self.transformed_input_shape = input_builder.joint_shape
+            self.transformed_input = self.raw_input
+            if self.input_noise_stddev is not None:
+                self.transformed_input = GaussianNoiseLayer(name, session,
+                    input_builder.joint_shape, self.input_noise_stddev,
+                    self.transformed_input)
+        
+        def data_dictionary(self):
+            return {
+                'input_noise_stddev': self.input_noise_stddev,
+                'transformed_input_shape': self.transformed_input_shape
+            }
 
     class NetworkBuilder:
         pass
