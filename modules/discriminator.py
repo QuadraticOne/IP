@@ -1,4 +1,6 @@
 import tensorflow as tf
+from wise.networks.deterministic.feedforwardnetwork import FeedforwardNetwork
+from wise.networks.stochastic.gaussianweightsnetwork import GaussianWeightsNetwork
 from wise.networks.stochastic.noise import GaussianNoiseLayer
 from wise.networks.network import Network
 from wise.networks.activation import Activation
@@ -18,7 +20,7 @@ class LearnedObjectiveFunction(Network):
         Create a Learned Objective Function from several parameters
         describing how it is constructed.
         """
-        super().__init__(name, session, save_location)
+        Network.__init__(self, name, session, save_location)
 
         self.environment = environment
         self.input_node = None
@@ -41,6 +43,8 @@ class LearnedObjectiveFunction(Network):
         self.input_builder.build(self.name, self.get_session(), self.environment)
         self.transformed_input_builder.build(self.name, self.get_session(),
             self.input_builder)
+        self.network_builder.build(self.name, self.get_session(),
+            self.transformed_input_builder)
 
     def data_dictionary(self):
         """
@@ -50,7 +54,8 @@ class LearnedObjectiveFunction(Network):
         """
         return {
             'input': self.input_builder.data_dictionary(),
-            'input_transform': self.transformed_input_builder.data_dictionary()
+            'input_transform': self.transformed_input_builder.data_dictionary(),
+            'network': self.network_builder.data_dictionary()
         }
 
     class InputBuilder:
@@ -100,8 +105,8 @@ class LearnedObjectiveFunction(Network):
             self.transformed_input_shape = input_builder.joint_shape
             self.transformed_input = self.raw_input
             if self.input_noise_stddev is not None:
-                self.transformed_input = GaussianNoiseLayer(name, session,
-                    input_builder.joint_shape, self.input_noise_stddev,
+                self.transformed_input = GaussianNoiseLayer(name + '.gaussian_noise',
+                    session, input_builder.joint_shape, self.input_noise_stddev,
                     self.transformed_input)
         
         def data_dictionary(self):
@@ -111,7 +116,36 @@ class LearnedObjectiveFunction(Network):
             }
 
     class NetworkBuilder:
-        pass
+        def __init__(self, hidden_layer_shapes, batch_normalisation=False,
+                bayesian=False, activations=Activation.all(Activation.DEFAULT)):
+            self.hidden_layer_shapes = hidden_layer_shapes
+            self.batch_normalisation = batch_normalisation
+            self.bayesian = bayesian
+            self.activations = activations
+
+            self.network = None
+            self.output_node = None
+            self.output_shape = None
+
+        def build(self, name, session, transformed_input_builder):
+            network_constructor = GaussianWeightsNetwork \
+                if self.bayesian else FeedforwardNetwork
+            self.network = network_constructor(name + '.network', session,
+                transformed_input_builder.transformed_input_shape,
+                [[s] for s in self.hidden_layer_shapes] + [[1]],
+                activations=self.activations,
+                input_node=transformed_input_builder.transformed_input.output_node,
+                batch_normalisation=self.batch_normalisation)
+            self.output_node = self.network.output_node
+            self.output_shape = self.network.output_shape
+
+        def data_dictionary(self):
+            return {
+                'hidden_layer_shapes': self.hidden_layer_shapes,
+                'batch_normalisation': self.batch_normalisation,
+                'bayesian_network': self.bayesian
+                # TODO: represent activations in JSON
+            }
 
     class RegularisationBuilder:
         pass
