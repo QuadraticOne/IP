@@ -1,6 +1,7 @@
 import tensorflow as tf
 from wise.networks.stochastic.noise import GaussianNoiseLayer
 from wise.networks.network import Network
+from wise.util.tensors import placeholder_node
 
 
 class LearnedObjectiveFunction(Network):
@@ -9,95 +10,83 @@ class LearnedObjectiveFunction(Network):
     the objective function of a problem space.
     """
 
-    def __init__(self,
-            name,
-            session,
-            environment,
-            network_function,
-            training_sampler,
-            test_sampler=None,
-            input_noise_stddev=None,
-            save_location=None,
-            ):
+    def __init__(self, name, session, environment, transformed_input_builder,
+            network_builder, regularisation_builder, error_builder,
+            loss_builder, data_builder, save_location=None):
         """
-        Create a Learned Objective Function from the given parameters.  The
-        network function should be a function which takes a name, session,
-        input node shape, and an input node, and returns a MLP.
+        Create a Learned Objective Function from several parameters
+        describing how it is constructed.
         """
-        # Network parameters
         super().__init__(name, session, save_location)
-        self.network_function = network_function
-        self.network = None
 
-        # Environment
         self.environment = environment
+        self.input_node = None
 
-        # Data
-        self.training_sampler = training_sampler
-        self.test_sampler = test_sampler
+        # Builders
+        self.input_builder = LearnedObjectiveFunction.InputBuilder()
+        self.transformed_input_builder = transformed_input_builder
+        self.network_builder = network_builder
+        self.regularisation_builder = regularisation_builder
+        self.error_builder = error_builder
+        self.loss_builder = loss_builder
+        self.data_builder = data_builder
 
-        # Training
-        self.loss_node = None
-        self.metrics = None
+        self._initialise()
 
-        # Training settings
-        self.input_noise_stddev = input_noise_stddev
-
-        # Input nodes
-        self.input_placeholder = self._make_input_placeholder()
-        self.transformed_input = self._make_transformed_input()
-
-        # Network initialisation
-        self.network = self.network_function(self.name, self.get_session(),
-            self._get_input_shapes()[2], self.transformed_input)
-        self.output_node = self.network.output_node
-
-    def _make_input_placeholder(self):
+    def _initialise(self):
         """
-        () -> tf.Placeholder
-        Create an input node which takes a representation of the environment's
-        constraint and solution and feeds it into a tensorflow graph.
+        () -> ()
         """
-        constraint_shape, solution_shape, joint_shape = self._get_input_shapes()
-        constraint_input = placeholder_node('constraint_input',
-            constraint_shape, 1)
-        solution_input = placeholder_node('solution_input',
-            solution_shape, 1)
-        joint_input = tf.concat([constraint_input, solution_input], 1)
-        return joint_input
+        self.input_builder.build(self.name, self.get_session(), self.environment)
 
-    def _make_transformed_input(self):
-        """
-        () -> tf.Node
-        Assuming the input placeholder exists, perform any transformations
-        necessary (adding noise, etc.) and return the result.  If no transforms
-        are needed, the node is returned straight away.
-        """
-        transformed_input = self.input_placeholder
+    class InputBuilder:
+        def __init__(self):
+            self.constraint_shape = None
+            self.solution_shape = None
+            self.joint_shape = None
+            self.environment_type = None
 
-        # Transforms
-        if self.input_noise_stddev is not None:
-            _, _, input_shape = self._get_input_shapes()
-            transformed_input = GaussianNoiseLayer(self.extend_name('gaussian_input_noise'),
-                self.get_session(), input_shape, self.input_noise_stddev,
-                input_node=transformed_input)
+            self.constraint_input = None
+            self.solution_input = None
+            self.joint_input = None
 
-        return transformed_input
+        def build(self, name, session, environment):
+            self.constraint_shape = environment.constraint_shape()
+            self.solution_shape = environment.solution_shape()
+            self.joint_shape = self.constraint_shape[:]
+            self.joint_shape[0] += self.solution_shape[0]
 
-    def _get_input_shapes(self):
-        """
-        () -> ([Int])
-        Return the shape of the input to the constraint, solution, and then
-        to the network as a whole.
-        """
-        constraint_shape = self.environment.constraint_shape()
-        solution_shape = self.environment.solution_shape()
-        joint_shape = constraint_shape[:]
-        joint_shape[0] += solution_shape[0]
-        return constraint_shape, solution_shape, joint_shape
+            self.environment_type = environment.__name__
 
-    def get_variables(self):
-        """
-        () -> [tf.Variable]
-        """
-        return self.network.get_variables()
+            self.constraint_input = placeholder_node('constraint_input',
+                self.constraint_shape, 1)
+            self.solution_input = placeholder_node('solution_input',
+                self.solution_shape, 1)
+            self.joint_input = tf.concat([self.constraint_input,
+                self.solution_input], 1)
+
+        def data_dictionary(self):
+            return {
+                'constraint_shape': self.constraint_shape,
+                'solution_shape': self.solution_shape,
+                'joint_shape': self.joint_shape,
+                'environment_type': self.environment_type
+            }
+
+    class TransformedInputBuilder:
+        pass
+
+    class NetworkBuilder:
+        pass
+
+    class RegularisationBuilder:
+        pass
+
+    class ErrorBuilder:
+        pass
+
+    class LossBuilder:
+        pass
+
+    class DataBuilder:
+        pass
