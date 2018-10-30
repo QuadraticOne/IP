@@ -50,6 +50,8 @@ class LearnedObjectiveFunction(Network):
         self.regularisation_builder.build(self.name, self.get_session(),
             self.network_builder)
         self.error_builder.build(self.name, self.get_session(), self.network_builder)
+        self.loss_builder.build(self.name, self.get_session(),
+            self.regularisation_builder, self.error_builder)
 
     def data_dictionary(self):
         """
@@ -62,7 +64,8 @@ class LearnedObjectiveFunction(Network):
             'input_transform': self.transformed_input_builder.data_dictionary(),
             'network': self.network_builder.data_dictionary(),
             'regularisation': self.regularisation_builder.data_dictionary(),
-            'error': self.error_builder.data_dictionary()
+            'error': self.error_builder.data_dictionary(),
+            'loss': self.loss_builder.data_dictionary()
         }
 
     class InputBuilder:
@@ -223,7 +226,30 @@ class LearnedObjectiveFunction(Network):
             return active_metrics
 
     class LossBuilder:
-        pass
+        def __init__(self, regularisation_weight=1.0, error_weight=1.0):
+            self.regularisation_weight = regularisation_weight
+            self.error_weight = error_weight
+            self.total_weight = self.regularisation_weight + self.error_weight
+
+            self.loss_node = None
+            self._metrics = None
+
+        def build(self, name, session, regularisation_builder, error_builder):
+            self.loss_node = tf.divide(tf.reduce_sum([
+                self.regularisation_weight * regularisation_builder.output_node,
+                self.error_weight * error_builder.error_node
+            ]), self.total_weight, name=name + '.loss_node')
+            self._metrics = regularisation_builder.metrics() + error_builder.metrics()
+
+        def data_dictionary(self):
+            return {
+                'total_weight': self.total_weight,
+                'regularisation_weight': self.regularisation_weight,
+                'error_weight': self.error_weight
+            }
+
+        def metrics(self):
+            return self._metrics
 
     class DataBuilder:
         pass
