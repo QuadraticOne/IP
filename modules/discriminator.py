@@ -323,7 +323,13 @@ class LearnedObjectiveFunction(Network):
             size will cause examples to be cached and recycled.
             """
             if load_location is not None:
-                return self.root_io.restore_object(load_location)
+                return environment.environment_sampler(
+                    constraint_input=input_builder.constraint_input,
+                    solution_input=input_builder.solution_input,
+                    satisfaction_input=error_builder.target_node,
+                    sampler_transform=lambda _: DataSetSampler.restore(
+                        self.data_folder, load_location)
+                )
             else:
                 if set_size == -1:
                     return environment.environment_sampler(input_builder.constraint_input,
@@ -337,16 +343,16 @@ class LearnedObjectiveFunction(Network):
                             BinomialResampler.halves_on_last_element_head(s), set_size)
                     )
 
-        # TODO: work out how best to save Samplers
-        # def save_samplers(self, base_directory, training_save_location=None,
-        #         validation_save_location=None):
-        #     """
-        #     Save each of the samplers to a location as pickle files.  Each sampler
-        #     will only be saved if a file path, relative to the base directory, is
-        #     provided for it.
-        #     """
-        #     io = IO(base_directory, create_if_missing=True)
-        #     if training_save_location is not None:
-        #         io.save_object(self.training_set_sampler, training_save_location)
-        #     if validation_save_location is not None:
-        #         io.save_object(self.validation_set-sampler, validation_save_location)
+        def save_samplers(self, directory, training_save_file=None,
+                validation_save_file=None):
+            """
+            Save each of the samplers to a location as pickle files.  Each sampler
+            will only be saved if a file path, relative to the base directory, is
+            provided for it, and if it is not a procedural sampler.
+            """
+            if training_save_file is not None and not self.procedural_training_set:
+                self.training_set_sampler.sampler.save(
+                    directory, training_save_file)
+            if validation_save_file is not None and not self.procedural_validation_set:
+                self.validation_set_sampler.sampler.save(
+                    directory, validation_save_file)
