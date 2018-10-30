@@ -74,6 +74,25 @@ class LearnedObjectiveFunction(Network):
             'data': self.data_builder.data_dictionary()
         }
 
+    def get_variables(self):
+        """
+        () -> [tf.Variable]
+        """
+        return self.network_builder.network.get_variables()
+
+    def evaluate_on_sampler(self, sampler, batch_size):
+        """
+        Sampler -> Int -> [(String, Float)]
+        Evaluate each of the metrics exposed by the loss builder on a batch
+        from the given sampler, then return them paired with their name.
+        """
+        metrics = self.loss_builder.metrics()
+        outputs = self.feed([node for (name, node) in metrics],
+            sampler.batch(batch_size))
+        return {name: output for ((name, node), output) in zip(metrics, outputs)}
+
+    # Builders
+
     class InputBuilder:
         def __init__(self):
             self.constraint_shape = None
@@ -123,7 +142,7 @@ class LearnedObjectiveFunction(Network):
             if self.input_noise_stddev is not None:
                 self.transformed_input = GaussianNoiseLayer(name + '.gaussian_noise',
                     session, input_builder.joint_shape, self.input_noise_stddev,
-                    self.transformed_input)
+                    self.transformed_input).output_node
         
         def data_dictionary(self):
             return {
@@ -150,7 +169,7 @@ class LearnedObjectiveFunction(Network):
                 transformed_input_builder.transformed_input_shape,
                 [[s] for s in self.hidden_layer_shapes] + [[1]],
                 activations=self.activations,
-                input_node=transformed_input_builder.transformed_input.output_node,
+                input_node=transformed_input_builder.transformed_input,
                 batch_normalisation=self.batch_normalisation)
             self.output_node = self.network.output_node
             self.output_shape = self.network.output_shape
@@ -246,6 +265,7 @@ class LearnedObjectiveFunction(Network):
                 self.error_weight * error_builder.error_node
             ]), self.total_weight, name=name + '.loss_node')
             self._metrics = regularisation_builder.metrics() + error_builder.metrics()
+            self._metrics += [('total_loss', self.loss_node)]
 
         def data_dictionary(self):
             return {
@@ -255,6 +275,9 @@ class LearnedObjectiveFunction(Network):
             }
 
         def metrics(self):
+            """
+            () -> [(String, tf.Tensor)]
+            """
             return self._metrics
 
     class DataBuilder:
