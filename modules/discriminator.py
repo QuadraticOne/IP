@@ -5,8 +5,11 @@ from wise.networks.stochastic.noise import GaussianNoiseLayer
 from wise.networks.network import Network
 from wise.networks.activation import Activation
 from wise.training.regularisation import l2_regularisation
+from wise.training.samplers.dataset import DataSetSampler
+from wise.training.samplers.resampled import BinomialResampler
 from wise.util.tensors import placeholder_node
 from wise.util.training import classification_metrics, regression_metrics
+from wise.util.io import IO
 
 
 class LearnedObjectiveFunction(Network):
@@ -52,6 +55,8 @@ class LearnedObjectiveFunction(Network):
         self.error_builder.build(self.name, self.get_session(), self.network_builder)
         self.loss_builder.build(self.name, self.get_session(),
             self.regularisation_builder, self.error_builder)
+        self.data_builder.build(self.name, self.get_session(), self.input_builder,
+            self.error_builder, self.environment)
 
     def data_dictionary(self):
         """
@@ -65,7 +70,8 @@ class LearnedObjectiveFunction(Network):
             'network': self.network_builder.data_dictionary(),
             'regularisation': self.regularisation_builder.data_dictionary(),
             'error': self.error_builder.data_dictionary(),
-            'loss': self.loss_builder.data_dictionary()
+            'loss': self.loss_builder.data_dictionary(),
+            'data': self.data_builder.data_dictionary()
         }
 
     class InputBuilder:
@@ -87,9 +93,9 @@ class LearnedObjectiveFunction(Network):
 
             self.environment_type = environment.__name__
 
-            self.constraint_input = placeholder_node('constraint_input',
+            self.constraint_input = placeholder_node(name + '.constraint_input',
                 self.constraint_shape, 1)
-            self.solution_input = placeholder_node('solution_input',
+            self.solution_input = placeholder_node(name + '.solution_input',
                 self.solution_shape, 1)
             self.joint_input = tf.concat([self.constraint_input,
                 self.solution_input], 1)
@@ -252,4 +258,95 @@ class LearnedObjectiveFunction(Network):
             return self._metrics
 
     class DataBuilder:
-        pass
+        def __init__(self, data_folder=None, training_load_location=None,
+                training_set_size=-1, validation_load_location=None,
+                validation_set_size=-1):
+            """
+            String? -> Int? -> String? -> Int? -> DataBuilder
+            To load either set as a sampler from a pickle file, provide the path
+            to that file in the load location parameter, relative to a base data
+            folder.  If no load location is given for a set, a set will be
+            created.  A set size of -1 indicates that examples will be generated
+            procedurally.
+            """
+            self.data_folder = data_folder
+            self.training_load_location = training_load_location
+            self.training_set_size = training_set_size
+            self.validation_load_location = validation_load_location
+            self.validation_set_size = validation_set_size
+
+            self.root_io = IO(self.data_folder) if self.data_folder is not None else None
+
+            self.training_set_sampler = None
+            self.validation_set_sampler = None
+
+            self.loaded_training_set = None
+            self.loaded_validation_set = None
+            self.procedural_training_set = None
+            self.procedural_validation_set = None
+
+        def build(self, name, session, input_builder, error_builder, environment):
+            self.loaded_training_set = self.training_load_location is not None
+            self.loaded_validation_set = self.validation_load_location is not None
+
+            self.training_set_sampler = self._make_sampler(self.training_load_location,
+                self.training_set_size, input_builder, error_builder, environment)
+            self.validation_set_sampler = self._make_sampler(self.validation_load_location,
+                self.validation_set_size, input_builder, error_builder, environment)
+
+            self.procedural_training_set = not isinstance(
+                self.training_set_sampler.sampler, DataSetSampler)
+            self.procedural_validation_set = not isinstance(
+                self.validation_set_sampler.sampler, DataSetSampler)
+
+        def data_dictionary(self):
+            return {
+                'load_location_base': self.data_folder,
+                'training_load_path': self.training_load_location,
+                'validation_load_path': self.validation_load_location,
+                'training_set_size': self.training_set_size,
+                'validation_set_size': self.validation_set_size,
+                'training_set_was_loaded': self.loaded_training_set,
+                'validation_set_was_loaded': self.loaded_validation_set,
+                'training_set_was_procedural': self.procedural_training_set,
+                'validation_set_was_procedural': self.procedural_validation_set
+            }
+
+        def _make_sampler(self, load_location, set_size,
+                input_builder, error_builder, environment):
+            """
+            String? -> Int -> InputBuilder -> ErrorBuilder -> Environment
+                -> FeedDictSampler ([Float], [Float], [Float])
+            Create a sampler from the parameters given.  If no load location is
+            provided, a sampler will be made from newly generated data.  A set
+            size of -1 will produce a procedural sampler, while any other set
+            size will cause examples to be cached and recycled.
+            """
+            if load_location is not None:
+                return self.root_io.restore_object(load_location)
+            else:
+                if set_size == -1:
+                    return environment.environment_sampler(input_builder.constraint_input,
+                        input_builder.solution_input, error_builder.target_node)
+                else:
+                    return environment.environment_sampler(
+                        constraint_input=input_builder.constraint_input,
+                        solution_input=input_builder.solution_input,
+                        satisfaction_input=error_builder.target_node,
+                        sampler_transform=lambda s: DataSetSampler.from_sampler(
+                            BinomialResampler.halves_on_last_element_head(s), set_size)
+                    )
+
+        # TODO: work out how best to save Samplers
+        # def save_samplers(self, base_directory, training_save_location=None,
+        #         validation_save_location=None):
+        #     """
+        #     Save each of the samplers to a location as pickle files.  Each sampler
+        #     will only be saved if a file path, relative to the base directory, is
+        #     provided for it.
+        #     """
+        #     io = IO(base_directory, create_if_missing=True)
+        #     if training_save_location is not None:
+        #         io.save_object(self.training_set_sampler, training_save_location)
+        #     if validation_save_location is not None:
+        #         io.save_object(self.validation_set-sampler, validation_save_location)
