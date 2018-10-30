@@ -4,6 +4,7 @@ from wise.networks.stochastic.gaussianweightsnetwork import GaussianWeightsNetwo
 from wise.networks.stochastic.noise import GaussianNoiseLayer
 from wise.networks.network import Network
 from wise.networks.activation import Activation
+from wise.training.regularisation import l2_regularisation
 from wise.util.tensors import placeholder_node
 from wise.util.training import classification_metrics, regression_metrics
 
@@ -46,6 +47,8 @@ class LearnedObjectiveFunction(Network):
             self.input_builder)
         self.network_builder.build(self.name, self.get_session(),
             self.transformed_input_builder)
+        self.regularisation_builder.build(self.name, self.get_session(),
+            self.network_builder)
         self.error_builder.build(self.name, self.get_session(), self.network_builder)
 
     def data_dictionary(self):
@@ -58,6 +61,7 @@ class LearnedObjectiveFunction(Network):
             'input': self.input_builder.data_dictionary(),
             'input_transform': self.transformed_input_builder.data_dictionary(),
             'network': self.network_builder.data_dictionary(),
+            'regularisation': self.regularisation_builder.data_dictionary(),
             'error': self.error_builder.data_dictionary()
         }
 
@@ -152,7 +156,19 @@ class LearnedObjectiveFunction(Network):
             }
 
     class RegularisationBuilder:
-        pass
+        def __init__(self, l2_weight=None):
+            self.l2_weight = l2_weight
+
+            self.l2_node = None
+
+        def build(self, name, session, network_builder):
+            if self.l2_weight is not None:
+                self.l2_node = self.l2_weight * l2_regularisation(network_builder.network)
+
+        def data_dictionary(self):
+            return {
+                'l2_weight': self.l2_weight
+            }
 
     class ErrorBuilder:
         def __init__(self, classification=True):
