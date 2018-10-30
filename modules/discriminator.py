@@ -158,17 +158,36 @@ class LearnedObjectiveFunction(Network):
     class RegularisationBuilder:
         def __init__(self, l2_weight=None):
             self.l2_weight = l2_weight
+            self.total_weight = l2_weight
 
             self.l2_node = None
 
+            self.nodes = None
+            self.output_node = None
+
         def build(self, name, session, network_builder):
+            self.nodes = []
+
             if self.l2_weight is not None:
                 self.l2_node = self.l2_weight * l2_regularisation(network_builder.network)
+                self.nodes.append(self.l2_node)
+
+            self.output_node = tf.reduce_sum(self.nodes,
+                name=name + '.regularisation_loss') / self.total_weight
 
         def data_dictionary(self):
             return {
+                'total_weight': self.total_weight,
                 'l2_weight': self.l2_weight
             }
+
+        def metrics(self):
+            all_metrics = [
+                ('l2', self.l2_node)
+            ]
+            active_metrics = [(name, node) for (name, node) in all_metrics \
+                if node is not None]
+            return active_metrics
 
     class ErrorBuilder:
         def __init__(self, classification=True):
@@ -193,6 +212,15 @@ class LearnedObjectiveFunction(Network):
             return {
                 'classification': self.classification
             }
+
+        def metrics(self):
+            all_metrics = [
+                ('error', self.error_node),
+                ('accuracy', self.accuracy_node)
+            ]
+            active_metrics = [(name, node) for (name, node) in all_metrics \
+                if node is not None]
+            return active_metrics
 
     class LossBuilder:
         pass
