@@ -18,9 +18,9 @@ class LearnedObjectiveFunction(Network):
     the objective function of a problem space.
     """
 
-    def __init__(self, name, session, environment, transformed_input_builder,
-            network_builder, regularisation_builder, error_builder,
-            loss_builder, data_builder, save_location=None):
+    def __init__(self, name, session, environment, training_parameters,
+            transformed_input_builder, network_builder, regularisation_builder,
+            error_builder, loss_builder, data_builder, save_location=None):
         """
         Create a Learned Objective Function from several parameters
         describing how it is constructed.
@@ -29,6 +29,9 @@ class LearnedObjectiveFunction(Network):
 
         self.environment = environment
         self.input_node = None
+
+        # Parameters
+        self.training_parameters = training_parameters
 
         # Builders
         self.input_builder = LearnedObjectiveFunction.InputBuilder()
@@ -379,3 +382,12 @@ class LearnedObjectiveFunction(Network):
             if validation_save_file is not None and not self.procedural_validation_set:
                 self.validation_set_sampler.sampler.save(
                     directory, validation_save_file)
+
+    class TrainingParameters:
+        def __init__(self, epochs, steps_per_epoch, batch_size,
+                evaluation_sample_size=2048):
+            self.epochs = epochs
+            self.steps_per_epoch = steps_per_epoch
+            self.batch_size = batch_size
+
+            self.evaluation_sample_size = evaluation_sample_size
