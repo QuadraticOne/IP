@@ -7,8 +7,9 @@ from wise.networks.activation import Activation
 from wise.training.regularisation import l2_regularisation
 from wise.training.samplers.dataset import DataSetSampler
 from wise.training.samplers.resampled import BinomialResampler
+from wise.training.routines import fit
 from wise.util.tensors import placeholder_node
-from wise.util.training import classification_metrics, regression_metrics
+from wise.util.training import classification_metrics, regression_metrics, default_adam_optimiser
 from wise.util.io import IO
 
 
@@ -20,7 +21,8 @@ class LearnedObjectiveFunction(Network):
 
     def __init__(self, name, session, environment, training_parameters,
             transformed_input_builder, network_builder, regularisation_builder,
-            error_builder, loss_builder, data_builder, save_location=None):
+            error_builder, loss_builder, data_builder,
+            optimiser_builder, save_location=None):
         """
         Create a Learned Objective Function from several parameters
         describing how it is constructed.
@@ -41,6 +43,7 @@ class LearnedObjectiveFunction(Network):
         self.error_builder = error_builder
         self.loss_builder = loss_builder
         self.data_builder = data_builder
+        self.optimiser_builder = optimiser_builder
 
         self._initialise()
 
@@ -60,6 +63,8 @@ class LearnedObjectiveFunction(Network):
             self.regularisation_builder, self.error_builder)
         self.data_builder.build(self.name, self.get_session(), self.input_builder,
             self.error_builder, self.environment)
+        self.optimiser_builder.build(self.name, self.get_session(), self.network_builder,
+            self.loss_builder)
 
     def data_dictionary(self):
         """
@@ -74,7 +79,8 @@ class LearnedObjectiveFunction(Network):
             'regularisation': self.regularisation_builder.data_dictionary(),
             'error': self.error_builder.data_dictionary(),
             'loss': self.loss_builder.data_dictionary(),
-            'data': self.data_builder.data_dictionary()
+            'data': self.data_builder.data_dictionary(),
+            'optimiser': self.optimiser_builder.data_dictionary()
         }
 
     def get_variables(self):
@@ -92,7 +98,22 @@ class LearnedObjectiveFunction(Network):
         metrics = self.loss_builder.metrics()
         outputs = self.feed([node for (name, node) in metrics],
             sampler.batch(batch_size))
+        metrics.append(('sample_size', None))
+        outputs.append(batch_size)
         return {name: output for ((name, node), output) in zip(metrics, outputs)}
+
+    # Training & Experiments
+
+    def fit(self):
+        """
+        () -> ()
+        Run a number of epochs of training according to the parameters
+        in each of the builders.
+        """
+        fit(self.get_session(), self.optimiser_builder.optimiser_node,
+            self.data_builder.training_set_sampler, self.training_parameters.epochs,
+            self.training_parameters.steps_per_epoch, self.training_parameters.batch_size,
+            metrics=self.loss_builder.metrics())
 
     # Builders
 
@@ -383,6 +404,20 @@ class LearnedObjectiveFunction(Network):
                 self.validation_set_sampler.sampler.save(
                     directory, validation_save_file)
 
+    class OptimiserBuilder:
+        def __init__(self):
+            self.optimiser_node = None
+
+        def build(self, name, session, network_builder, loss_builder):
+            self.optimiser_node = default_adam_optimiser(loss_builder.loss_node,
+                name + '.optimiser', network_builder.network.get_variables())
+
+        def data_dictionary(self):
+            return {
+                'optimiser': 'adam',
+                'learning_rate': 0.001
+            }
+
     class TrainingParameters:
         def __init__(self, epochs, steps_per_epoch, batch_size,
                 evaluation_sample_size=2048):
@@ -391,3 +426,5 @@ class LearnedObjectiveFunction(Network):
             self.batch_size = batch_size
 
             self.evaluation_sample_size = evaluation_sample_size
+
+            self.optimiser_node = None
