@@ -8,12 +8,13 @@ from wise.training.regularisation import l2_regularisation
 from wise.training.samplers.dataset import DataSetSampler
 from wise.training.samplers.resampled import BinomialResampler
 from wise.training.routines import fit
+from wise.training.experiments.experiment import Experiment
 from wise.util.tensors import placeholder_node
 from wise.util.training import classification_metrics, regression_metrics, default_adam_optimiser
 from wise.util.io import IO
 
 
-class LearnedObjectiveFunction(Network):
+class LearnedObjectiveFunction(Network, Experiment):
     """
     A collection of functions used to train a neural network to approximate
     the objective function of a problem space.
@@ -28,6 +29,7 @@ class LearnedObjectiveFunction(Network):
         describing how it is constructed.
         """
         Network.__init__(self, name, session, save_location)
+        Experiment.__init__(self, 'data/experiments/', create_folder_if_missing=True)
 
         self.environment = environment
         self.input_node = None
@@ -114,6 +116,16 @@ class LearnedObjectiveFunction(Network):
             self.data_builder.training_set_sampler, self.training_parameters.epochs,
             self.training_parameters.steps_per_epoch, self.training_parameters.batch_size,
             metrics=self.loss_builder.metrics())
+
+    def run_experiment(self):
+        """
+        () -> Dict
+        Run an experiment and return a dictionary containing the results for
+        conversion to JSON.
+        """
+        return {
+            'test': 0
+        }
 
     # Builders
 
