@@ -250,7 +250,7 @@ class LearnedObjectiveFunction(Network, Experiment):
     class RegularisationBuilder:
         def __init__(self, l2_weight=None):
             self.l2_weight = l2_weight
-            self.total_weight = l2_weight
+            self.total_weight = l2_weight or 1.0
 
             self.l2_node = None
 
