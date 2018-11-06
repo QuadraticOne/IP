@@ -97,12 +97,16 @@ class LearnedObjectiveFunction(Network, Experiment):
         Evaluate each of the metrics exposed by the loss builder on a batch
         from the given sampler, then return them paired with their name.
         """
-        metrics = self.loss_builder.metrics()
-        outputs = self.feed([node for (name, node) in metrics],
-            sampler.batch(batch_size))
+        batch = sampler.batch(batch_size)
+
+        metrics = self.loss_builder.metrics()[:]
+        outputs = self.feed([node for (name, node) in metrics], batch)
         metrics.append(('sample_size', None))
         outputs.append(batch_size)
-        return {name: output for ((name, node), output) in zip(metrics, outputs)}
+        data = {name: output for ((name, node), output) in zip(metrics, outputs)}
+        for k, v in data.items():
+            data[k] = float(v)
+        return data
 
     # Training & Experiments
 
@@ -122,9 +126,33 @@ class LearnedObjectiveFunction(Network, Experiment):
         () -> Dict
         Run an experiment and return a dictionary containing the results for
         conversion to JSON.
-        """
+        """                
+        def evaluate_on_training_set():
+            return self.evaluate_on_sampler(self.data_builder.training_set_sampler,
+                self.training_parameters.evaluation_sample_size)
+
+        def evaluate_on_validation_set():
+            return self.evaluate_on_sampler(self.data_builder.validation_set_sampler,
+                self.training_parameters.evaluation_sample_size)
+
+        parameters = self.data_dictionary()
+        before_training_training = evaluate_on_training_set()
+        before_training_validation = evaluate_on_validation_set()
+        self.fit()
+        after_training_training = evaluate_on_training_set()
+        after_training_validation = evaluate_on_validation_set()
         return {
-            'test': 0
+            'parameters': parameters,
+            'network_evaluations': {
+                'before_training': {
+                    'training': before_training_training,
+                    'validation': before_training_validation
+                },
+                'after_training': {
+                    'training': after_training_training,
+                    'validation': after_training_validation
+                }
+            }
         }
 
     # Builders
