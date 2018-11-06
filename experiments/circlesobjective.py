@@ -119,6 +119,6 @@ def run():
         )
         for _ in range(repeats):
             objective_function.feed(tf.global_variables_initializer())
-            objective_function.log_experiment('circlesobjective/comination-{}'
+            objective_function.log_experiment('circlesobjective/combination-{}'
                 .format(i))
         i += 1
