@@ -8,16 +8,21 @@ training_parameters = [
 ]
 
 transformed_input_builders = [
-    LearnedObjectiveFunction.TransformedInputBuilder(None)
+    LearnedObjectiveFunction.TransformedInputBuilder(None),
+    LearnedObjectiveFunction.TransformedInputBuilder(0.02),
+    LearnedObjectiveFunction.TransformedInputBuilder(0.05)
 ]
 
 network_builders = [
-    LearnedObjectiveFunction.NetworkBuilder([8],
-        bayesian=False, batch_normalisation=False)
+    LearnedObjectiveFunction.NetworkBuilder([8, 8]),
+    LearnedObjectiveFunction.NetworkBuilder([8, 8], bayesian=True),
+    LearnedObjectiveFunction.NetworkBuilder([4]),
+    LearnedObjectiveFunction.NetworkBuilder([4], batch_normalisation=True)
 ]
 
 regularisation_builders = [
-    LearnedObjectiveFunction.RegularisationBuilder(l2_weight=None)
+    LearnedObjectiveFunction.RegularisationBuilder(l2_weight=None),
+    LearnedObjectiveFunction.RegularisationBuilder(l2_weight=1.0)
 ]
 
 error_builders = [
@@ -25,11 +30,14 @@ error_builders = [
 ]
 
 loss_builders = [
-    LearnedObjectiveFunction.LossBuilder()
+    LearnedObjectiveFunction.LossBuilder(),
+    LearnedObjectiveFunction.LossBuilder(regularisation_weight=2.0)
 ]
 
 data_builders = [
-    LearnedObjectiveFunction.DataBuilder()
+    LearnedObjectiveFunction.DataBuilder(),
+    LearnedObjectiveFunction.DataBuilder(training_set_size=64,
+        validation_set_size=2048)
 ]
 
 optimiser_builders = [
@@ -77,7 +85,6 @@ def iterate_tensor_shapes(shape):
                 current_index[i] = 0
             else:
                 break
-        print(indices[-1])
     return indices
 
 
@@ -94,13 +101,24 @@ def run():
     """
     i = 0
     parameter_combinations = combinations(builders)
+
+    n_combinations = len(parameter_combinations)
+    check = input('This experiment will run {} configurations.  Are you sure? (y/N) '
+        .format(n_combinations))
+    if check != 'y':
+        return None
+
+    repeats = int(input('Enter number of times to repeat each experiment: '))
+
     for pars in parameter_combinations:
+        tf.reset_default_graph()
         objective_function = LearnedObjectiveFunction(
             'circles_objective_function', tf.Session(), Circles,
             pars[0], pars[1], pars[2], pars[3], pars[4], pars[5],
             pars[6], pars[7]
         )
-        objective_function.feed(tf.global_variables_initializer())
-        objective_function.log_experiment('circlesobjective/comination-{}'
-            .format(i))
+        for _ in range(repeats):
+            objective_function.feed(tf.global_variables_initializer())
+            objective_function.log_experiment('circlesobjective/comination-{}'
+                .format(i))
         i += 1
