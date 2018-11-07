@@ -4,13 +4,15 @@ import tensorflow as tf
 
 
 training_parameters = [
-    LearnedObjectiveFunction.TrainingParameters(100, 2000, 32)
+    LearnedObjectiveFunction.TrainingParameters(50, 2000, 32)
 ]
 
 transformed_input_builders = [
     LearnedObjectiveFunction.TransformedInputBuilder(None),
+    LearnedObjectiveFunction.TransformedInputBuilder(0.01),
     LearnedObjectiveFunction.TransformedInputBuilder(0.02),
-    LearnedObjectiveFunction.TransformedInputBuilder(0.05)
+    LearnedObjectiveFunction.TransformedInputBuilder(0.05),
+    LearnedObjectiveFunction.TransformedInputBuilder(0.1)
 ]
 
 network_builders = [
@@ -22,11 +24,13 @@ network_builders = [
 
 regularisation_builders = [
     LearnedObjectiveFunction.RegularisationBuilder(l2_weight=None),
+    LearnedObjectiveFunction.RegularisationBuilder(l2_weight=0.5),
     LearnedObjectiveFunction.RegularisationBuilder(l2_weight=1.0)
 ]
 
 error_builders = [
-    LearnedObjectiveFunction.ErrorBuilder(True)
+    LearnedObjectiveFunction.ErrorBuilder(True),
+    LearnedObjectiveFunction.ErrorBuilder(False)
 ]
 
 loss_builders = [
@@ -37,6 +41,8 @@ loss_builders = [
 data_builders = [
     LearnedObjectiveFunction.DataBuilder(),
     LearnedObjectiveFunction.DataBuilder(training_set_size=64,
+        validation_set_size=2048)
+    LearnedObjectiveFunction.DataBuilder(training_set_size=128,
         validation_set_size=2048)
 ]
 
