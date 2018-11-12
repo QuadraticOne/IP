@@ -41,7 +41,7 @@ loss_builders = [
 data_builders = [
     LearnedObjectiveFunction.DataBuilder(),
     LearnedObjectiveFunction.DataBuilder(training_set_size=64,
-        validation_set_size=2048)
+        validation_set_size=2048),
     LearnedObjectiveFunction.DataBuilder(training_set_size=128,
         validation_set_size=2048)
 ]
