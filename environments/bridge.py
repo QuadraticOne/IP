@@ -18,6 +18,8 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
     WIDTH = 20
     HEIGHT = 10
 
+    LOAD_PROPAGATION_FACTOR = 1.0
+
     def constraint_shape():
         """
         () -> [Int]
@@ -43,9 +45,26 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
     def _is_structurally_stable(solution):
         """
         [[Float]] -> Bool
-        Determines whether or not the given solution can hold its own weight.
+        Determines whether or not the given solution can hold its own weight
+        according to some set of rules.
         """
         pass
+
+    def _calculate_propagated_loads(source, targets):
+        """
+        Float -> [Float] -> [Float]
+        Calculate the amount of load that is propagated from the source block to the
+        target blocks, assuming that the amount of load transferred is equal to the
+        strength of the source block multiplied by the global load propagation
+        factor.
+        """
+        propagated_load = source * Bridge.LOAD_PROPAGATION_FACTOR
+        total_distribution_weight = sum(targets)
+        if total_distribution_weight == 0.0:
+            even_share = propagated_load / len(targets)
+            return [even_share] * len(targets)
+        return [propagated_load * (weight / total_distribution_weight) \
+            for weight in targets]
 
     def _avoids_disallowed_areas(solution, constraint):
         """
