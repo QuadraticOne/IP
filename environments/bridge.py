@@ -40,6 +40,27 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         """
         raise NotImplementedError()
 
+    def _is_structurally_stable(solution):
+        """
+        [[Float]] -> Bool
+        Determines whether or not the given solution can hold its own weight.
+        """
+        pass
+
+    def _avoids_disallowed_areas(solution, constraint):
+        """
+        [[Float]] -> [[Float]] -> Bool
+        Determine whether or not the given solution avoids areas that are disallowed
+        by the constraint.  The constraint consists of a limit on the strength of the
+        block in the corresponding slot in the solution: the strength of the block
+        must be less than or equal to its slot in the constraint.
+        """
+        for i in range(Bride.HEIGHT):
+            for j in range(Bridge.WIDTH):
+                if solution[i][j] > constraint[i][j]:
+                    return False
+        return True
+
     def environment_sampler(constraint_input='constraint', solution_input='solution',
             satisfaction_input='satisfaction', sampler_transform=identity):
         """
@@ -58,7 +79,7 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         Return the shape of images output by this environment with the given
         fidelity settings.
         """
-        return Bridge.constraint_shape()
+        return [2 * Bridge.HEIGHT, Bridge.WIDTH]
 
     def as_image(constraint, solution, fidelity=None):
         """
