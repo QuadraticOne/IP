@@ -1,5 +1,7 @@
 from environments.environment \
     import ContinuousEnvironment, DrawableEnvironment
+from maths.activations import identity
+from random import uniform
 
 
 class Bridge(ContinuousEnvironment, DrawableEnvironment):
@@ -15,9 +17,14 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
     Note that the pixels are stored as a list of rows.
     """
 
-    WIDTH = 20
-    HEIGHT = 10
+    WIDTH = 3
+    HEIGHT = 2
 
+    # Number of members to either side of a block which are able to support
+    # it, not including the one directly beneath it
+    SUPPORTING_MEMBERS = 1
+
+    SELF_LOAD_FACTOR = 0.25
     LOAD_PROPAGATION_FACTOR = 1.0
 
     def constraint_shape():
@@ -49,6 +56,35 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         according to some set of rules.
         """
         pass
+
+    def _create_load_map(solution):
+        """
+        [[Float]] -> [[Float]]
+        Calculate the load of each block.
+        """
+        loads = [[cell * Bridge.SELF_LOAD_FACTOR for cell in row] for row in solution]
+
+        for row in range(Bridge.HEIGHT - 1):
+            for column in range(Bridge.WIDTH):
+                supporting_indices, supporting_weights = \
+                    Bridge._get_supporting_indices_and_strengths(solution, row, column)
+                propagated_loads = Bridge._calculate_propagated_loads(
+                    solution[row][column], supporting_weights)
+                for index, additional_load in zip(supporting_indices, propagated_loads):
+                    loads[row + 1][index] += additional_load
+        
+        return loads
+                
+    def _get_supporting_indices_and_strengths(solution, row, column):
+        """
+        [[Float]] -> Int -> Int -> Range -> [Float]
+        Given a solution and a row and column specifying a block in the solution,
+        return a range of column indices and a list of their corresponding weights.
+        """
+        columns = range(max([0, column - Bridge.SUPPORTING_MEMBERS]),
+            min([column + Bridge.SUPPORTING_MEMBERS + 1, Bridge.WIDTH]))
+        weights = [solution[row + 1][c] for c in columns]
+        return columns, weights
 
     def _calculate_propagated_loads(source, targets):
         """
@@ -91,6 +127,15 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         sampler, before being extracted into a FeedDictSampler.
         """
         raise NotImplementedError()
+
+    def uniform_solution():
+        """
+        () -> [[Float]]
+        Return a solution whose weights are all sampled independently from a
+        uniform distribution on [0, 1).
+        """
+        return [[uniform(0, 1) for _ in range(Bridge.WIDTH)] \
+            for _ in range(Bridge.HEIGHT)]
 
     def image_shape(fidelity=None):
         """
