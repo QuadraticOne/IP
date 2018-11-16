@@ -55,7 +55,8 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         Determines whether or not the given solution can hold its own weight
         according to some set of rules.
         """
-        pass
+        return Bridge._elementwise_predicate(lambda s, l: s < l, solution,
+            Bridge._create_load_map(solution))
 
     def _create_load_map(solution):
         """
@@ -105,14 +106,22 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
     def _avoids_disallowed_areas(solution, constraint):
         """
         [[Float]] -> [[Float]] -> Bool
-        Determine whether or not the given solution avoids areas that are disallowed
-        by the constraint.  The constraint consists of a limit on the strength of the
-        block in the corresponding slot in the solution: the strength of the block
-        must be less than or equal to its slot in the constraint.
+        Determine whether the solution avoids the disallowed areas as specified
+        by the constraint.  Each block in the constraint gives the maximum strength
+        allowed in the corresponding block in the solution.
+        """
+        return Bridge._elementwise_predicate(lambda s, c: s < c, solution, constraint)
+
+    def _elementwise_predicate(predicate, solution, constraint):
+        """
+        (Float -> Float -> Bool) -> [[Float]] -> [[Float]] -> Bool
+        Determine whether or not the given solution and constraint satisfy the
+        predicate in all blocks, where the predicate is applied one by one to
+        each pair of corresponding blocks.
         """
         for i in range(Bride.HEIGHT):
             for j in range(Bridge.WIDTH):
-                if solution[i][j] > constraint[i][j]:
+                if not predicate(solution[i][j], constraint[i][j]):
                     return False
         return True
 
