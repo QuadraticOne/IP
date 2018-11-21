@@ -41,3 +41,7 @@ Irina Higgins et al
 11. Adam: A Method for Stochastic Optimisation  
 Diederik P Kingma, Jimmy Ba  
 `https://arxiv.org/abs/1412.6980`
+
+12. Neural Network Optimisation
+Renqian Luo et al
+`https://arxiv.org/pdf/1808.07233.pdf`
