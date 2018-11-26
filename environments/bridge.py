@@ -103,6 +103,14 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         return [propagated_load * (weight / total_distribution_weight) \
             for weight in targets]
 
+    def _within_allowed_ranges(solution, constraint):
+        """
+        [[Float]] -> [[(Float, Float)]] -> Bool
+        Determine whether or not every value in the solution is within its designated
+        range as specified by the constraint.
+        """
+        return Bridge._elementwise_predicate(lambda s, c: c[0] <= s <= c[1])
+
     def _avoids_disallowed_areas(solution, constraint):
         """
         [[Float]] -> [[Float]] -> Bool
