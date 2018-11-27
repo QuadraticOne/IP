@@ -18,18 +18,90 @@ class Circles(ContinuousEnvironment, DrawableEnvironment):
     The constraint is considered satisfied if it does not overlap with the
     solution at all.
     """
+    
+    def constraint_type():
+        """
+        () -> Class
+        Return the type of the class which stores constraint data.
+        """
+        return type([0.])
 
     def constraint_shape():
         """
         () -> [Int]
+        Return the shape of a valid constraint tensor.
         """
         return [3]
+
+    def constraint_representation(constraint):
+        """
+        Constraint -> Tensor
+        Return a tensor representation of the given constraint.  The type
+        of the constraint given must match the type returned by the
+        constraint_type function.
+        """
+        return constraint
+
+    @classmethod
+    def constraint_dimension(cls):
+        """
+        () -> Int
+        Return the dimensionality of this environments' constraints when
+        represented as a tensor.
+        """
+        return 3
+
+    @classmethod
+    def flatten_constraint(cls, constraint):
+        """
+        Constraint -> [Float]
+        Flatten the constraint from its tensor representation into a
+        rank-one vector.  It is recommended that this method is overriddn
+        to improve performance.
+        """
+        return constraint
+
+    def solution_type():
+        """
+        () -> Class
+        Return the type of the class which stores solution data.
+        """
+        return type([0.])
 
     def solution_shape():
         """
         () -> [Int]
+        Return the shape of a valid solution tensor.
         """
         return [3]
+
+    def solution_representation(solution):
+        """
+        Solution -> Tensor
+        Return a tensor representation of the given solution.  The type
+        of the constraint given must match the type returned by the
+        constraint_type function.
+        """
+        return solution
+
+    @classmethod
+    def solution_dimension(cls):
+        """
+        () -> Int
+        Return the dimensionality of this environments' solutions when
+        represented as a tensor.
+        """
+        return 3
+
+    @classmethod
+    def flatten_solution(cls, solution):
+        """
+        Solution -> [Float]
+        Flatten the solution from its tensor representation into a
+        rank-one vector.  It is recommended that this method is overriddn
+        to improve performance.
+        """
+        return solution
 
     def image_shape(fidelity=None):
         """

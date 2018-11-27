@@ -30,6 +30,7 @@ class ContinuousEnvironment:
         """
         raise NotImplementedError()
 
+    @classmethod
     def constraint_dimension(cls):
         """
         () -> Int
@@ -38,6 +39,7 @@ class ContinuousEnvironment:
         """
         return _product(cls.constraint_shape())
 
+    @classmethod
     def flatten_constraint(cls, constraint):
         """
         Constraint -> [Float]
@@ -70,6 +72,7 @@ class ContinuousEnvironment:
         """
         raise NotImplementedError()
 
+    @classmethod
     def solution_dimension(cls):
         """
         () -> Int
@@ -78,6 +81,7 @@ class ContinuousEnvironment:
         """
         return _product(cls.solution_shape())
 
+    @classmethod
     def flatten_solution(cls, solution):
         """
         Solution -> [Float]
