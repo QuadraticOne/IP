@@ -169,8 +169,8 @@ class LearnedObjectiveFunction(Network, Experiment):
             self.joint_input = None
 
         def build(self, name, session, environment):
-            self.constraint_shape = environment.constraint_shape()
-            self.solution_shape = environment.solution_shape()
+            self.constraint_shape = [environment.constraint_dimension()]
+            self.solution_shape = [environment.solution_dimension()]
             self.joint_shape = self.constraint_shape[:]
             self.joint_shape[0] += self.solution_shape[0]
 
@@ -410,7 +410,7 @@ class LearnedObjectiveFunction(Network, Experiment):
             size will cause examples to be cached and recycled.
             """
             if load_location is not None:
-                return environment.environment_sampler(
+                return environment.flattened_environment_representation_sampler(
                     constraint_input=input_builder.constraint_input,
                     solution_input=input_builder.solution_input,
                     satisfaction_input=error_builder.target_node,
@@ -419,10 +419,11 @@ class LearnedObjectiveFunction(Network, Experiment):
                 )
             else:
                 if set_size == -1:
-                    return environment.environment_sampler(input_builder.constraint_input,
-                        input_builder.solution_input, error_builder.target_node)
+                    return environment.flattened_environment_representation_sampler(
+                        input_builder.constraint_input, input_builder.solution_input,
+                        error_builder.target_node)
                 else:
-                    return environment.environment_sampler(
+                    return environment.flattened_environment_representation_sampler(
                         constraint_input=input_builder.constraint_input,
                         solution_input=input_builder.solution_input,
                         satisfaction_input=error_builder.target_node,
