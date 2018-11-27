@@ -1,4 +1,5 @@
 from maths.activations import identity
+from wise.training.samplers.mapped import MappedSampler
 
 
 class ContinuousEnvironment:
@@ -102,14 +103,53 @@ class ContinuousEnvironment:
     def environment_sampler(constraint_input='constraint', solution_input='solution',
             satisfaction_input='satisfaction', sampler_transform=identity):
         """
-        Object? -> Object? -> Object? -> (Sampler (Constraint, Solution, Bool) -> Sampler a)?
-            -> FeedDictSampler (Tensor, Tensor, [Float])
+        Object? -> Object? -> Object? -> (Sampler (Constraint, Solution, Bool)
+            -> Sampler a)? -> FeedDictSampler a
         Return a sampler that generates random constraint/solution pairs and
         matches them with the satisfaction of the constraint.  The raw sampler is
         mapped through a user-provided transform, optionally producing a mapped
         sampler, before being extracted into a FeedDictSampler.
         """
         raise NotImplementedError()
+
+    @classmethod
+    def environment_representation_sampler(cls, constraint_input='constraint',
+            solution_input='solution', satisfaction_input='satisfaction',
+            sampler_transform=identity):
+        """
+        Object? -> Object? -> Object? -> (Sampler (Tensor, Tensor, Bool) ->
+            Sampler a)? -> FeedDictSampler a
+        Return a sampler that generates random constraint/solution pairs and
+        matches their tensor representations with the satisfaction of the constraint.
+        The raw sampler is mapped through a user-provided transform, optionally
+        producing a mapped sampler, before being extracted into a FeedDictSampler.
+        """
+        def take_reps(constraint_solution_satisfaction):
+            con, sol, sat = constraint_solution_satisfaction
+            return cls.constraint_representation(con), cls.solution_representation(sol), sat
+
+        return cls.environment_sampler(constraint_input, solution_input,
+            satisfaction_input, lambda s: sampler_transform(MappedSampler(s, take_reps)))
+    
+    @classmethod
+    def flattened_environment_representation_sampler(cls, constraint_input='constraint',
+            solution_input='solution', satisfaction_input='satisfaction',
+            sampler_transform=identity):
+        """
+        Object? -> Object? -> Object? -> (Sampler ([Float], [Float], Bool)
+            -> Sampler a)? -> FeedDictSampler a
+        Return a sampler that generates random constraint/solution pairs and
+        matches their flattened representations with the satisfaction of the
+        constraint.  The raw sampler is mapped through a user-provided transform,
+        optionally producing a mapped sampler, before being extracted into a
+        FeedDictSampler.
+        """
+        def take_reps(constraint_solution_satisfaction):
+            con, sol, sat = constraint_solution_satisfaction
+            return cls.flatten_constraint(con), cls.flatten_solution(sol), sat
+
+        return cls.environment_sampler(constraint_input, solution_input,
+            satisfaction_input, lambda s: sampler_transform(MappedSampler(s, take_reps)))
 
 
 class DrawableEnvironment:
