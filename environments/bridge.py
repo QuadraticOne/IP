@@ -210,15 +210,6 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         """
         raise NotImplementedError()
 
-    def uniform_solution():
-        """
-        () -> [[Float]]
-        Return a solution whose weights are all sampled independently from a
-        uniform distribution on [0, 1).
-        """
-        return [[uniform(0, 1) for _ in range(Bridge.WIDTH)] \
-            for _ in range(Bridge.HEIGHT)]
-
     def image_shape(fidelity=None):
         """
         () -> [Int]
@@ -255,3 +246,77 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         a mapped sampler, before being extracted into a FeedDictSampler.
         """
         raise NotImplementedError()
+
+
+class BridgeFactory:
+    """
+    A collection of functions for creating training data for the
+    Bridge environment.
+    """
+
+    @staticmethod
+    def blank_constraint():
+        """
+        () -> [[[Float]]]
+        Return an empty constraint (one where the allowable range of each pixel
+        is [0, 1]).
+        """
+        return [[[0., 1.] for _ in range(Bridge.WIDTH)] for _ in range(Bridge.HEIGHT)]
+
+    @staticmethod
+    def set_lower_bound(constraint, lower_bound_on_index):
+        """
+        [[[Float]]] -> (Int -> Int -> Float?) -> [[[Float]]]
+        Set the lower bound of each pixel to a function of its index.  If
+        the function returns None, the lower bound of that pixel will not
+        be altered.  Rows are 0-indexed from top to bottom, and columns
+        are 0-indexed from left to right, in a list-of-rows configuration.
+        """
+        for row in range(Bridge.HEIGHT):
+            for column in range(Bridge.WIDTH):
+                x = lower_bound_on_index(row, column)
+                if x is not None:
+                    constraint[row][column][0] = x
+
+    @staticmethod
+    def set_upper_bound(constraint, upper_bound_on_index):
+        """
+        [[[Float]]] -> (Int -> Int -> Float?) -> [[[Float]]]
+        Set the upper bound of each pixel to a function of its index.  If
+        the function returns None, the upper bound of that pixel will not
+        be altered.  Rows are 0-indexed from top to bottom, and columns
+        are 0-indexed from left to right, in a list-of-rows configuration.
+        """
+        for row in range(Bridge.HEIGHT):
+            for column in range(Bridge.WIDTH):
+                x = upper_bound_on_index(row, column)
+                if x is not None:
+                    constraint[row][column][1] = x
+
+    @staticmethod
+    def solution_from_indices(cell_value_on_index):
+        """
+        (Int -> Int -> Float) -> [[Float]]
+        Return a solution whose pixels are a function of their index.
+        Rows are 0-indexed from top to bottom, and columns are 0-indexed from
+        left to right, in a list-of-rows configuration.
+        """
+        return [[cell_value_on_index(row, column) \
+            for column in range(Bridge.WIDTH)] for row in range(Bridge.HEIGHT)]
+
+    @staticmethod
+    def blank_solution():
+        """
+        () -> [[Float]]
+        Create a solution whose cells are all set to 0.
+        """
+        return BridgeFactory.solution_from_indices(lambda _1, _2: 0.)
+
+    @staticmethod
+    def uniform_solution():
+        """
+        () -> [[Float]]
+        Create a solution whose cells' strengths are sampled from a uniform
+        distribution.
+        """
+        return BridgeFactory.solution_from_indices(lambda _1, _2: uniform(0, 1))
