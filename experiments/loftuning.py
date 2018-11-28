@@ -145,8 +145,8 @@ def experiments_to_run():
     total = 0
     for options in builders:
         if len(options) > 1:
-            total += len(options) * REPEATS * N_SAMPLE_ARCHITECTURES
-    return total
+            total += len(options)
+    return total * REPEATS * N_SAMPLE_ARCHITECTURES
 
 
 def run():
