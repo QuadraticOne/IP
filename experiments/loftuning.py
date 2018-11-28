@@ -159,7 +159,8 @@ def run():
     architectures = get_sample_architectures(N_SAMPLE_ARCHITECTURES)
     architecture_index = 0
     for architecture in architectures:
-        print('--- RUNNING ARCHITECTURE {}/{}'.format(architecture_index + 1, n_experiments))
+        print('--- RUNNING ARCHITECTURE {}/{}'.format(
+            architecture_index + 1, N_SAMPLE_ARCHITECTURES))
 
         lof = build_objective_function(architecture)
         io = IO('data/experiments/loftuning/architectures/', create_if_missing=True)
