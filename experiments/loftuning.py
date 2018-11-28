@@ -162,7 +162,7 @@ def run():
         print('--- RUNNING ARCHITECTURE {}/{}'.format(architecture_index + 1, n_experiments))
 
         lof = build_objective_function(architecture)
-        io = IO('data/experiments/loftuning/architectures/')
+        io = IO('data/experiments/loftuning/architectures/', create_if_missing=True)
         io.save_json(lof.data_dictionary(), 'architecture-{}'.format(architecture_index))
 
         for builder_index in range(len(builders)):
