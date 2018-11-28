@@ -120,7 +120,8 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         Test whether the parameters of the given solution satisfy the parameters
         of the constraint.
         """
-        raise NotImplementedError()
+        return Bridge._is_structurally_stable(solution) and \
+            Bridge._within_allowed_ranges(constraint, solution)
 
     def _is_structurally_stable(solution):
         """
@@ -176,22 +177,13 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         return [propagated_load * (weight / total_distribution_weight) \
             for weight in targets]
 
-    def _within_allowed_ranges(solution, constraint):
+    def _within_allowed_ranges(constraint, solution):
         """
-        [[Float]] -> [[(Float, Float)]] -> Bool
+        [[[Float]]] -> [[Float]] -> Bool
         Determine whether or not every value in the solution is within its designated
         range as specified by the constraint.
         """
-        return Bridge._elementwise_predicate(lambda s, c: c[0] <= s <= c[1])
-
-    def _avoids_disallowed_areas(solution, constraint):
-        """
-        [[Float]] -> [[Float]] -> Bool
-        Determine whether the solution avoids the disallowed areas as specified
-        by the constraint.  Each block in the constraint gives the maximum strength
-        allowed in the corresponding block in the solution.
-        """
-        return Bridge._elementwise_predicate(lambda s, c: s < c, solution, constraint)
+        return Bridge._elementwise_predicate(lambda c, s: c[0] <= s <= c[1])
 
     def _elementwise_predicate(predicate, solution, constraint):
         """
@@ -243,7 +235,14 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         should be in the interval [0, 1], where 0 represents fully off and 1
         represents fully on.
         """
-        raise NotImplementedError()
+        output = []
+        for row in solution:
+            output.append(row)
+        for row in constraint:
+            output.append([cell[0] for cell in row])
+        for row in constraint:
+            output.append([cell[1] for cell in row])
+        return output
 
     def pixel_environment_sampler(pixels_input='pixels', satisfaction_input='satisfaction',
             fidelity=None, sampler_transform=identity):
