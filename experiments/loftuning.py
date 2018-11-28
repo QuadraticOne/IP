@@ -8,8 +8,10 @@ import tensorflow as tf
 
 # Number of different random architectures to test
 N_SAMPLE_ARCHITECTURES = 10
+
 # Number of times to repeat each experiment
 REPEATS = 3
+
 # Name of the folder insider `loftuning/` in which the run will be saved
 EXPERIMENT_ID = 'initial'
 
@@ -113,6 +115,8 @@ def vary(builder_index, architecture, repeats, subfolder):
     end with a file path separator.
     """
     options = builders[builder_index]
+    if len(options) <= 1:  # No need to run experiments if there is only one option
+        return None
     option_index = 0
     for option in options:
         varied_architecture = list_with(architecture, builder_index, option)
