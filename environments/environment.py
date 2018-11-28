@@ -166,7 +166,7 @@ class DrawableEnvironment:
         """
         return type([[0.]])
 
-    def image_shape(fidelity=None):
+    def image_shape():
         """
         () -> [Int]
         Return the shape of images output by this environment with the given
@@ -174,21 +174,41 @@ class DrawableEnvironment:
         """
         raise NotImplementedError()
 
-    def as_image(constraint, solution, fidelity=None):
+    @classmethod
+    def image_dimension(cls):
         """
-        [Float] -> [Float] -> Object? -> [[Float]]
+        () -> Int
+        Return the number of pixels in the image.
+        """
+        return _product(cls.image_shape)
+
+    def as_image(constraint, solution):
+        """
+        Constraint -> Solution -> [[Float]]
         Produce a greyscale image of the environment from the given environment
-        parameters, and optionally some measure of fidelity.  Pixel values
-        should be in the interval [0, 1], where 0 represents fully off and 1
-        represents fully on.
+        parameters.  Pixel values should be in the interval [0, 1], where 0
+        represents fully off and 1 represents fully on.
         """
         raise NotImplementedError()
 
-    def pixel_environment_sampler(pixels_input='pixels', satisfaction_input='satisfaction',
-            fidelity=None, sampler_transform=identity):
+    @classmethod
+    def as_flattened_image(cls, constraint, solution):
         """
-        Object? -> Object? -> Object? -> (Sampler a -> Sampler a)?
-            -> FeedDictSampler ([[Float]], [Float])
+        Constraint -> Solution -> [Float]
+        Convert the constraint and solution into an image, then flatten it
+        into a rank-one tensor.
+        """
+        image = cls.as_image(constraint, solution)
+        output = []
+        for row in image:
+            output += row
+        return output
+
+    def pixel_environment_sampler(pixels_input='pixels', satisfaction_input='satisfaction',
+            sampler_transform=identity):
+        """
+        Object? -> Object? -> (Sampler ([[Float]] [Float]) -> Sampler a)?
+            -> FeedDictSampler a
         Sample from the space of environments, returning them as the output of
         a FeedDictSampler in pixel format, grouped with their satisfaction.
         The raw sampler is mapped through a user-provided transform, optionally producing
