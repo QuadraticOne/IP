@@ -10,6 +10,8 @@ import tensorflow as tf
 N_SAMPLE_ARCHITECTURES = 10
 # Number of times to repeat each experiment
 REPEATS = 3
+# Name of the folder insider `loftuning/` in which the run will be saved
+EXPERIMENT_ID = 'initial'
 
 
 training_parameters = [
@@ -117,8 +119,8 @@ def vary(builder_index, architecture, repeats, subfolder):
         lof = build_objective_function(varied_architecture)
         for repeat_index in range(repeats):
             lof.feed(tf.global_variables_initializer())
-            lof.log_experiment('loftuning/results/{}/option-{}-repeat-{}'.format(
-                subfolder, option_index, repeat_index))
+            lof.log_experiment('loftuning/{}/results/{}/option-{}-repeat-{}'.format(
+                EXPERIMENT_ID, subfolder, option_index, repeat_index))
         option_index += 1
 
 
@@ -163,7 +165,8 @@ def run():
             architecture_index + 1, N_SAMPLE_ARCHITECTURES))
 
         lof = build_objective_function(architecture)
-        io = IO('data/experiments/loftuning/architectures/', create_if_missing=True)
+        io = IO('data/experiments/loftuning/{}/architectures/'.format(EXPERIMENT_ID),
+            create_if_missing=True)
         io.save_json(lof.data_dictionary(), 'architecture-{}'.format(architecture_index))
 
         for builder_index in range(len(builders)):
