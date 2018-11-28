@@ -117,10 +117,9 @@ def vary(builder_index, architecture, repeats, subfolder):
     for option in options:
         varied_architecture = list_with(architecture, builder_index, option)
         lof = build_objective_function(varied_architecture)
-        for repeat_index in range(repeats):
-            lof.feed(tf.global_variables_initializer())
-            lof.log_experiment('loftuning/{}/results/{}/option-{}-repeat-{}'.format(
-                EXPERIMENT_ID, subfolder, option_index, repeat_index))
+        lof.log_experiments('loftuning/{}/results/{}/option-{}'.format(
+            EXPERIMENT_ID, subfolder, option_index), repeats,
+            reset=lambda: lof.feed(tf.global_variables_initializer()))
         option_index += 1
 
 
@@ -153,8 +152,8 @@ def run():
     experiments on a number of LOFs while varying only that builder.
     """
     n_experiments = experiments_to_run()
-    check = input('This experiment will run {} configurations.  Are you sure? (y/N) '
-        .format(n_experiments))
+    check = input('This experiment will run {} configurations, saved in loftuning/{}/.  '
+        .format(n_experiments, EXPERIMENT_ID) + 'Are you sure? (y/N) ')
     if check != 'y':
         return None
 
