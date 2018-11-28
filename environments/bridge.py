@@ -27,19 +27,92 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
     SELF_LOAD_FACTOR = 0.25
     LOAD_PROPAGATION_FACTOR = 1.0
 
+    def constraint_type():
+        """
+        () -> Class
+        Return the type of the class which stores constraint data.
+        """
+        return type([[[0.]]])
+
     def constraint_shape():
         """
         () -> [Int]
         Return the shape of a valid constraint tensor.
         """
-        return [Bridge.HEIGHT, Bridge.WIDTH]
+        return [Bridge.HEIGHT, Bridge.WIDTH, 2]
+
+    def constraint_representation(constraint):
+        """
+        Constraint -> Tensor
+        Return a tensor representation of the given constraint.  The type
+        of the constraint given must match the type returned by the
+        constraint_type function.
+        """
+        return constraint
+
+    @classmethod
+    def constraint_dimension(cls):
+        """
+        () -> Int
+        Return the dimensionality of this environments' constraints when
+        represented as a tensor.
+        """
+        return Bridge.HEIGHT * Bridge.WIDTH * 2
+
+    @classmethod
+    def flatten_constraint(cls, constraint):
+        """
+        Constraint -> [Float]
+        Flatten the constraint from its tensor representation into a
+        rank-one vector.  It is recommended that this method is overriddn
+        to improve performance.
+        """
+        return _flatten_tensor(cls.constraint_representation(constraint))
+
+    def solution_type():
+        """
+        () -> Class
+        Return the type of the class which stores solution data.
+        """
+        return type([[0.]])
 
     def solution_shape():
         """
         () -> [Int]
         Return the shape of a valid solution tensor.
         """
-        return Bridge.constraint_shape()
+        return [Bridge.HEIGHT, Bridge.WIDTH]
+
+    def solution_representation(solution):
+        """
+        Solution -> Tensor
+        Return a tensor representation of the given solution.  The type
+        of the constraint given must match the type returned by the
+        constraint_type function.
+        """
+        return solution
+
+    @classmethod
+    def solution_dimension(cls):
+        """
+        () -> Int
+        Return the dimensionality of this environments' solutions when
+        represented as a tensor.
+        """
+        return Bridge.HEIGHT * Bridge.WIDTH
+
+    @classmethod
+    def flatten_solution(cls, solution):
+        """
+        Solution -> [Float]
+        Flatten the solution from its tensor representation into a
+        rank-one vector.  It is recommended that this method is overriddn
+        to improve performance.
+        """
+        output = []
+        for row in solution:
+            output += row
+        return output
 
     def solve(constraint, solution):
         """
