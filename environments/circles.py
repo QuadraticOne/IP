@@ -18,6 +18,10 @@ class Circles(ContinuousEnvironment, DrawableEnvironment):
     The constraint is considered satisfied if it does not overlap with the
     solution at all.
     """
+
+    # Number of pixels along each edge of the environment when
+    # presented as an image
+    PIXELS = 10
     
     def constraint_type():
         """
@@ -121,25 +125,6 @@ class Circles(ContinuousEnvironment, DrawableEnvironment):
         sol_x, sol_y, sol_r = solution[0], solution[1], solution[2]
         return _distance(cons_x, cons_y, sol_x, sol_y) < cons_r + sol_r
 
-    def as_image(constraint, solution, fidelity=10):
-        """
-        [Float] -> [Float] -> Int? -> [[Float]]
-        Produce an image with fidelity^2 pixels describing the environment.
-        Pixels with a value of 1 lie within one of the two circles; pixels with
-        a value of 0 lie outside the circles.
-        """
-        cons_x, cons_y, cons_r = constraint[0], constraint[1], constraint[2]
-        sol_x, sol_y, sol_r = solution[0], solution[1], solution[2]
-        steps = linspace(-1, 1, fidelity)
-        reversed_steps = steps[::-1]
-        def inside_circle(x, y):
-            return _distance(x, y, cons_x, cons_y) < cons_r \
-                or _distance(x, y, sol_x, sol_y) < sol_r
-        return [
-            [1. if inside_circle(x, y) else 0. for x in steps] \
-                for y in reversed_steps
-        ]
-
     def environment_sampler(constraint_input='constraint',
             solution_input='solution', satisfaction_input='satisfaction',
             sampler_transform=BinomialResampler.halves_on_last_element_head):
@@ -156,18 +141,45 @@ class Circles(ContinuousEnvironment, DrawableEnvironment):
             satisfaction_input: lambda t: t[2]
         })
 
+    def image_shape():
+        """
+        () -> [Int]
+        Return the shape of images output by this environment with the given
+        fidelity settings.
+        """
+        return [Circles.PIXELS, Circles.PIXELS]
+
+    def as_image(constraint, solution, fidelity=10):
+        """
+        Constraint -> Solution -> [[Float]]
+        Produce an image with PIXELS^2 pixels describing the environment.
+        Pixels with a value of 1 lie within one of the two circles; pixels with
+        a value of 0 lie outside the circles.
+        """
+        cons_x, cons_y, cons_r = constraint[0], constraint[1], constraint[2]
+        sol_x, sol_y, sol_r = solution[0], solution[1], solution[2]
+        steps = linspace(-1, 1, Circles.PIXELS)
+        reversed_steps = steps[::-1]
+        def inside_circle(x, y):
+            return _distance(x, y, cons_x, cons_y) < cons_r \
+                or _distance(x, y, sol_x, sol_y) < sol_r
+        return [
+            [1. if inside_circle(x, y) else 0. for x in steps] \
+                for y in reversed_steps
+        ]
+
     def pixel_environment_sampler(pixels_input='pixels',
-            satisfaction_input='satisfaction', fidelity=10,
+            satisfaction_input='satisfaction',
             sampler_transform=BinomialResampler.halves_on_last_element_head):
         """
-        Object? -> Object? -> Int? -> (Sampler a -> Sampler a)?
-            -> FeedDictSampler ([[Float]], [Float])
+        Object? -> Object? -> (Sampler ([[Float]], [Float]) -> Sampler a)?
+            -> FeedDictSampler a
         Return a sampler that generates pixel representations of environments and
         puts them into a feed dict along with their satisfactions.
         """
         def generate_pixels():
             cons, sol, satisfied = Circles._make_environment()
-            pixels = Circles.as_image(cons, sol, fidelity)
+            pixels = Circles.as_image(cons, sol, Circles.PIXELS)
             return pixels, satisfied
         sampler = AnonymousSampler(single=generate_pixels)
         return FeedDictSampler(sampler_transform(sampler), {

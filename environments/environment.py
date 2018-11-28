@@ -207,7 +207,7 @@ class DrawableEnvironment:
     def pixel_environment_sampler(pixels_input='pixels', satisfaction_input='satisfaction',
             sampler_transform=identity):
         """
-        Object? -> Object? -> (Sampler ([[Float]] [Float]) -> Sampler a)?
+        Object? -> Object? -> (Sampler ([[Float]], [Float]) -> Sampler a)?
             -> FeedDictSampler a
         Sample from the space of environments, returning them as the output of
         a FeedDictSampler in pixel format, grouped with their satisfaction.
