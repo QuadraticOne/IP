@@ -2,6 +2,7 @@ from environments.circles import Circles
 from modules.discriminator import LearnedObjectiveFunction
 from random import choice
 from wise.util.io import IO
+from wise.training.experiments.analysis import ResultsFilter, map_on_dictionary_key
 from os.path import isfile
 import tensorflow as tf
 
@@ -176,3 +177,43 @@ def run():
             vary(builder_index, architecture, REPEATS, 'builder-{}/architecture-{}'
                 .format(builder_index, architecture_index))
         architecture_index += 1
+
+
+def analyse(experiment_id, save_figures=False):
+    """
+    String -> Bool? -> ()
+    Analyse the data by plotting the progression of each architecture as its
+    modules are varied across the different builder types.
+    """
+    pass
+
+
+def extract_builder_results(experiment_id, builder_id):
+    """
+    String -> Int -> (String, String, [[(Float, Float)]])
+    Analyse the data relating to the input module of an experiment, returning
+    data to plot validation accuracy against training accuracy for each
+    variation on the architectures used.
+
+    The series is returned as a tensor whose indices, in order, are: architecture
+    ID, builder option ID, 0 for training and 1 for validation.
+    """
+    series = []
+    for architecture_id in range(N_SAMPLE_ARCHITECTURES):
+        path = 'data/experiments/loftuning/{}/results/builder-{}/architecture-{}' \
+            .format(experiment_id, builder_id, architecture_id)
+        results = ResultsFilter(path, False)
+        key = 'data.results.network_evaluations.after_training.{}.accuracy'
+        series.append(results.extract_results([
+            map_on_dictionary_key(key.format('training'), lambda x: x),
+            map_on_dictionary_key(key.format('validation'), lambda x: x)
+        ]))
+
+    def mean(ls):
+        return sum(ls) / len(ls)
+
+    # TODO: revert the order of the last two indices
+    series = list(map(lambda option_data: list(map(lambda results:
+        (mean(results[0]), mean(results[1])), option_data)), series))
+
+    return 'Training Accuracy', 'Validation Accuracy', series
