@@ -180,6 +180,34 @@ def run():
         architecture_index += 1
 
 
+def plot_builder_results_separate(experiment_id, builder_id, x_label, y_label,
+        save_location=None):
+    """
+    String -> Int -> String -> String -> String? -> ()
+    Extract the mean validation and training accuracies for each option and
+    architecture tested for a specific builder, then plot each architecture's
+    validation accuracy against training accuracy on separate plots for each
+    option tried.
+    
+    If a save location is provided, the plot will be saved at the given
+    location instead of being displayed.  The saved location should contain
+    a placeholder, '{}', that will be replaced with the option index.
+    """
+    _, _, results = extract_builder_results(experiment_id, builder_id)
+    for option_index in range(len(results[0][0])):
+        for architecture in results:
+            plt.plot(architecture[0][option_index],
+                architecture[1][option_index], 'o')
+        plt.xlabel(x_label)
+        plt.ylabel(y_label)
+        plt.xlim(0.5, 1)
+        plt.ylim(0.5, 1)
+        if save_location is None:
+            plt.show()
+        else:
+            plt.savefig(save_location.format(option_index))
+
+
 def plot_builder_results_joined(experiment_id, builder_id, x_label, y_label,
         restrict_axes=False, save_location=None):
     """
@@ -190,7 +218,7 @@ def plot_builder_results_joined(experiment_id, builder_id, x_label, y_label,
     accuracy.
     
     If `restrict_axes` is set to True, both axes will be set to cover the
-    range (0, 1).  If a save location is provided, the plot will be saved
+    range (0.5, 1).  If a save location is provided, the plot will be saved
     at the given location instead of being displayed.
     """
     _, _, results = extract_builder_results(experiment_id, builder_id)
