@@ -5,6 +5,7 @@ from wise.util.io import IO
 from wise.training.experiments.analysis import ResultsFilter, map_on_dictionary_key
 from os.path import isfile
 import tensorflow as tf
+import matplotlib.pyplot as plt
 
 
 # Number of different random architectures to test
@@ -179,18 +180,36 @@ def run():
         architecture_index += 1
 
 
-def analyse(experiment_id, save_figures=False):
+def plot_builder_results_joined(experiment_id, builder_id, x_label, y_label,
+        restrict_axes=False, save_location=None):
     """
-    String -> Bool? -> ()
-    Analyse the data by plotting the progression of each architecture as its
-    modules are varied across the different builder types.
+    String -> Int -> String -> String -> Bool? -> String? -> ()
+    Extract the mean validation and training accuracies for each option and
+    architecture tested for a specific builder, then plot each architecture
+    as a different series on a plot of validation accuracy against training
+    accuracy.
+    
+    If `restrict_axes` is set to True, both axes will be set to cover the
+    range (0, 1).  If a save location is provided, the plot will be saved
+    at the given location instead of being displayed.
     """
-    pass
+    _, _, results = extract_builder_results(experiment_id, builder_id)
+    for architecture in results:
+        plt.plot(architecture[0], architecture[1])
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    if restrict_axes:
+        plt.xlim(0.5, 1)
+        plt.ylim(0.5, 1)
+    if save_location is None:
+        plt.show()
+    else:
+        plt.savefig(save_location)
 
 
 def extract_builder_results(experiment_id, builder_id):
     """
-    String -> Int -> (String, String, [[(Float, Float)]])
+    String -> Int -> (String, String, [[[Float]]])
     Analyse the data relating to the input module of an experiment, returning
     data to plot validation accuracy against training accuracy for each
     variation on the architectures used.
