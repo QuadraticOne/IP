@@ -212,8 +212,16 @@ def extract_builder_results(experiment_id, builder_id):
     def mean(ls):
         return sum(ls) / len(ls)
 
-    # TODO: revert the order of the last two indices
+    def transpose(m):
+        return [list(i) for i in zip(*m)]
+
+    # Replace series of repeats with the mean of each series
     series = list(map(lambda option_data: list(map(lambda results:
-        (mean(results[0]), mean(results[1])), option_data)), series))
+        [mean(results[0]), mean(results[1])], option_data)), series))
+
+    # Transpose each sub-tensor, reverting the last two indices so the list is
+    # indexed (architecture, training/validation, option) instead of
+    # (architecture, option, training/validation) for easier plotting
+    series = list(map(transpose, series))
 
     return 'Training Accuracy', 'Validation Accuracy', series
