@@ -189,8 +189,8 @@ def plot_builder_validation_vs_training(experiment_id, builder_id, joined=True,
     opposed to one plot with a line for each architecture.
     """
     key = 'data.results.network_evaluations.after_training.{}.accuracy'
-    training = key.format('training')
-    validation = key.format('validation')
+    training = map_on_dictionary_key(key.format('training'), lambda x: x)
+    validation = map_on_dictionary_key(key.format('validation'), lambda x: x)
 
     if joined:
         plot_builder_results_joined(experiment_id, builder_id, training,
@@ -211,15 +211,17 @@ def plot_input_builder_results(experiment_id, restrict_axes=False, save_location
     accuracy_key = 'data.results.network_evaluations.after_training.validation.accuracy'
     stddev_key = 'data.results.parameters.input_transform.input_noise_stddev'
 
-    plot_builder_results_joined(experiment_id, builder_id, stddev_key,
-        accuracy_key, 'Input noise standard deviation', 'Validation accuracy',
+    plot_builder_results_joined(experiment_id, builder_id, 
+        map_on_dictionary_key(stddev_key, lambda x: x or 0.0),
+        map_on_dictionary_key(accuracy_key, lambda x: x),
+        'Input noise standard deviation', 'Validation accuracy',
         restrict_axes=restrict_axes, save_location=save_location)
 
 
-def plot_builder_results_separate(experiment_id, builder_id, x_key, y_key,
+def plot_builder_results_separate(experiment_id, builder_id, x_extractor, y_extractor,
         x_label, y_label, save_location=None):
     """
-    String -> Int -> String -> String -> String -> String -> String? -> ()
+    String -> Int -> String -> (Dict -> a) -> (Dict -> b) -> String -> String? -> ()
     Extract two variables from the result dictionary for each option and
     architecture tested for a specific builder, then plot the value of each
     variable for each architecture on separate plots for each option tried.
@@ -228,7 +230,8 @@ def plot_builder_results_separate(experiment_id, builder_id, x_key, y_key,
     location instead of being displayed.  The saved location should contain
     a placeholder, '{}', that will be replaced with the option index.
     """
-    results = extract_builder_results(experiment_id, builder_id, x_key, y_key)
+    results = extract_builder_results(experiment_id,
+        builder_id, x_extractor, y_extractor)
     for option_index in range(len(results[0][0])):
         architecture_index = 0
         for architecture in results:
@@ -246,10 +249,10 @@ def plot_builder_results_separate(experiment_id, builder_id, x_key, y_key,
             plt.savefig(save_location.format(option_index))
 
 
-def plot_builder_results_joined(experiment_id, builder_id, x_key, y_key,
+def plot_builder_results_joined(experiment_id, builder_id, x_extractor, y_extractor,
         x_label, y_label, restrict_axes=False, save_location=None):
     """
-    String -> Int -> String -> String -> String
+    String -> Int -> (Dict -> a) -> (Dict -> b) -> String
         -> String -> Bool? -> String? -> ()
     Extract the values of two variables from the result dictionary of each
     option and architecture tested for a specific builder, then plot each
@@ -260,7 +263,8 @@ def plot_builder_results_joined(experiment_id, builder_id, x_key, y_key,
     range (0.5, 1).  If a save location is provided, the plot will be saved
     at the given location instead of being displayed.
     """
-    results = extract_builder_results(experiment_id, builder_id, x_key, y_key)
+    results = extract_builder_results(experiment_id,
+        builder_id, x_extractor, y_extractor)
     architecture_index = 0
     for architecture in results:
         plt.plot(architecture[0], architecture[1], label=str(architecture_index))
@@ -277,9 +281,9 @@ def plot_builder_results_joined(experiment_id, builder_id, x_key, y_key,
         plt.savefig(save_location)
 
 
-def extract_builder_results(experiment_id, builder_id, x_key, y_key):
+def extract_builder_results(experiment_id, builder_id, x_extractor, y_extractor):
     """
-    String -> Int -> String -> String -> [[[Float]]]
+    String -> Int -> (Dict -> a) -> (Dict -> b) -> [[[Float]]]
     Analyse the data relating to the input module of an experiment, returning
     data to plot the value indexed by the y key against that indexed by the x
     key for each variation on the architectures used.
@@ -292,10 +296,7 @@ def extract_builder_results(experiment_id, builder_id, x_key, y_key):
         path = 'data/experiments/loftuning/{}/results/builder-{}/architecture-{}' \
             .format(experiment_id, builder_id, architecture_id)
         results = ResultsFilter(path, False)
-        series.append(results.extract_results([
-            map_on_dictionary_key(x_key, lambda x: x),
-            map_on_dictionary_key(y_key, lambda x: x)
-        ]))
+        series.append(results.extract_results([x_extractor, y_extractor]))
 
     def mean(ls):
         try:
