@@ -218,6 +218,24 @@ def plot_input_builder_results(experiment_id, restrict_axes=False, save_location
         restrict_axes=restrict_axes, save_location=save_location)
 
 
+def plot_regularisation_builder_results(experiment_id,
+        restrict_axes=False, save_location=None):
+    """
+    String -> Bool? -> String? -> ()
+    Plot validation accuracy against regularisation weight for the regularisation
+    builder options tested.
+    """
+    builder_id = 3
+    accuracy_key = 'data.results.network_evaluations.after_training.validation.accuracy'
+    l2_key = 'data.results.parameters.regularisation.l2_weight'
+
+    plot_builder_results_joined(experiment_id, builder_id, 
+        map_on_dictionary_key(l2_key, lambda x: x or 0.0),
+        map_on_dictionary_key(accuracy_key, lambda x: x),
+        'L2 weight', 'Validation accuracy',
+        restrict_axes=restrict_axes, save_location=save_location)
+
+
 def plot_builder_results_separate(experiment_id, builder_id, x_extractor, y_extractor,
         x_label, y_label, save_location=None):
     """
