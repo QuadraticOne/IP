@@ -236,6 +236,23 @@ def plot_regularisation_builder_results(experiment_id,
         restrict_axes=restrict_axes, save_location=save_location)
 
 
+def plot_network_builder_results(experiment_id, restrict_axes=False, save_location=None):
+    """
+    String -> Bool? -> String? -> ()
+    Plot validation accuracy against the number of hidden nodes for the regularisation
+    builder options tested.
+    """
+    builder_id = 2
+    accuracy_key = 'data.results.network_evaluations.after_training.validation.accuracy'
+    shape_key = 'data.results.parameters.network.hidden_layer_shapes'
+
+    plot_builder_results_joined(experiment_id, builder_id, 
+        map_on_dictionary_key(shape_key, lambda x: sum(x), expect_list_at_leaf=True),
+        map_on_dictionary_key(accuracy_key, lambda x: x),
+        'Hidden nodes', 'Validation accuracy',
+        restrict_axes=restrict_axes, save_location=save_location)
+
+
 def plot_builder_results_separate(experiment_id, builder_id, x_extractor, y_extractor,
         x_label, y_label, save_location=None):
     """
