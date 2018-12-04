@@ -9,13 +9,13 @@ import matplotlib.pyplot as plt
 
 
 # Number of different random architectures to test
-N_SAMPLE_ARCHITECTURES = 10
+N_SAMPLE_ARCHITECTURES = 8
 
 # Number of times to repeat each experiment
-REPEATS = 3
+REPEATS = 5
 
 # Name of the folder insider `loftuning/` in which the run will be saved
-EXPERIMENT_ID = 'initial'
+EXPERIMENT_ID = 'bayesian_networks'
 
 
 training_parameters = [
@@ -24,23 +24,33 @@ training_parameters = [
 
 transformed_input_builders = [
     LearnedObjectiveFunction.TransformedInputBuilder(None),
+    LearnedObjectiveFunction.TransformedInputBuilder(0.001),
+    LearnedObjectiveFunction.TransformedInputBuilder(0.002),
+    LearnedObjectiveFunction.TransformedInputBuilder(0.005),
     LearnedObjectiveFunction.TransformedInputBuilder(0.01),
     LearnedObjectiveFunction.TransformedInputBuilder(0.02),
     LearnedObjectiveFunction.TransformedInputBuilder(0.05),
-    LearnedObjectiveFunction.TransformedInputBuilder(0.1)
+    LearnedObjectiveFunction.TransformedInputBuilder(0.1),
+    LearnedObjectiveFunction.TransformedInputBuilder(0.2)
 ]
 
+bayesian = True
 network_builders = [
-    LearnedObjectiveFunction.NetworkBuilder([8, 8]),
-    LearnedObjectiveFunction.NetworkBuilder([8, 8], bayesian=True),
-    LearnedObjectiveFunction.NetworkBuilder([4]),
-    LearnedObjectiveFunction.NetworkBuilder([4], bayesian=True)
+    LearnedObjectiveFunction.NetworkBuilder([1], bayesian=bayesian),
+    LearnedObjectiveFunction.NetworkBuilder([2], bayesian=bayesian),
+    LearnedObjectiveFunction.NetworkBuilder([4], bayesian=bayesian),
+    LearnedObjectiveFunction.NetworkBuilder([8], bayesian=bayesian),
+    LearnedObjectiveFunction.NetworkBuilder([16], bayesian=bayesian),
+    LearnedObjectiveFunction.NetworkBuilder([32], bayesian=bayesian),
 ]
 
 regularisation_builders = [
     LearnedObjectiveFunction.RegularisationBuilder(l2_weight=None),
+    LearnedObjectiveFunction.RegularisationBuilder(l2_weight=0.01),
+    LearnedObjectiveFunction.RegularisationBuilder(l2_weight=0.02),
     LearnedObjectiveFunction.RegularisationBuilder(l2_weight=0.05),
     LearnedObjectiveFunction.RegularisationBuilder(l2_weight=0.1),
+    LearnedObjectiveFunction.RegularisationBuilder(l2_weight=0.2),
     LearnedObjectiveFunction.RegularisationBuilder(l2_weight=0.5),
     LearnedObjectiveFunction.RegularisationBuilder(l2_weight=1.0)
 ]
@@ -72,6 +82,11 @@ builders = [
     data_builders,
     optimiser_builders
 ]
+
+N_VARIED_BUILDERS = 0
+for builder_options in builders:
+    if len(builder_options) > 1:
+        N_VARIED_BUILDERS += 1
 
 
 def get_sample_architectures(n):
@@ -107,26 +122,41 @@ def build_objective_function(pars):
     return objective_function
 
 
-def vary(builder_index, architecture, repeats, subfolder):
+def vary(builder_index, architecture, repeats, subfolder,
+        architecture_index, relative_builder_index):
     """
-    Int -> [Builder] -> Int -> String -> ()
+    Int -> [Builder] -> Int -> String -> Int -> Int -> Bool
     For the given architecture, cycle through the available builders for the
     slot referenced by the given index.  Run the experiment `repeats` times
     for each builder.  Save the experiments in the given subfolder of
     data/experiments/loftuning/results/.  The subfolder should not start or
     end with a file path separator.
+
+    The return value specifies whether or not the builder had more than
+    one option for testing.
     """
     options = builders[builder_index]
+
+    logger_string = 'Running experiment:' + \
+        '\n\t- architecture {}/{}' + \
+        '\n\t- builder      {}/{}' + \
+        '\n\t- option       {}/{}'
+    logger_string = logger_string.format('{}', N_SAMPLE_ARCHITECTURES,
+        '{}', N_VARIED_BUILDERS, '{}', len(options))
+
     if len(options) <= 1:  # No need to run experiments if there is only one option
-        return None
+        return False
     option_index = 0
     for option in options:
         varied_architecture = list_with(architecture, builder_index, option)
         lof = build_objective_function(varied_architecture)
+        print(logger_string.format(architecture_index + 1, relative_builder_index + 1,
+            option_index + 1))
         lof.log_experiments('loftuning/{}/results/{}/option-{}'.format(
             EXPERIMENT_ID, subfolder, option_index), repeats,
             reset=lambda: lof.feed(tf.global_variables_initializer()))
         option_index += 1
+    return True
 
 
 def list_with(ls, index, value):
@@ -174,9 +204,13 @@ def run():
             create_if_missing=True)
         io.save_json(lof.data_dictionary(), 'architecture-{}'.format(architecture_index))
 
+        relative_builder_index = 0
         for builder_index in range(len(builders)):
-            vary(builder_index, architecture, REPEATS, 'builder-{}/architecture-{}'
-                .format(builder_index, architecture_index))
+            tested = vary(builder_index, architecture, REPEATS, 'builder-{}/architecture-{}'
+                .format(builder_index, architecture_index),
+                architecture_index, relative_builder_index)
+            if tested:
+                relative_builder_index += 1
         architecture_index += 1
 
 

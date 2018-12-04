@@ -34,6 +34,9 @@ class LearnedObjectiveFunction(Network, Experiment):
         self.environment = environment
         self.input_node = None
 
+        # Logging
+        self.log_training = False
+
         # Parameters
         self.training_parameters = training_parameters
 
@@ -110,16 +113,17 @@ class LearnedObjectiveFunction(Network, Experiment):
 
     # Training & Experiments
 
-    def fit(self):
+    def fit(self, log=False):
         """
-        () -> ()
+        Bool? -> ()
         Run a number of epochs of training according to the parameters
         in each of the builders.
         """
+        metrics = self.loss_builder.metrics() if log else None
         fit(self.get_session(), self.optimiser_builder.optimiser_node,
             self.data_builder.training_set_sampler, self.training_parameters.epochs,
             self.training_parameters.steps_per_epoch, self.training_parameters.batch_size,
-            metrics=self.loss_builder.metrics())
+            metrics=metrics)
 
     def run_experiment(self):
         """
@@ -138,7 +142,7 @@ class LearnedObjectiveFunction(Network, Experiment):
         parameters = self.data_dictionary()
         before_training_training = evaluate_on_training_set()
         before_training_validation = evaluate_on_validation_set()
-        self.fit()
+        self.fit(self.log_training)
         after_training_training = evaluate_on_training_set()
         after_training_validation = evaluate_on_validation_set()
         return {
