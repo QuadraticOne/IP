@@ -1,5 +1,6 @@
 from maths.activations import identity
 from wise.training.samplers.mapped import MappedSampler
+import matplotlib.pyplot as plt
 
 
 class ContinuousEnvironment:
@@ -150,6 +151,15 @@ class ContinuousEnvironment:
 
         return cls.environment_sampler(constraint_input, solution_input,
             satisfaction_input, lambda s: sampler_transform(MappedSampler(s, take_reps)))
+
+    @staticmethod
+    def draw(image):
+        """
+        [[Float]] -> ()
+        Plot the given matrix as a greyscale image.
+        """
+        plt.imshow(image)
+        plt.show()
 
 
 class DrawableEnvironment:

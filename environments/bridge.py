@@ -17,8 +17,8 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
     Note that the pixels are stored as a list of rows.
     """
 
-    WIDTH = 3
-    HEIGHT = 2
+    WIDTH = 15
+    HEIGHT = 10
 
     # Number of members to either side of a block which are able to support
     # it, not including the one directly beneath it
@@ -183,7 +183,8 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         Determine whether or not every value in the solution is within its designated
         range as specified by the constraint.
         """
-        return Bridge._elementwise_predicate(lambda c, s: c[0] <= s <= c[1])
+        return Bridge._elementwise_predicate(lambda c, s: c[0] <= s <= c[1],
+            constraint, solution)
 
     def _elementwise_predicate(predicate, solution, constraint):
         """
@@ -192,7 +193,7 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         predicate in all blocks, where the predicate is applied one by one to
         each pair of corresponding blocks.
         """
-        for i in range(Bride.HEIGHT):
+        for i in range(Bridge.HEIGHT):
             for j in range(Bridge.WIDTH):
                 if not predicate(solution[i][j], constraint[i][j]):
                     return False
@@ -253,6 +254,8 @@ class BridgeFactory:
     A collection of functions for creating training data for the
     Bridge environment.
     """
+
+    EPS = 1e-3
 
     @staticmethod
     def blank_constraint():
@@ -320,3 +323,54 @@ class BridgeFactory:
         distribution.
         """
         return BridgeFactory.solution_from_indices(lambda _1, _2: uniform(0, 1))
+
+    @staticmethod
+    def set_inclusion_zone(constraint, is_in_zone, threshold):
+        """
+        [[[Float]]] -> (Int -> Int -> Bool) -> Float -> ()
+        Alter a constraint such that the minimum value of each cell in the
+        inclusion zone is the given threshold, and the maximum value is 1.
+        Whether or not a cell is in the inclusion zone is determined by passing
+        its coordinates (from the top left) to the `is_in_zone` lambda.
+        """
+        y = 0
+        for row in constraint:
+            x = 0
+            for column in row:
+                if is_in_zone(x, y):
+                    constraint[y][x] = [threshold, 1.]
+                x += 1
+            y += 1
+        
+    @staticmethod
+    def set_exclusion_zone(constraint, is_in_zone, threshold=EPS):
+        """
+        [[[Float]]] -> (Int -> Int -> Bool) -> Float? -> ()
+        Alter a constraint such that the maximum value of each cell in the
+        inclusion zone is the given threshold, and the minimum value is 0.
+        Whether or not a cell is in the exclusion zone is determined by passing
+        its coordinates (from the top left) to the `is_in_zone` lambda.
+        """
+        y = 0
+        for row in constraint:
+            x = 0
+            for column in row:
+                if is_in_zone(x, y):
+                    constraint[y][x] = [0., threshold]
+                x += 1
+            y += 1
+
+    @staticmethod
+    def map_to_allowable_range(constraint, solution):
+        """
+        [[[Float]]] -> [[Float]] -> ()
+        Alter the values of the solution such that they fall in the
+        allowable range of their cell by the same proportion that they
+        were previously between 0 and 1.
+        """
+        for row in range(Bridge.HEIGHT):
+            for column in range(Bridge.WIDTH):
+                min_value = constraint[row][column][0]
+                max_value = constraint[row][column][1]
+                solution[row][column] = min_value + \
+                    (max_value - min_value) * solution[row][column]
