@@ -180,24 +180,62 @@ def run():
         architecture_index += 1
 
 
-def plot_builder_results_separate(experiment_id, builder_id, x_label, y_label,
-        save_location=None):
+def plot_builder_validation_vs_training(experiment_id, builder_id, joined=True,
+        restrict_axes=False, save_location=None):
     """
-    String -> Int -> String -> String -> String? -> ()
-    Extract the mean validation and training accuracies for each option and
-    architecture tested for a specific builder, then plot each architecture's
-    validation accuracy against training accuracy on separate plots for each
-    option tried.
+    String -> Int -> Bool? -> Bool? -> String? -> ()
+    Plot validation accuracy against training accuracy for the given builder.
+    If `joined` is set to False then this will produce a series of plots, as
+    opposed to one plot with a line for each architecture.
+    """
+    key = 'data.results.network_evaluations.after_training.{}.accuracy'
+    training = key.format('training')
+    validation = key.format('validation')
+
+    if joined:
+        plot_builder_results_joined(experiment_id, builder_id, training,
+            validation, 'Training accuracy', 'Validation accuracy',
+            restrict_axes=restrict_axes, save_location=save_location)
+    else:
+        plot_builder_results_separate(experiment_id, builder_id, training,
+            validation, 'Training accuracy', 'Validation accuracy', save_location)
+
+
+def plot_input_builder_results(experiment_id, restrict_axes=False, save_location=None):
+    """
+    String -> Bool? -> String? -> ()
+    Plot validation accuracy against noise standard deviation for the input
+    builder options tested.
+    """
+    builder_id = 1
+    accuracy_key = 'data.results.network_evaluations.after_training.validation.accuracy'
+    stddev_key = 'data.results.parameters.input_transform.input_noise_stddev'
+
+    plot_builder_results_joined(experiment_id, builder_id, stddev_key,
+        accuracy_key, 'Input noise standard deviation', 'Validation accuracy',
+        restrict_axes=restrict_axes, save_location=save_location)
+
+
+def plot_builder_results_separate(experiment_id, builder_id, x_key, y_key,
+        x_label, y_label, save_location=None):
+    """
+    String -> Int -> String -> String -> String -> String -> String? -> ()
+    Extract two variables from the result dictionary for each option and
+    architecture tested for a specific builder, then plot the value of each
+    variable for each architecture on separate plots for each option tried.
     
     If a save location is provided, the plot will be saved at the given
     location instead of being displayed.  The saved location should contain
     a placeholder, '{}', that will be replaced with the option index.
     """
-    _, _, results = extract_builder_results(experiment_id, builder_id)
+    results = extract_builder_results(experiment_id, builder_id, x_key, y_key)
     for option_index in range(len(results[0][0])):
+        architecture_index = 0
         for architecture in results:
             plt.plot(architecture[0][option_index],
-                architecture[1][option_index], 'o')
+                architecture[1][option_index], 'o', label=str(architecture_index))
+            architecture_index += 1
+        plt.legend()
         plt.xlabel(x_label)
         plt.ylabel(y_label)
         plt.xlim(0.5, 1)
@@ -208,22 +246,26 @@ def plot_builder_results_separate(experiment_id, builder_id, x_label, y_label,
             plt.savefig(save_location.format(option_index))
 
 
-def plot_builder_results_joined(experiment_id, builder_id, x_label, y_label,
-        restrict_axes=False, save_location=None):
+def plot_builder_results_joined(experiment_id, builder_id, x_key, y_key,
+        x_label, y_label, restrict_axes=False, save_location=None):
     """
-    String -> Int -> String -> String -> Bool? -> String? -> ()
-    Extract the mean validation and training accuracies for each option and
-    architecture tested for a specific builder, then plot each architecture
-    as a different series on a plot of validation accuracy against training
-    accuracy.
+    String -> Int -> String -> String -> String
+        -> String -> Bool? -> String? -> ()
+    Extract the values of two variables from the result dictionary of each
+    option and architecture tested for a specific builder, then plot each
+    architecture as a different series on a plot of the x-variable against
+    the y-variable.
     
     If `restrict_axes` is set to True, both axes will be set to cover the
     range (0.5, 1).  If a save location is provided, the plot will be saved
     at the given location instead of being displayed.
     """
-    _, _, results = extract_builder_results(experiment_id, builder_id)
+    results = extract_builder_results(experiment_id, builder_id, x_key, y_key)
+    architecture_index = 0
     for architecture in results:
-        plt.plot(architecture[0], architecture[1])
+        plt.plot(architecture[0], architecture[1], label=str(architecture_index))
+        architecture_index += 1
+    plt.legend()
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     if restrict_axes:
@@ -235,29 +277,31 @@ def plot_builder_results_joined(experiment_id, builder_id, x_label, y_label,
         plt.savefig(save_location)
 
 
-def extract_builder_results(experiment_id, builder_id):
+def extract_builder_results(experiment_id, builder_id, x_key, y_key):
     """
-    String -> Int -> (String, String, [[[Float]]])
+    String -> Int -> String -> String -> [[[Float]]]
     Analyse the data relating to the input module of an experiment, returning
-    data to plot validation accuracy against training accuracy for each
-    variation on the architectures used.
+    data to plot the value indexed by the y key against that indexed by the x
+    key for each variation on the architectures used.
 
     The series is returned as a tensor whose indices, in order, are: architecture
-    ID, builder option ID, 0 for training and 1 for validation.
+    ID, 0 for training and 1 for validation, builder option ID.
     """
     series = []
     for architecture_id in range(N_SAMPLE_ARCHITECTURES):
         path = 'data/experiments/loftuning/{}/results/builder-{}/architecture-{}' \
             .format(experiment_id, builder_id, architecture_id)
         results = ResultsFilter(path, False)
-        key = 'data.results.network_evaluations.after_training.{}.accuracy'
         series.append(results.extract_results([
-            map_on_dictionary_key(key.format('training'), lambda x: x),
-            map_on_dictionary_key(key.format('validation'), lambda x: x)
+            map_on_dictionary_key(x_key, lambda x: x),
+            map_on_dictionary_key(y_key, lambda x: x)
         ]))
 
     def mean(ls):
-        return sum(ls) / len(ls)
+        try:
+            return sum(ls) / len(ls)
+        except:
+            return ls[0]
 
     def transpose(m):
         return [list(i) for i in zip(*m)]
@@ -271,4 +315,4 @@ def extract_builder_results(experiment_id, builder_id):
     # (architecture, option, training/validation) for easier plotting
     series = list(map(transpose, series))
 
-    return 'Training Accuracy', 'Validation Accuracy', series
+    return series
