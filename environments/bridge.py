@@ -2,6 +2,7 @@ from environments.environment \
     import ContinuousEnvironment, DrawableEnvironment
 from maths.activations import identity
 from random import uniform
+from numpy import reshape
 
 
 class Bridge(ContinuousEnvironment, DrawableEnvironment):
@@ -67,7 +68,16 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         rank-one vector.  It is recommended that this method is overriddn
         to improve performance.
         """
-        return _flatten_tensor(cls.constraint_representation(constraint))
+        return reshape(constraint, (cls.constraint_dimension()))
+
+    @classmethod
+    def unflatten_constraint(cls, flattened_constraint):
+        """
+        [Float] -> Constraint
+        Unflatten the solution from its representation as a rank-one
+        vector to its normal data type.
+        """
+        return reshape(flattened_constraint, cls.constraint_shape())
 
     def solution_type():
         """
@@ -109,10 +119,16 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         rank-one vector.  It is recommended that this method is overriddn
         to improve performance.
         """
-        output = []
-        for row in solution:
-            output += row
-        return output
+        return reshape(solution, cls.solution_dimension())
+
+    @classmethod
+    def unflatten_solution(cls, flattened_solution):
+        """
+        [Float] -> Solution
+        Unflatten the solution from its representation as a rank-one
+        vector to its normal data type.
+        """
+        return reshape(flattened_solution, cls.solution_shape())
 
     def solve(constraint, solution):
         """
