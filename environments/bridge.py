@@ -2,7 +2,9 @@ from environments.environment \
     import ContinuousEnvironment, DrawableEnvironment
 from maths.activations import identity
 from random import uniform
-from numpy import reshape
+from numpy import reshape, vectorize
+from scipy.optimize import minimize
+from math import exp
 
 
 class Bridge(ContinuousEnvironment, DrawableEnvironment):
@@ -18,12 +20,12 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
     Note that the pixels are stored as a list of rows.
     """
 
-    WIDTH = 15
-    HEIGHT = 10
+    WIDTH = 6
+    HEIGHT = 4
 
     # Number of members to either side of a block which are able to support
     # it, not including the one directly beneath it
-    SUPPORTING_MEMBERS = 1
+    SUPPORTING_MEMBERS = 3
 
     SELF_LOAD_FACTOR = 0.25
     LOAD_PROPAGATION_FACTOR = 1.0
@@ -243,8 +245,9 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         should be in the interval [0, 1], where 0 represents fully off and 1
         represents fully on.
         """
+        _solution = solution if type(solution) == type([[0.]]) else solution.tolist()
         output = []
-        for row in solution:
+        for row in _solution:
             output.append(row)
         for row in constraint:
             output.append([cell[0] for cell in row])
@@ -390,3 +393,57 @@ class BridgeFactory:
                 max_value = constraint[row][column][1]
                 solution[row][column] = min_value + \
                     (max_value - min_value) * solution[row][column]
+
+    @staticmethod
+    def objective_function(constraint):
+        """ 
+        [[[Float]]] -> ([[Float]] -> Float)
+        Create an objective function on the solution space for the given
+        constraint.  The objective function utilises the inner workings of
+        the bridge by minimising the stress of the most overstressed cell,
+        and so should only be used for dataset creation.
+        """
+        def maximum_stress(solution):
+            unflattened_solution = BridgeFactory.preprocess_solution(constraint,
+                solution)
+            load_map = Bridge._create_load_map(unflattened_solution)
+
+            current_max_overstress = 0.
+            for row in range(Bridge.HEIGHT):
+                for column in range(Bridge.WIDTH):
+                    cell_overstress = load_map[row][column] - \
+                        unflattened_solution[row][column]
+                    if cell_overstress > current_max_overstress:
+                        current_max_overstress = cell_overstress
+            return current_max_overstress
+
+        return maximum_stress
+
+    @staticmethod
+    def preprocess_solution(constraint, raw_solution):
+        """
+        [[[Float]]] -> [Float] -> [[Float]]
+        Take a solution whose cells may have any real value, squish them to
+        be between 1 and 0, and then map these to the allowable range of the
+        solution.  Then return the result.  The solution must be in the form
+        of a rank-one numpy ndarray.
+        """
+        sigmoid = vectorize(lambda x: 1. / (1 + exp(-x)))
+        solution = Bridge.unflatten_solution(sigmoid(raw_solution))
+        BridgeFactory.map_to_allowable_range(constraint, solution)
+        return solution
+
+    @staticmethod
+    def find_viable_design(constraint):
+        """
+        [[[Float]]] -> (Float, Bool, [[Float]])
+        Attempt to find a bridge design which satisfies the constraints.
+        Return the design along with the amount by which the most stressed
+        cell is overstressed and whether or not the optimisation terminated
+        fully.
+        """
+        objective_function = BridgeFactory.objective_function(constraint)
+        ansatz = BridgeFactory.uniform_solution()
+        result = minimize(objective_function, ansatz)
+        return result.fun, result.success, \
+            BridgeFactory.preprocess_solution(constraint, result.x)

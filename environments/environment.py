@@ -159,6 +159,8 @@ class ContinuousEnvironment:
         Plot the given matrix as a greyscale image.
         """
         plt.imshow(image)
+        plt.xticks([])
+        plt.yticks([])
         plt.show()
 
 
