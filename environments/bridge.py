@@ -1,10 +1,11 @@
 from environments.environment \
     import ContinuousEnvironment, DrawableEnvironment
 from maths.activations import identity
-from random import uniform
+from random import uniform, randint
 from numpy import reshape, vectorize
 from scipy.optimize import minimize
-from math import exp
+from math import exp, ceil, floor
+from wise.util.io import IO
 
 
 class Bridge(ContinuousEnvironment, DrawableEnvironment):
@@ -428,7 +429,7 @@ class BridgeFactory:
         solution.  Then return the result.  The solution must be in the form
         of a rank-one numpy ndarray.
         """
-        sigmoid = vectorize(lambda x: 1. / (1 + exp(-x)))
+        sigmoid = vectorize(lambda x: 1. / (1 + exp(-_clamp(x))))
         solution = Bridge.unflatten_solution(sigmoid(raw_solution))
         BridgeFactory.map_to_allowable_range(constraint, solution)
         return solution
@@ -465,6 +466,64 @@ class BridgeFactory:
         objective_function = BridgeFactory.objective_function(constraint)
         ansatz = BridgeFactory.solution_from_indices(
             lambda _1, _2: uniform(0, 0.15))
+        # TODO: constraint SLSQP inputs instead of squashing using sigmoid
         result = minimize(objective_function, ansatz, method=method)
         return result.fun, result.success, \
             BridgeFactory.preprocess_solution(constraint, result.x)
+
+    @staticmethod
+    def build_bridge_dataset(name, maximum_size, maximum_overstress):
+        """
+        String -> Int -> Float -> ()
+        Build a dataset of valid bridge designs, saving each bridge design with
+        the constraint that caused it to be created.  Only bridge designs whose
+        maximum overstress is below the states threshold will be saved.
+        """
+        minimum_width = ceil(0.2 * Bridge.WIDTH)
+        maximum_width = ceil(0.4 * Bridge.WIDTH)
+        maximum_offset = (Bridge.WIDTH - maximum_width) // 2
+        maximum_exclusion_height = floor(0.45 * Bridge.HEIGHT)
+        maximum_inclusion_height = floor(0.3 * Bridge.HEIGHT)
+
+        def make_constraint():
+            return BridgeFactory.generate_pillared_constraint(
+                left_offset=randint(1, maximum_offset),
+                width=randint(minimum_width, maximum_width),
+                exclusion_height=randint(1, maximum_exclusion_height),
+                gap_height=randint(1, 2),
+                inclusion_height=randint(1, maximum_inclusion_height),
+                inclusion_threshold=uniform(0.1, 0.45)
+            )
+
+        io = IO('data/datasets/{}/'.format(name), True)
+        i = 0
+        while i < maximum_size:
+            constraint = make_constraint()
+            overstress, success, solution = BridgeFactory.find_viable_design(
+                constraint)
+            if overstress <= maximum_overstress and success:
+                print('Found viable solution for design {}.'.format(i))
+                io.save_object(BridgeConstraintSolutionPair(
+                    constraint, solution), str(i))
+                i += 1
+            else:
+                print('Failed to find viable solution for design {}.'.format(i))
+
+
+class BridgeConstraintSolutionPair:
+    def __init__(self, constraint, solution):
+        self.constraint = constraint
+        self.solution = solution
+
+
+def _clamp(x):
+    """
+    Float -> Float
+    Clamp the value to be between -50 and 50 if
+    it is not already.
+    """
+    if x < -50:
+        return -50
+    if x > 50:
+        return 50
+    return x
