@@ -20,8 +20,8 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
     Note that the pixels are stored as a list of rows.
     """
 
-    WIDTH = 6
-    HEIGHT = 4
+    WIDTH = 10
+    HEIGHT = 7
 
     # Number of members to either side of a block which are able to support
     # it, not including the one directly beneath it
@@ -434,16 +434,37 @@ class BridgeFactory:
         return solution
 
     @staticmethod
-    def find_viable_design(constraint):
+    def generate_pillared_constraint(left_offset, width, exclusion_height, gap_height,
+            inclusion_height, inclusion_threshold):
         """
-        [[[Float]]] -> (Float, Bool, [[Float]])
+        Int -> Int -> Int -> Int -> Int -> Float -> [[[Float]]]
+        Generate a constraint for the Bridge environment which has an exclusion
+        zone, with an unspecified gap above that, followed by an inclusion zone.
+        """
+        exclusion_top = Bridge.HEIGHT
+        inclusion_top = Bridge.HEIGHT - exclusion_height - gap_height
+        constraint = BridgeFactory.blank_constraint()
+        BridgeFactory.set_exclusion_zone(constraint, lambda column, row:
+            left_offset <= column < left_offset + width and
+            exclusion_top > row >= exclusion_top - exclusion_height)
+        BridgeFactory.set_inclusion_zone(constraint, lambda column, row: 
+            left_offset <= column < left_offset + width and
+            inclusion_top > row >= inclusion_top - inclusion_height,
+            inclusion_threshold)
+        return constraint
+
+    @staticmethod
+    def find_viable_design(constraint, method='SLSQP'):
+        """
+        [[[Float]]] -> String? -> (Float, Bool, [[Float]])
         Attempt to find a bridge design which satisfies the constraints.
         Return the design along with the amount by which the most stressed
         cell is overstressed and whether or not the optimisation terminated
         fully.
         """
         objective_function = BridgeFactory.objective_function(constraint)
-        ansatz = BridgeFactory.uniform_solution()
-        result = minimize(objective_function, ansatz)
+        ansatz = BridgeFactory.solution_from_indices(
+            lambda _1, _2: uniform(0, 0.15))
+        result = minimize(objective_function, ansatz, method=method)
         return result.fun, result.success, \
             BridgeFactory.preprocess_solution(constraint, result.x)
