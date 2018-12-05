@@ -6,6 +6,9 @@ from numpy import reshape, vectorize
 from scipy.optimize import minimize
 from math import exp, ceil, floor
 from wise.util.io import IO
+from wise.training.samplers.feeddict import FeedDictSampler
+from wise.training.samplers.dataset import DataSetSampler
+from wise.training.samplers.mapped import MappedSampler
 
 
 class Bridge(ContinuousEnvironment, DrawableEnvironment):
@@ -228,7 +231,16 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         mapped through a user-provided transform, optionally producing a mapped
         sampler, before being extracted into a FeedDictSampler.
         """
-        raise NotImplementedError()
+        io = IO('data/datasets/10x7/')
+        dataset = map(lambda path: io.restore_object(path),
+            io.all_files(remove_extensions=True, include_sub_folders=False))
+        dataset_sampler = DataSetSampler(list(map(
+            lambda b: (b.constraint, b.solution, True), dataset)))
+        return FeedDictSampler(sampler_transform(dataset_sampler), {
+            constraint_input: lambda t: t[0],
+            solution_input: lambda t: t[1],
+            satisfaction_input: lambda t: t[2]
+        })
 
     def image_shape(fidelity=None):
         """
