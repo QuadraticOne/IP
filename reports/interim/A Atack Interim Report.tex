@@ -110,7 +110,7 @@ indicating which latent variables are most likely to explain the visible data.
 The most common use for this is in learning a more robust latent mapping for a dataset, but the method could be adapted to create a generative model that inverts a many-to-one function.
 
 A common problem faced by traditional autoencoders is that not every point in the latent space has a meaningful equivalent in the state space.
-A regularisation term is imposed on a VAE in the beta-VAE architecture \cite{higgins16} that encourages a higher standard deviation in the probability distribution over the latent space.
+A regularisation term is imposed on a VAE in the $\beta$-VAE architecture \cite{higgins16} that encourages a higher standard deviation in the probability distribution over the latent space.
 The effect of this is that input data may be mapped to a greater variety of regions in the latent space,
 and therefore a greater proportion of the latent space will have a meaningful inverse mapping.
 
@@ -126,6 +126,24 @@ while autoencoders can also accomplish this task and are generally considered to
 the generative nature of GANs is appealing considering that any given engineering problem may have more than one solution.
 
 \subsection{Representation learning}
+
+All of the neural network architectures discussed so far require the input data to be presented in the form of a fixed-size tensor of real values.
+While many practical data structures can be meaningfully encoded in this form, many engineering problems can have solutions which are discrete,
+unbounded, or otherwise not easily represented by a tensor of real values.
+
+Long short-term memory networks (LSTMs) \cite{hochreiter97} are stateful networks which collate information over a linear series of tensors into a fixed-size memory.
+At each time step, another item from the series is viewed by the network, and it decides which information to keep, and which to forget.
+If trained properly, the memory tensor at the end is a fixed-size representation of the important features of the list.
+
+Recursive neural networks merge information about pairs of objects, allowing the construction of representations of tree-like data structures \cite{socher11}.
+As such, they are frequently used to parse sentences in natural language processing, though this technique can be applied to other trees as well.
+Like with LSTMs, because the information capacity of the final state tensor is finite, the network is forced to either generalise, or forget unimportant information.
+
+Some data structures, known as tokens, cannot be represented by real values and do not consist of sub-elements that can.
+The prime example of these data structures are words; each word carries meaning but the meaning of each word is encoded in the understanding of the people using them.
+Vector space models represent tokens as points in a vector space, and some methods have been developed for embedding tokens in this vector space.
+One method commonly used is \emph{word2vec} \cite{mikolov13}, which embeds words into a dense vector space, though the same principle
+has been adapted for use on tokens other than words \cite{le14}.
 
 \section{Current Progress}
 
@@ -313,13 +331,32 @@ arXiv:1801.05134v1 [cs.LG],
   arXiv:1804.04391v1 [cs.CV],
   12 Apr 2018.
 
-% Insert here
+\bibitem{hochreiter97}
+  S. Hochreiter, J. Schmidhuber,
+  \emph{Long Short-Term Memory}.
+  Neural Computation,
+  Volume 9 Issue 8,
+  15 November 1997.
+
+\bibitem{socher11}
+  R. Socher, C.C. Lin, A.Y. Ng, C.D. Manning,
+  \emph{Parsing Natural Scenes and Natural Language with Recursive Neural Networks}.
+  Stanford University,
+  2011.
 
 \bibitem{mikolov13}
   T. Mikolov, K. Chen, G. Corrado, J. Dean,
   \emph{Efficient Estimation of Word Representations in Vector Space}.
   arXiv:1301.3781v3 [cs.CL],
   7 Sep 2013.
+
+\bibitem{le14}
+  Q. Le, T. Mikolov,
+  \emph{Distributed Representations of Sentences and Documents}.
+  arXiv:1405.4053v2 [cs.CL],
+  22 May 2014.
+
+% Insert here
 
 \bibitem{sigmund01}
   O. Sigmund,
