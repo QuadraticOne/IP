@@ -243,7 +243,57 @@ uncertainty in its classification as the candidate solution moves away from the 
 
 \subsection{Regularisation methods}
 
+While these results are encouraging, in reality, an infinite stream of procedurally generated data will not be available.
+A set of experiments were performed on a series of network architectures, with a focus on regularisation methods to
+reduce the gap between training accuracy and validation accuracy when working with limited data.
 
+The validation accuracy is plotted against the training accuracy for each experiment.
+Figures \ref{fig:regularisationNetworkShape}-\ref{fig:regularisationDropout} highlight different architecture parameters to see whether they had any effect.
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.75]{../../figures/circlesobjective/validation_vs_training_network_shape.png}
+  \caption{Validation against training accuracy for a number of discriminator architectures,
+    coloured by the discriminator's hidden layers.}
+  \label{fig:regularisationNetworkShape}
+  \end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.75]{../../figures/circlesobjective/validation_vs_training_bayesian_network.png}
+  \caption{Validation against training accuracy for a number of discriminator architectures,
+    coloured by whether or not the discriminator uses Gaussian distributed weights.}
+  \label{fig:regularisationBayesianNetwork}
+  \end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.75]{../../figures/circlesobjective/validation_vs_training_l2_weight.png}
+  \caption{Validation against training accuracy for a number of discriminator architectures,
+    coloured by the weight of L2 regularisation.}
+  \label{fig:regularisationL2Weight}
+  \end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.75]{../../figures/circlesobjective/validation_vs_training_dropout.png}
+  \caption{Validation against training accuracy for a number of discriminator architectures,
+    coloured by whether or not the discriminator used dropout.}
+  \label{fig:regularisationDropout}
+  \end{figure}
+
+Some architecture variations had little impact, whereas some significantly improved or reduced the validation accuracy.
+In Figure \ref{fig:regularisationNetworkShape} it can be seen that larger networks with more capacity performed consistently better than smaller ones.
+While the mean gap between validation and training accuracy is slightly higher for a network with two layers of 8 nodes each than for a network
+with one layer of 4 nodes, the difference in overall accuracy is significant enough to offset the overfitting.
+Similarly, Bayesian networks with Gaussian distributed weights (Figure \ref{fig:regularisationBayesianNetwork}) were found to offer a significant performance boost.
+
+L2 regularisation (Figure \ref{fig:regularisationL2Weight}) and dropout (Figure \ref{fig:regularisationDropout}), however, were
+found to be detrimental to the discriminator performance.
+It is hypothesised that using dropout on a small network of only between 4 and 16 hidden nodes introduces
+too much variability, leading to a network that struggles to converge on small datasets.
+While L2 regularisation improved the consistency of results, this came at the cost of reducing the performance
+of those architectures that were already performing well.
 
 \subsection{Hyperparameter tuning}
 
@@ -252,6 +302,8 @@ uncertainty in its classification as the candidate solution moves away from the 
 \subsection{Training generators}
 
 \subsection{Sampling from nonlinear topologies}
+
+\subsection{More complex environments}
 
 \begin{thebibliography}{999}
 
