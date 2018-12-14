@@ -208,7 +208,7 @@ Some experiments were run on the circle environment to see whether this is pract
 At first, no limit was placed on the number of data points availabe; instances were generated procedurally as needed by the network
 by uniformly sampling from the state space.
 
-The discriminator itself consisted of a standard MLP with six input nodes, one sigmoid output node, and a single hidden layer of $n$ ReLU-activated nodes.
+The discriminator itself consisted of a standard multi-layer perceptron (MLP) with six input nodes, one sigmoid output node, and a single hidden layer of $n$ ReLU-activated nodes.
 Training examples $x_i$ were fed to the network, then gradients were calculated against $y_i \in 0, 1$ where $0$ represented a solution
 that did not satisfy the constraint $-$ the circles did not overlap $-$ and $1$ represented a solution that did.
 
@@ -262,7 +262,7 @@ Figures \ref{fig:regularisationNetworkShape}-\ref{fig:regularisationDropout} hig
   \centering
   \includegraphics[scale=0.75]{../../figures/circlesobjective/validation_vs_training_bayesian_network.png}
   \caption{Validation against training accuracy for a number of discriminator architectures,
-    coloured by whether or not the discriminator uses Gaussian distributed weights.}
+    coloured by whether or not the discriminator is Bayesian.}
   \label{fig:regularisationBayesianNetwork}
   \end{figure}
 
@@ -296,6 +296,24 @@ While L2 regularisation improved the consistency of results, this came at the co
 of those architectures that were already performing well.
 
 \subsection{Hyperparameter tuning}
+
+The previous experiment produced some rough guidelines for designing the discriminator architecture:
+\begin{itemize}
+  \item Gaussian distributed weights should be considered;
+  \item increase the network capacity until a significant difference is observed between training and validation accuracy due to overfitting;
+  \item avoid using L2 regularisation on discriminator architectures that are already performing well;
+  \item dropout should not be used unless overfitting is an issue and the network has many parameters.
+\end{itemize}
+Further experiments were conducted with these guidelines in mind to try to find more specific rules of thumb,
+but these produced inconclusive results.
+It is suggested that a random hyperparameter search be employed to find the best discriminator architecture
+after including or excluding the architecture options listed above.
+
+The first part of the project concluded that MLPs are capable of correctly predicting whether or not a solution will satisfy a constraint,
+but the certainty of the prediction will go down if the quantity of data available is not in line with the complexity of the environment.
+Smaller networks will reduce the amount of data needed to train, but will also not be able to learn the objective functions of more complex environments.
+Certain architecture changes can be made that will generally increase discriminator performance,
+but to obtain the greatest accuracy a hyperparameter search should be conducted on a per-environment basis.
 
 \section{Future Work}
 
