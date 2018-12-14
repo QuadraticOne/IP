@@ -116,6 +116,15 @@ and therefore a greater proportion of the latent space will have a meaningful in
 
 \subsection{Adversarial algorithms}
 
+More recently, algorithms have been designed to train generative models using two competing networks in a minimax game.
+The most common adversarial networks, generative adversarial networks (GANs), can be trained to sample from an arbitrary distribution \cite{goodfellow14, horger18}.
+These have been successfully applied to a range of problems, including image resolution upscaling \cite{ledig17} and creating cross-domain transfer functions \cite{zhu18}.
+Such applications could be useful in using GANs to sample from a space of viable solutions, if the space can be parameterised according to the relevant constraints.
+
+Some research has also been done into the use of GANs to invert functions \cite{anirudh18};
+while autoencoders can also accomplish this task and are generally considered to be easier to train \cite{bang18},
+the generative nature of GANs is appealing considering that any given engineering problem may have more than one solution.
+
 \subsection{Representation learning}
 
 \section{Current Progress}
@@ -268,11 +277,41 @@ arXiv:1801.05134v1 [cs.LG],
   ICLR,
   04 Nov 2016.
 
+\bibitem{goodfellow14}
+  I. Goodfellow, J. Pouget-Abadie, M. Mirza, B. Xu, D. Warde-Farley, S. Ozair, A. Courville, Y. Bengio,
+  \emph{Generaitve Adversarial Nets}.
+  arXiv:1406.2661v1 [stat.ML],
+  10 Jun 2014.
+
+\bibitem{horger18}
+  F. Horger, T. W\"urfl, V. Christlein, A. Maier,
+  \emph{Deep Learning for Sampling from Arbitrary Probability Distributions}.
+  arXiv:1801.04211v2 [cs.LG],
+  10 Jul 2018.
+
+\bibitem{ledig17}
+  C. Ledig, L. Theis, F. Husz\'ar, J. Caballero, A. Cunningham, A. Acosta, A. Aitken, A. Tejani, J. Totz, Z. Wang, W. Shi,
+  \emph{Photo-Realistic Single Image Super-Resolution Using a Generative Adversarial Network}.
+  arXiv:1609.04802v5 [cs.CV],
+  25 May 2017.
+
+\bibitem{zhu18}
+  J. Zhu, R. Park, P. Isola, A.A. Efros,
+  \emph{Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks}.
+  arXiv:1703.10593v6 [cs.CV],
+  15 Nov 2018.
+
 \bibitem{anirudh18}
   R. Anirudh, J.J. Thiagarajan, B. Kailkhura, T. Bremer,
   \emph{An Unsupervised Approach to Solving Inverse Problems using Generative Adversarial Networks}.
   arXiv:1805.07281v2 [cs.CV],
   4 Jun 2018.
+
+\bibitem{bang18}
+  D. Bang, H. Shim,
+  \emph{MGGAN: Solving Mode Collapse using Manifold Guide Training}.
+  arXiv:1804.04391v1 [cs.CV],
+  12 Apr 2018.
 
 % Insert here
 
