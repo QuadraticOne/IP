@@ -78,7 +78,7 @@ It might therefore be expected that a universal function approximator could be a
 ANNs are known to be universal function approximators \cite{hornik91}.
 In particular, deep neural networks (DNNs) \cite{liang17} are capable of approximating highly intractable functions to within a reasonable degree of accuracy.
 One limiting factor of the performance of ANNs and DNNs is the quantity of data available.
-While larger networks with more capacity are able to learn more complex mappings, they also run a higher risk of overfitting, \cite{caruana01},
+While larger networks with more capacity are able to learn more complex mappings, they also run a higher risk of overfitting \cite{caruana01},
 a problem which is exacerbated in situations where the amount of training data may be limited.
 
 Regularisation techniques have been developed \cite{goodfellow16, srivastava14, ioffe15, li18} to prevent the overfitting of neural networks.
@@ -88,12 +88,12 @@ Bayesian neural networks \cite{giryes16} view the problem of finding the network
 A Bayesian network will sample its weights from a probability distribution, with weight vectors more likely to be sampled if they are
 more likely to explain the dataset seen by the network during its training.
 This can boost network performance when only a small number of examples are available, and can give an idea of the uncertainty
-of the network by performing multiple forward passes and seeing how closely the network output from each pass agree with one another.
+of the network by performing multiple forward passes and seeing how closely the network outputs from each pass agree with one another.
 
 Adding noise to the network's input vector \cite{zur09} has also been shown to decrease overfitting and increase the generality of the network's estimates,
 especially for applications where the available data are sparsely spread throughout the state space.
 The effect of adding noise to the input vector is to simulate a much greater number of data points, but this method does
-assume that data points which are nearby in the state space will produc similar outputs.
+assume that data points which are nearby in the state space will produce similar outputs.
 The level of noise is another hyperparameter which must be optimised: too little noise will have no effect on overfitting,
 while too much noise will make it impossible for the network to distinguish between noise and genuine information, causing a drop in accuracy.
 
@@ -106,7 +106,7 @@ for uses such as image deblurring \cite{nah18} and colourisation \cite{nguyen16}
 Autoencoders are an unsupervised learning method often used to pretrain layers of neural networks that will later be used for supervised learning \cite{rumelhart86},
 in doing so training an encoder $f(x)$ and a decoder $f^{-1}(x)$.
 This can be used to extract the more important latent features of the input space, or remove noise from corrupted data \cite{vincent08}.
-When used for pretraining, the decoder is normally thrown away; but if the encoding function $f(x)$ is already know, the autoencoder architecture can be used to approximate its inverse.
+When used for pretraining, the decoder is normally thrown away; but if the encoding function $f(x)$ is already known, the autoencoder architecture can be used to approximate its inverse.
 
 Other architectures have been proposed which perform the same task as a traditional autoencoder, but train a generative model to do so.
 Variational autoencoders (VAEs) are models which allow sampling from the latent space by parameterising a probability distribution over the latent space \cite{kingma14},
@@ -157,7 +157,7 @@ and to investigate any trends in network architecture that might produce better 
 
 \subsection{Environment design}
 
-Two different engineering environments were used to the first phase.
+Two different engineering environments were used in the first phase.
 
 The state space of the first environment, referred to as the circle environment, is a 6-dimensional hypercube on $(-1, 1)^6$.
 Its state variables represent two circles, each of which has its $x$- and $y$-coordinates controlled, as well as its radius.
@@ -174,17 +174,17 @@ So the objective function is:
 While simple and very abstract, this environment should test that the discriminator is able to cope with discrete objective functions.
 
 The state space of the second environment, referred to as the bridge environment, is a $h \times w$ matrix,
-in which the value each cell represents the weight of a square element of a 2-dimensional bridge and is constrained to be between $0$ and $1$.
+in which the value of each cell represents the weight of a square element of a 2-dimensional bridge and is constrained to be between $0$ and $1$.
 Each block bears a certain amount of load, and will break if the load it bears is greater than its weight.
 If any blocks fail, the bridge is deemed invalid.
 Each block takes a proportion of its own weight as load, and then propagates a proportion of its own weight to the block below it and $n$ blocks to either side of that one;
-its load is distributed to each of the supporting blocks, distributed according to how much each supporting block weighs, with heavier blocks taking more load.
+its load is distributed to each of the supporting blocks according to how much each supporting block weighs, with heavier blocks taking more load.
 The load of each block is calculated row by row, starting from the top row and moving downwards.
 
 As well as being structurally sound, the bridge is required to adhere to a maximum and minimum weight for each block.
 The allowable weight range for each block is specified by the constraint, which takes the form of a $h \times w \times 2$ tensor.
 This lets certain exclusion zones to be defined, in which all blocks must have a weight of, say, less than $0.01$;
-inclusion zones can also be defines, in which all blocks must weigh at least a certain amount.
+inclusion zones can also be defined, in which all blocks must weigh at least a certain amount.
 
 \begin{figure}
 \centering
@@ -235,7 +235,7 @@ that did not satisfy the constraint $-$ the circles did not overlap $-$ and $1$ 
 
 In Figure \ref{fig:artificialDiscriminator}, the output of the discriminator is plotted while varying the $x$- and $y$-coordinates
 of the solution circle, while holding all other parameters constant.
-As expected, more hidden nodes draws the function approximated by the discriminator closer to the real objective function.
+As expected, having more hidden nodes draws the function approximated by the discriminator closer to the real objective function.
 Even with only four hidden nodes, however, the network has managed to learn the general shape of the objective function.
 While the edges are not as sharply defined, the network correctly predicts that the probability that the solution satisfies
 the constraint is highest when the solution circle is centred on the constraint circle, and includes increasing
@@ -248,7 +248,7 @@ A set of experiments were performed on a series of network architectures, with a
 reduce the gap between training accuracy and validation accuracy when working with limited data.
 
 The validation accuracy is plotted against the training accuracy for each experiment.
-Figures \ref{fig:regularisationNetworkShape}-\ref{fig:regularisationDropout} highlight different architecture parameters to see whether they had any effect.
+Figures \ref{fig:regularisationNetworkShape}-\ref{fig:regularisationDropout} highlight different architecture parameters to show whether they had any effect.
 
 \begin{figure}
   \centering
@@ -328,12 +328,17 @@ Previous work on GANs has trained all parameters into the network, but it would 
 generator on an environment, and allow the constraint representation to be abstracted out and passed in later.
 This will allow solutions to be generated to new $-$ and maybe unseen $-$ constraint representations with only a forward pass of a neural network.
 
+One issue which may arise is avoiding mode collapse: since the discriminator is already defined, and will not be trained at the same
+time as the generator as it normally would, there is a risk that the generator will ignore the noise vector and consistently sample the same point.
+This will be kept in mind while designing experiments, and measures may be taken to reduce its impact, such as penalising the generator
+for having a small output derivative with respect to the noise input.
+
 \subsection{Sampling from nonlinear topologies}
 
-One approach for achieving this is to construct a network that can sample from a space, which is defined by some function of a set of parameters.
+One approach for sampling the inverse of a function is to construct a network that can sample from a space, which is defined by some function of a set of parameters.
 The project will aim to investigate whether an abstract topology representation can be created using machine learning techniques,
 and whether or not a uniform space (which can be easily sampled) can be mapped onto the new, transformed topology.
-This should allow the space of solutions which satisfy a constraint, as determined by a generator trained on an environment,
+This should allow the space of solutions which satisfy a constraint, as determined by a discriminator trained on an environment,
 to be inverted, and thereby solutions to be sampled directly from a constraint representation without needing
 to take an iterative approach.
 
