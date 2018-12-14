@@ -3,6 +3,9 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{amssymb}
 \usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
 
 \begin{document}
 
@@ -200,7 +203,47 @@ An example of a valid bridge design is shown in Figure \ref{fig:validBridgeExamp
 
 \subsection{Training discriminators}
 
+Due to the universality of ANNs \cite{hornik91} it is theoretically possible for a network to classify solutions that satisfy constraints and those that do not.
+Some experiments were run on the circle environment to see whether this is practically possible.
+At first, no limit was placed on the number of data points availabe; instances were generated procedurally as needed by the network
+by uniformly sampling from the state space.
+
+The discriminator itself consisted of a standard MLP with six input nodes, one sigmoid output node, and a single hidden layer of $n$ ReLU-activated nodes.
+Training examples $x_i$ were fed to the network, then gradients were calculated against $y_i \in 0, 1$ where $0$ represented a solution
+that did not satisfy the constraint $-$ the circles did not overlap $-$ and $1$ represented a solution that did.
+
+\begin{figure}
+\centering
+  \begin{subfigure}[a]{.8\linewidth}
+    \includegraphics[width=.8\linewidth]{../../figures/artificial-discriminator-predicted-objective-function-4-hidden-nodes.png}
+    \caption{$n = 4$.}
+  \end{subfigure}
+  \begin{subfigure}[a]{.8\linewidth}
+    \includegraphics[width=.8\linewidth]{../../figures/artificial-discriminator-predicted-objective-function-16-hidden-nodes.png}
+    \caption{$n = 16$.}
+  \end{subfigure}
+  \begin{subfigure}[a]{.8\linewidth}
+    \includegraphics[width=.8\linewidth]{../../figures/artificial-discriminator-true-objective-function.png}
+    \caption{Ground truth.}
+  \end{subfigure}
+  \caption{
+    Network output when varying the $x$- and $y$-coordinates of the solution circle in the circles environment,
+    for $n=4$ hidden nodes, $n=16$ hidden nodes, and for the ground truth objective function.
+  }
+\label{fig:artificialDiscriminator}
+\end{figure}
+
+In Figure \ref{fig:artificialDiscriminator}, the output of the discriminator is plotted while varying the $x$- and $y$-coordinates
+of the solution circle, while holding all other parameters constant.
+As expected, more hidden nodes draws the function approximated by the discriminator closer to the real objective function.
+Even with only four hidden nodes, however, the network has managed to learn the general shape of the objective function.
+While the edges are not as sharply defined, the network correctly predicts that the probability that the solution satisfies
+the constraint is highest when the solution circle is centred on the constraint circle, and includes increasing
+uncertainty in its classification as the candidate solution moves away from the most obvious one.
+
 \subsection{Regularisation methods}
+
+
 
 \subsection{Hyperparameter tuning}
 
