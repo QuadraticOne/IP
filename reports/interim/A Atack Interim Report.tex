@@ -317,11 +317,40 @@ but to obtain the greatest accuracy a hyperparameter search should be conducted 
 
 \section{Future Work}
 
+Work will continue to move onto the second part of the project, which will attempt to train a generator to
+produce samples that satisfy the discriminators trained in the first part.
+
 \subsection{Training generators}
+
+GANs and VAEs will be considered for creating generative models by inverting discriminators.
+The main obstacle to overcome is to allow the constraint to be fed into the generator, as well as a noise vector, to direct its sampling.
+Previous work on GANs has trained all parameters into the network, but it would be preferable in this case to train the
+generator on an environment, and allow the constraint representation to be abstracted out and passed in later.
+This will allow solutions to be generated to new $-$ and maybe unseen $-$ constraint representations with only a forward pass of a neural network.
 
 \subsection{Sampling from nonlinear topologies}
 
+One approach for achieving this is to construct a network that can sample from a space, which is defined by some function of a set of parameters.
+The project will aim to investigate whether an abstract topology representation can be created using machine learning techniques,
+and whether or not a uniform space (which can be easily sampled) can be mapped onto the new, transformed topology.
+This should allow the space of solutions which satisfy a constraint, as determined by a generator trained on an environment,
+to be inverted, and thereby solutions to be sampled directly from a constraint representation without needing
+to take an iterative approach.
+
 \subsection{More complex environments}
+
+Now that the project's core concepts have been implemented and proved on a limited set of simple toy environments,
+more complicated and practical environments will be added to validate the results of the project.
+A topology optimiser developed by Sigmund \cite{sigmund01} will be used to generate a dataset of beams which are subjected to loads.
+Constraint parameters may include the location and magnitude of the load, while solution parameters will be a pixel representation of the beam topology.
+A set of constraints will be considered satisfied if the beam deflection is below a certain quantity.
+
+As well as developing more complex environments representative of real life engineering problems,
+alterations could be made to the previous environments to prove the robustness of the algorithm.
+For example, the number of circles could be changed in the circle environment, and a number of parameters can be changed in the bridge environment:
+what proportion of a block's load is propagated to the blocks below, and how many blocks share the load.
+Validating the algorithms developed for this project on variations of the core environments would ensure that the algorithm's design and training methods
+are not overfitting to a small number of environments which are too similar or too simple.
 
 \begin{thebibliography}{999}
 
@@ -518,14 +547,14 @@ arXiv:1801.05134v1 [cs.LG],
   arXiv:1405.4053v2 [cs.CL],
   22 May 2014.
 
-% Insert here
-
 \bibitem{sigmund01}
   O. Sigmund,
   \emph{A 99 line topology optimization code written in Matlab}.
   Struct Multidisc Optim 21,
   120-127,
   2001.
+
+% Unused references:
 
 \bibitem{luo18}
   R. Luo, F. Tian, T. Qin, E. Chen, T. Yiu,
