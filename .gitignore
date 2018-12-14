@@ -2,6 +2,8 @@
 *.pdf
 *.synctex.gz
 *.log
+*.aux
+*.out
 
 wise/
 data/
