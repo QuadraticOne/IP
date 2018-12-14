@@ -1,10 +1,11 @@
 \documentclass[a4paper]{article}
 
 \usepackage[hidelinks]{hyperref}
+\usepackage{amssymb}
 
 \begin{document}
 
-\title{FEEG3003 $-$ Learning and Exploiting Surrogate Models for Optimising the Structure of a Design}
+\title{FEEG3003 Interim Report $-$ Learning and Exploiting Surrogate Models for Optimising the Structure of a Design}
 \author{Alexander Atack $-$ 27745449}
 \date{December 2018}
 \maketitle
@@ -13,7 +14,37 @@
 
 \subsection{Aims \& objectives}
 
+The core aim of this project is to imagine and implement an algorithm capable of learning to solve engineering design problems.
+Such an algorithm should be sufficiently general that it can be trained to operate on a range of engineering environments,
+and can cope with a variety of objective functions; specifically, it must be applicable to both discrete and continuously-valued objective functions.
+Artificial neural networks (ANNs) and their properties as universal function approximators will be explored as a means of achieving this goal.
+
+For the purposes of this report, a distinction is made between "intelligent" and "na\"ive" optimisation algorithms:
+an intelligent algorithm utilises some domain knowledge $-$ which may be learned $-$ to explore the solution space in a directed way,
+while na\"ive optimisation algorithms explore the solution space without using any learned domain knowledge, and may be iterative in nature.
+
+If successful, the final deliverable of this project will be a description of an algorithm meeting these criteria,
+possibly including a proof of the concept on a number of toy environments.
+All code used for this project can be found at \url{https://github.com/aatack/IP}.
+
 \subsection{Overview of structure}
+
+The project will be split into three main phases, each of which will attempt to approximate a particular function:
+\begin{enumerate}
+  \item Train an articial neural network, referred to as the discriminator \textbf{D}, to predict the probability that a solution satisfies some set of constraints.
+  $$\mathrm{\textbf{D}} : (\mathrm{constraints}, \mathrm{solution}) \mapsto p(\mathrm{constraints \; satisfied} \; | \; \mathrm{solution})$$
+  It is assumed that both the solution and set of constraints can be represented as a tensor of real values.
+  \item Invert the discriminator to produce a generative model \textbf{G} parameterised by a set of constraints
+  which is capable of sampling from the space of solutions which are likely to satisfy that set of constraints.
+  $$\mathrm{solution} \sim \mathrm{\textbf{G}}(\mathrm{constraints}) $$
+  Instead of using data to train the generator, the discriminator will be used to provide gradients for backpropagation;
+  intuitively, this is similar to training the generator on the laws governing the environment rather than specific examples of solutions in that environment.
+  \item Find a way to map a solution space which cannot be represented by a tensor of real values to and from a vector representation
+  so that it can be optimised using the functions learned in the previous phases.
+  This will involve learning a function \textbf{L} that maps some arbitrary data structure to a $n$-dimensional latent space.
+  $$\mathrm{\textbf{L}} : \mathrm{design} \mapsto \mathbb{R}^n$$
+
+\end{enumerate}
 
 \section{Literature Review}
 
