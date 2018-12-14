@@ -1,6 +1,7 @@
 *__pycache__*
 *.pdf
 *.synctex.gz
+*.log
 
 wise/
 data/
