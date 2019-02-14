@@ -2,6 +2,15 @@ from math import pi
 import tensorflow as tf
 
 
+def gaussian_sampler(mean, stddev, batch_size):
+    """
+    tf.Node -> tf.Node -> Int -> tf.Node
+    Create a node of shape [batch_size] which samples from a Gaussian
+    probability distribution.
+    """
+    return tf.random_normal([batch_size], mean=mean, stddev=stddev)
+
+
 def gaussian_pdf(mean, stddev):
     """
     tf.Node -> tf.Node -> (tf.Node -> tf.Node)
