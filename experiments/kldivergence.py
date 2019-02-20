@@ -2,7 +2,7 @@ from math import pi
 import tensorflow as tf
 
 
-def safe_log(x, eps=1e-5):
+def safe_log(x, eps=1e-3):
     """
     tf.Node -> Float? -> tf.Node
     Return the natural logarithm of a value with an added epsilon.
@@ -49,10 +49,23 @@ def gaussian_divergence(mu_a, sigma_a, mu_b, sigma_b):
     Return a node that calculates the KL divergence of two Gaussian
     probability distributions.
     """
-    log_term = safe_log(sigma_b / sigma_a)
+    log_term = safe_log(tf.abs(sigma_b) / tf.abs(sigma_a))
     numerator = tf.square(sigma_a) + tf.square(mu_a - mu_b)
     denominator = 2 * tf.square(sigma_b)
     return log_term + (numerator / denominator) - 0.5
+
+
+def clipped_gradients(loss):
+    """
+    tf.Node -> tf.Operation
+    Create an optimiser operation that works with clipped gradients.
+    """
+    optimiser = tf.train.AdamOptimizer()
+    gradients = optimiser.compute_gradients(loss)
+    clipped_gradients = [(tf.clip_by_value(gradient, -1., 1.), var)
+        for gradient, var in gradients]
+    operation = optimiser.apply_gradients(clipped_gradients)
+    return operation
 
 
 def run():
@@ -61,12 +74,12 @@ def run():
     Run an experiment, trying to determine whether KL divergence
     can be accurately estimated using an average of samples.
     """
-    batch_size = 2048
+    batch_size = 250000
 
     mu_a = tf.Variable(0.)
     sigma_a = tf.Variable(1.)
     mu_b = tf.constant(0.5)
-    sigma_b = tf.constant(0.5)
+    sigma_b = tf.constant(0.08)
     x = gaussian_sampler(mu_a, sigma_a, batch_size)
     p = gaussian_pdf(mu_a, sigma_a)(x)
     q = gaussian_pdf(mu_b, sigma_b)(x)
@@ -75,7 +88,7 @@ def run():
     kl_real = gaussian_divergence(mu_a, sigma_a, mu_b, sigma_b)
 
     optimised_node = kl if True else tf.log(kl)
-    minimiser = tf.train.AdamOptimizer().minimize(optimised_node)
+    minimiser = clipped_gradients(optimised_node)
 
     s = tf.Session()
     s.run(tf.global_variables_initializer())
