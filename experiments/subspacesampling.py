@@ -2,6 +2,7 @@ from wise.networks.deterministic.feedforwardnetwork import FeedforwardNetwork
 from wise.networks.activation import Activation
 from wise.util.training import default_adam_optimiser
 from wise.training.routines import fit
+import matplotlib.pyplot as plt
 import tensorflow as tf
 
 
@@ -11,7 +12,7 @@ class Args:
     batch_size = 32
     session = tf.Session()
     g_hidden = [[8]]
-    w = 0.5
+    w = 2
 
 
 def uniform_node():
@@ -54,6 +55,19 @@ def p_loss(gamma):
     return tf.reduce_mean(-tf.log(gamma))
 
 
+def plot_histogram(node, lower=None, upper=None, steps=50):
+    """
+    tf.Node -> ()
+    Plot a histogram of the given node, where the node is assumed to be
+    a list of vectors, and the first component of each vector is used.
+    """
+    values = sorted([v[0] for v in Args.session.run(node)])
+    l = lower if lower is not None else values[0]
+    u = upper if upper is not None else values[-1]
+    plt.hist(values, bins=steps, range=(l, u))
+    plt.show()
+
+
 def run():
     """
     () -> ()
@@ -68,11 +82,7 @@ def run():
 
     Args.session.run(tf.global_variables_initializer())
 
-    print(Args.session.run(x_sample))
-
     for i in range(1000):
         epoch_loss, _ = Args.session.run([l, opt])
         if i % 10 == 0:
             print(epoch_loss)
-
-    print(Args.session.run(x_sample))
