@@ -2,6 +2,7 @@ from wise.networks.deterministic.feedforwardnetwork import FeedforwardNetwork
 from wise.networks.activation import Activation
 from wise.util.training import default_adam_optimiser
 from wise.training.routines import fit
+from numpy import linspace
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
@@ -68,6 +69,20 @@ def plot_histogram(node, lower=None, upper=None, steps=50):
     plt.show()
 
 
+def f_plotter(lower, upper, steps=50):
+    """
+    () -> (() -> ())
+    Return a function which, when called, plots the objective function
+    for the specified range.
+    """
+    xs = linspace(lower, upper, steps)
+    fs = Args.session.run(f(tf.constant(xs)))
+    def plot():
+        plt.plot(xs, fs)
+        plt.show()
+    return plot
+
+
 def run():
     """
     () -> ()
@@ -79,6 +94,9 @@ def run():
     gamma_sample = f(x_sample)
     l = p_loss(gamma_sample)
     opt = default_adam_optimiser(l, 'optimiser')
+
+    plot_f = f_plotter(-1, 1)
+    plot_f()
 
     def plot_x_histogram():
         plot_histogram(x_sample, lower=-1, upper=1)
