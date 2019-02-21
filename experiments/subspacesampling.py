@@ -13,7 +13,7 @@ class Args:
     batch_size = 32
     session = tf.Session()
     g_hidden = [[8]]
-    w = 2
+    w = 5
 
 
 def uniform_node():
@@ -44,7 +44,16 @@ def f(x):
     Create a Tensorflow graph representing the objective function, which
     is expected to output values between 0 and 1.
     """
-    return 0.5 * (tf.sigmoid(x + Args.w) - tf.sigmoid(x - Args.w))
+    return sigmoid_bump(x, width=Args.w)
+
+
+def sigmoid_bump(x, width=4, offset=0., fatness=0.05, y_scale=1.):
+    """
+    tf.Node -> Float -> Float? -> Float? -> Float? -> tf.Node
+    Create a Tensorflow graph representing a sigmoid bump.
+    """
+    return y_scale * (tf.sigmoid((x / fatness) + width - offset) -
+        tf.sigmoid((x / fatness) - width - offset))
 
 
 def p_loss(gamma):
