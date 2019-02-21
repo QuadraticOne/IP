@@ -3,6 +3,7 @@ from wise.networks.activation import Activation
 from wise.util.training import default_adam_optimiser
 from wise.training.routines import fit
 from numpy import linspace
+from os import makedirs
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
@@ -44,8 +45,7 @@ def f(x):
     Create a Tensorflow graph representing the objective function, which
     is expected to output values between 0 and 1.
     """
-    return sigmoid_bump(x, width=Args.w, offset=0.5) + \
-        sigmoid_bump(x, width=Args.w, offset=-0.5)
+    return sigmoid_bump(x, width=Args.w, offset=0.5)
 
 
 def sigmoid_bump(x, width=4, offset=0., fatness=0.05, y_scale=1.):
@@ -81,6 +81,7 @@ def plot_histogram(node, lower=None, upper=None, steps=50, show=False, save=None
         plt.show()
     if save is not None:
         plt.savefig(save)
+    plt.cla()
 
 
 def f_plotter(lower, upper, steps=50):
@@ -97,6 +98,7 @@ def f_plotter(lower, upper, steps=50):
             plt.show()
         if save is not None:
             plt.savefig(save)
+        plt.cla()
     return plot
 
 
@@ -112,8 +114,12 @@ def run():
     l = p_loss(gamma_sample)
     opt = default_adam_optimiser(l, 'optimiser')
 
+    run_id = input('Enter run ID: ')
+    loc = 'figures/subspacesampling/onedimensional/' + run_id + '/'
+    makedirs(loc)
+
     plot_f = f_plotter(-1, 1)
-    plot_f(show=True)
+    plot_f(save=loc + 'objective_function')
 
     def plot_x_histogram(show=False, save=None):
         plot_histogram(x_sample, lower=-1, upper=1, show=show, save=save)
@@ -123,13 +129,13 @@ def run():
 
     Args.session.run(tf.global_variables_initializer())
 
-    plot_x_histogram(show=True)
-    plot_gamma_histogram(show=True)
+    plot_x_histogram(save=loc + 'x_before')
+    plot_gamma_histogram(save=loc + 'gamma_before')
 
     for i in range(1000):
         epoch_loss, _ = Args.session.run([l, opt])
         if i % 100 == 0:
             print('Precision loss:', epoch_loss)
             
-    plot_x_histogram(show=True)
-    plot_gamma_histogram(show=True)
+    plot_x_histogram(save=loc + 'x_after')
+    plot_gamma_histogram(save=loc + 'gamma_after')
