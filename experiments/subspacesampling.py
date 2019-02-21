@@ -44,7 +44,8 @@ def f(x):
     Create a Tensorflow graph representing the objective function, which
     is expected to output values between 0 and 1.
     """
-    return sigmoid_bump(x, width=Args.w, offset=0.5)
+    return sigmoid_bump(x, width=Args.w, offset=0.5) + \
+        sigmoid_bump(x, width=Args.w, offset=-0.5)
 
 
 def sigmoid_bump(x, width=4, offset=0., fatness=0.05, y_scale=1.):
@@ -66,7 +67,7 @@ def p_loss(gamma):
     return tf.reduce_mean(-tf.log(gamma))
 
 
-def plot_histogram(node, lower=None, upper=None, steps=50):
+def plot_histogram(node, lower=None, upper=None, steps=50, show=False, save=None):
     """
     tf.Node -> ()
     Plot a histogram of the given node, where the node is assumed to be
@@ -76,7 +77,10 @@ def plot_histogram(node, lower=None, upper=None, steps=50):
     l = lower if lower is not None else values[0]
     u = upper if upper is not None else values[-1]
     plt.hist(values, bins=steps, range=(l, u))
-    plt.show()
+    if show:
+        plt.show()
+    if save is not None:
+        plt.savefig(save)
 
 
 def f_plotter(lower, upper, steps=50):
@@ -87,9 +91,12 @@ def f_plotter(lower, upper, steps=50):
     """
     xs = linspace(lower, upper, steps)
     fs = Args.session.run(f(tf.constant(xs)))
-    def plot():
+    def plot(show=False, save=None):
         plt.plot(xs, fs)
-        plt.show()
+        if show:
+            plt.show()
+        if save is not None:
+            plt.savefig(save)
     return plot
 
 
@@ -106,23 +113,23 @@ def run():
     opt = default_adam_optimiser(l, 'optimiser')
 
     plot_f = f_plotter(-1, 1)
-    plot_f()
+    plot_f(show=True)
 
-    def plot_x_histogram():
-        plot_histogram(x_sample, lower=-1, upper=1)
+    def plot_x_histogram(show=False, save=None):
+        plot_histogram(x_sample, lower=-1, upper=1, show=show, save=save)
 
-    def plot_gamma_histogram():
-        plot_histogram(gamma_sample, lower=0, upper=1)
+    def plot_gamma_histogram(show=False, save=None):
+        plot_histogram(gamma_sample, lower=0, upper=1, show=show, save=save)
 
     Args.session.run(tf.global_variables_initializer())
 
-    plot_x_histogram()
-    plot_gamma_histogram()
+    plot_x_histogram(show=True)
+    plot_gamma_histogram(show=True)
 
     for i in range(1000):
         epoch_loss, _ = Args.session.run([l, opt])
-        if i % 10 == 0:
-            print(epoch_loss)
+        if i % 100 == 0:
+            print('Precision loss:', epoch_loss)
             
-    plot_x_histogram()
-    plot_gamma_histogram()
+    plot_x_histogram(show=True)
+    plot_gamma_histogram(show=True)
