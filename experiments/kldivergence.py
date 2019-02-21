@@ -2,7 +2,13 @@ from math import pi
 import tensorflow as tf
 
 
-def safe_log(x, eps=1e-3):
+class Args:
+
+    data_type = tf.float64
+    gradient_cutoff = 5.0
+
+
+def safe_log(x, eps=1e-5):
     """
     tf.Node -> Float? -> tf.Node
     Return the natural logarithm of a value with an added epsilon.
@@ -26,7 +32,8 @@ def gaussian_sampler(mean, stddev, batch_size):
     Create a node of shape [batch_size] which samples from a Gaussian
     probability distribution.
     """
-    return tf.random_normal([batch_size], mean=mean, stddev=stddev)
+    return tf.random_normal([batch_size], mean=mean, stddev=stddev,
+        dtype=Args.data_type)
 
 
 def gaussian_pdf(mean, stddev):
@@ -36,7 +43,7 @@ def gaussian_pdf(mean, stddev):
     density of a Gaussian distribution at a point with a given mean and
     standard deviation.
     """
-    tau = tf.constant(2 * pi, dtype=tf.float32)
+    tau = tf.constant(2 * pi, dtype=Args.data_type)
     def apply(x):
         return (1 / tf.sqrt(tau * tf.square(stddev))) * tf.exp(
             -tf.square(x - mean) / (2 * tf.square(stddev)))
@@ -62,7 +69,8 @@ def clipped_gradients(loss):
     """
     optimiser = tf.train.AdamOptimizer()
     gradients = optimiser.compute_gradients(loss)
-    clipped_gradients = [(tf.clip_by_value(gradient, -1., 1.), var)
+    clipped_gradients = [(tf.clip_by_value(gradient, -Args.gradient_cutoff,
+        Args.gradient_cutoff), var)
         for gradient, var in gradients]
     operation = optimiser.apply_gradients(clipped_gradients)
     return operation
@@ -74,12 +82,12 @@ def run():
     Run an experiment, trying to determine whether KL divergence
     can be accurately estimated using an average of samples.
     """
-    batch_size = 250000
+    batch_size = 1024
 
-    mu_a = tf.Variable(0.)
-    sigma_a = tf.Variable(1.)
-    mu_b = tf.constant(0.5)
-    sigma_b = tf.constant(0.08)
+    mu_a = tf.Variable(0., dtype=Args.data_type)
+    sigma_a = tf.Variable(1., dtype=Args.data_type)
+    mu_b = tf.constant(0.5, dtype=Args.data_type)
+    sigma_b = tf.constant(0.08, dtype=Args.data_type)
     x = gaussian_sampler(mu_a, sigma_a, batch_size)
     p = gaussian_pdf(mu_a, sigma_a)(x)
     q = gaussian_pdf(mu_b, sigma_b)(x)
@@ -88,6 +96,7 @@ def run():
     kl_real = gaussian_divergence(mu_a, sigma_a, mu_b, sigma_b)
 
     optimised_node = kl if True else tf.log(kl)
+    print(optimised_node)
     minimiser = clipped_gradients(optimised_node)
 
     s = tf.Session()
