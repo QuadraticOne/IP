@@ -44,7 +44,7 @@ def f(x):
     Create a Tensorflow graph representing the objective function, which
     is expected to output values between 0 and 1.
     """
-    return sigmoid_bump(x, width=Args.w)
+    return sigmoid_bump(x, width=Args.w, offset=0.5)
 
 
 def sigmoid_bump(x, width=4, offset=0., fatness=0.05, y_scale=1.):
@@ -52,8 +52,9 @@ def sigmoid_bump(x, width=4, offset=0., fatness=0.05, y_scale=1.):
     tf.Node -> Float -> Float? -> Float? -> Float? -> tf.Node
     Create a Tensorflow graph representing a sigmoid bump.
     """
-    return y_scale * (tf.sigmoid((x / fatness) + width - offset) -
-        tf.sigmoid((x / fatness) - width - offset))
+    after_offset = (x - offset) / fatness
+    return y_scale * (tf.sigmoid(after_offset + width) -
+        tf.sigmoid(after_offset - width))
 
 
 def p_loss(gamma):
