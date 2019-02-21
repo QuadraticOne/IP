@@ -6,14 +6,20 @@ class Args:
 
     data_type = tf.float64
     gradient_cutoff = 5.0
+    use_linearised_log = True
 
 
-def safe_log(x, eps=1e-5):
+def safe_log(x, eps=1e-3):
     """
     tf.Node -> Float? -> tf.Node
     Return the natural logarithm of a value with an added epsilon.
     """
-    return tf.log(x + eps)
+    if Args.use_linearised_log:
+        eps_node = tf.constant(eps, dtype=Args.data_type)
+        linearised = x / eps_node + (tf.log(eps_node) - 1)
+        return tf.where(tf.less(x, eps), linearised, tf.log(x))
+    else:
+        return tf.log(x + eps)
 
 
 def kl_estimator(sample_p, sample_q):
