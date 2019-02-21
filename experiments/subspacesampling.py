@@ -80,9 +80,21 @@ def run():
     l = p_loss(gamma_sample)
     opt = default_adam_optimiser(l, 'optimiser')
 
+    def plot_x_histogram():
+        plot_histogram(x_sample, lower=-1, upper=1)
+
+    def plot_gamma_histogram():
+        plot_histogram(gamma_sample, lower=0, upper=1)
+
     Args.session.run(tf.global_variables_initializer())
+
+    plot_x_histogram()
+    plot_gamma_histogram()
 
     for i in range(1000):
         epoch_loss, _ = Args.session.run([l, opt])
         if i % 10 == 0:
             print(epoch_loss)
+            
+    plot_x_histogram()
+    plot_gamma_histogram()
