@@ -15,6 +15,7 @@ class Args:
     session = tf.Session()
     g_hidden = [[8]]
     w = 5
+    output_activation = Activation.LEAKY_RELU
 
 
 def uniform_node():
@@ -35,7 +36,7 @@ def g(y):
     return FeedforwardNetwork(
         'g', Args.session, [Args.n], Args.g_hidden + [[1]],
         activations=Activation.all_except_last(
-            Activation.LEAKY_RELU, Activation.TANH),
+            Activation.LEAKY_RELU, Args.output_activation),
         input_node=y).output_node
 
 
