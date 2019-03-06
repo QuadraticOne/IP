@@ -4,6 +4,7 @@ from wise.util.training import default_adam_optimiser
 from wise.training.routines import fit
 from numpy import linspace
 from os import makedirs
+from maths.mcmc import metropolis_hastings
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
@@ -103,12 +104,47 @@ def f_plotter(lower, upper, steps=50):
     return plot
 
 
+def mcmc_samples(distribution_input, distribution_output,
+        tensorflow_session, n_samples, skip, start):
+    """
+    tf.Node -> tf.Node -> tf.Session -> Int -> Int -> [Float] -> [[Float]]
+    Take a number of samples from a target distribution, as defined by a
+    tensorflow node.
+    """
+    samples = [start]
+    for _ in range(n_samples):
+        samples.append(metropolis_hastings(skip,
+            lambda x: tensorflow_session.run(distribution_output,
+                feed_dict={distribution_input: x}),
+            samples[-1]))
+    return samples
+
+
+def sample_target_distribution(dimensions, samples, skip):
+    """
+    Int -> Int -> Int -> [[Float]]
+    Take a number of samples from the target distribution using the
+    Metropolis-Hastings algorithm.
+    """
+    pdf_input = tf.placeholder(tf.float32, shape=[dimensions])
+    pdf_output = f(pdf_input)
+    session = tf.Session()
+    return mcmc_samples(pdf_input, pdf_output, session, samples, skip,
+        [0.0] * dimensions)
+
+
 def run():
     """
     () -> ()
     Attempt to learn a function which maps samples from a unit hypercube
     to another space defined as the values of x for which f(x) > 0.5.
     """
+    ss = [x[0] for x in sample_target_distribution(1, 10000, 4)]
+    plt.hist(ss, bins=20, range=(-1, 1))
+    plt.show()
+
+    exit(0)
+
     y_sample = uniform_node()
     x_sample = g(y_sample)
     gamma_sample = f(x_sample)
