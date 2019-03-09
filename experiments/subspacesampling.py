@@ -157,6 +157,7 @@ def sample_target_distribution(dimensions, samples, skip):
 
 def spread(samples):
     """
+    tf.Node -> tf.Node
     Calculate the mean squared distance between each pair of samples.
 
     Takes a (b, n) tensor and splits it into two (b * b, n) tensors such
@@ -173,8 +174,22 @@ def spread(samples):
 
 
 def mean_magnitude_squared(samples):
-    """Calculate the mean square of the magnitude of a number of samples."""
+    """
+    tf.Node -> tf.Node
+    Calculate the mean square of the magnitude of a number of samples.
+    """
     return tf.reduce_mean(tf.square(samples))
+
+
+def identity_optimiser(latent_samples, solution_samples):
+    """
+    tf.Node -> tf.Node -> tf.Op
+    Create an optimiser that encourages the generater to replicate
+    the identity function.
+    """
+    target = 2 * latent_samples + 1
+    difference = 0.5 * tf.reduce_mean(tf.square(solution_samples - target))
+    return default_adam_optimiser(difference, 'identity_optimiser')
 
 
 def run():
@@ -191,14 +206,16 @@ def run():
     precision = p_loss(gamma_sample)
     maximise_precision = default_adam_optimiser(precision, 'precision_optimiser')
     optimise_spread = default_adam_optimiser(spread_error, 'mean_minimiser')
+    optimise_identity = identity_optimiser(y_sample, x_sample)
     balance = default_adam_optimiser(1. * precision + spread_error, 'balancer')
 
     run_id = input('Enter run ID: ')
+    to_show = input('Show figures? (y/N) ') == 'y'
     loc = 'figures/subspacesampling/onedimensional/' + run_id + '/'
     makedirs(loc)
 
     plot_f = f_plotter(-1, 1)
-    plot_f(save=loc + 'objective_function')
+    plot_f(save=loc + 'objective_function' if not to_show else None)
 
     def plot_x_histogram(show=False, save=None):
         plot_histogram(x_sample, lower=-1, upper=1, show=show, save=save)
@@ -208,20 +225,25 @@ def run():
 
     Args.session.run(tf.global_variables_initializer())
 
-    plot_latent_relation(y_sample, x_sample, save=loc + 'y_vs_x_before')
-    plot_x_histogram(save=loc + 'x_before')
-    plot_gamma_histogram(save=loc + 'gamma_before')
+    plot_latent_relation(y_sample, x_sample, show=to_show,
+        save=loc + 'y_vs_x_before' if not to_show else None)
+    plot_x_histogram(show=to_show, save=loc + 'x_before' if not to_show else None)
+    plot_gamma_histogram(show=to_show,
+        save=loc + 'gamma_before' if not to_show else None)
 
     for i in range(1000):
         precision_loss, spread_loss, _ = Args.session.run(
-            [precision, x_spread, optimise_spread])
+            [precision, x_spread, optimise_identity])
         if i % 100 == 0:
             print('Precision loss: {}\tSpread loss: {}'.format(
                 precision_loss, spread_loss))
 
-    plot_latent_relation(y_sample, x_sample, save=loc + 'y_vs_x_intermediate')
-    plot_x_histogram(save=loc + 'x_intermediate')
-    plot_gamma_histogram(save=loc + 'gamma_intermediate')
+    plot_latent_relation(y_sample, x_sample, show=to_show,
+        save=loc + 'y_vs_x_intermediate' if not to_show else None)
+    plot_x_histogram(show=to_show,
+        save=loc + 'x_intermediate' if not to_show else None)
+    plot_gamma_histogram(show=to_show,
+        save=loc + 'gamma_intermediate' if not to_show else None)
 
     for i in range(2000):
         precision_loss, spread_loss, _ = Args.session.run(
@@ -230,6 +252,9 @@ def run():
             print('Precision loss: {}\tSpread loss: {}'.format(
                 precision_loss, spread_loss))
 
-    plot_latent_relation(y_sample, x_sample, save=loc + 'y_vs_x_after')
-    plot_x_histogram(save=loc + 'x_after')
-    plot_gamma_histogram(save=loc + 'gamma_after')
+    plot_latent_relation(y_sample, x_sample, show=to_show,
+        save=loc + 'y_vs_x_after' if not to_show else None)
+    plot_x_histogram(show=to_show,
+        save=loc + 'x_after' if not to_show else None)
+    plot_gamma_histogram(show=to_show,
+        save=loc + 'gamma_after' if not to_show else None)
