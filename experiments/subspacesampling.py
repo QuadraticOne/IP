@@ -17,6 +17,7 @@ class Args:
     g_hidden = [[8], [8]]
     w = 5
     output_activation = Activation.TANH
+    internal_activation = Activation.LEAKY_RELU
     target_spread = 1.0
 
 
@@ -38,7 +39,7 @@ def g(y):
     return FeedforwardNetwork(
         'g', Args.session, [Args.n], Args.g_hidden + [[1]],
         activations=Activation.all_except_last(
-            Activation.LEAKY_RELU, Args.output_activation),
+            Args.internal_activation, Args.output_activation),
         input_node=y).output_node
 
 
