@@ -13,8 +13,8 @@ class Args:
 
     n = 1
     batch_size = 256
-    spread_epochs = 512
-    precision_epochs = 2048
+    spread_epochs = 1024
+    precision_epochs = 4096
     session = tf.Session()
     g_hidden = [[8], [8]]
     w = 5
