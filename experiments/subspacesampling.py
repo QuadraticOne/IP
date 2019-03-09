@@ -12,11 +12,12 @@ import tensorflow as tf
 class Args:
 
     n = 1
-    batch_size = 32
+    batch_size = 256
     session = tf.Session()
-    g_hidden = [[8]]
+    g_hidden = [[8], [8]]
     w = 5
-    output_activation = Activation.LEAKY_RELU
+    output_activation = Activation.TANH
+    target_spread = 1.0
 
 
 def uniform_node():
@@ -67,12 +68,12 @@ def p_loss(gamma):
     Create a node that estimates the a proxy loss for maximising the
     precision of the generator network.
     """
-    return tf.reduce_mean(-tf.log(gamma))
+    return tf.reduce_mean(-tf.log(gamma + 1))
 
 
 def plot_histogram(node, lower=None, upper=None, steps=50, show=False, save=None):
     """
-    tf.Node -> ()
+    tf.Node -> Float? -> Float? -> Int? -> Bool? -> String? -> ()
     Plot a histogram of the given node, where the node is assumed to be
     a list of vectors, and the first component of each vector is used.
     """
@@ -103,6 +104,25 @@ def f_plotter(lower, upper, steps=50):
             plt.savefig(save)
         plt.cla()
     return plot
+
+
+def plot_latent_relation(latent_samples, solution_samples, show=False, save=None):
+    """
+    tf.Node -> tf.Node -> Bool? -> String? -> ()
+    Plot the relationship between the latent space and solution space, assuming
+    both are one-dimensional.
+    """
+    xs, ys = Args.session.run([solution_samples, latent_samples])
+    plt.plot(xs, ys, '.')
+    plt.xlabel('Solution value')
+    plt.ylabel('Latent value')
+    plt.xlim(-1, 1)
+    plt.ylim(0, 1)
+    if show:
+        plt.show()
+    if save is not None:
+        plt.savefig(save)
+    plt.cla()
 
 
 def mcmc_samples(distribution_input, distribution_output,
@@ -151,6 +171,11 @@ def spread(samples):
     return tf.reduce_mean(squared_difference)
 
 
+def mean_magnitude_squared(samples):
+    """Calculate the mean square of the magnitude of a number of samples."""
+    return tf.reduce_mean(tf.square(samples))
+
+
 def run():
     """
     () -> ()
@@ -159,9 +184,13 @@ def run():
     """
     y_sample = uniform_node()
     x_sample = g(y_sample)
+    x_spread = spread(x_sample)
+    spread_error = 0.5 * tf.square(Args.target_spread - x_spread)
     gamma_sample = f(x_sample)
-    l = p_loss(gamma_sample)
-    opt = default_adam_optimiser(l, 'optimiser')
+    precision = p_loss(gamma_sample)
+    maximise_precision = default_adam_optimiser(precision, 'precision_optimiser')
+    optimise_spread = default_adam_optimiser(spread_error, 'mean_minimiser')
+    balance = default_adam_optimiser(1. * precision + spread_error, 'balancer')
 
     run_id = input('Enter run ID: ')
     loc = 'figures/subspacesampling/onedimensional/' + run_id + '/'
@@ -178,13 +207,28 @@ def run():
 
     Args.session.run(tf.global_variables_initializer())
 
+    plot_latent_relation(y_sample, x_sample, save=loc + 'y_vs_x_before')
     plot_x_histogram(save=loc + 'x_before')
     plot_gamma_histogram(save=loc + 'gamma_before')
 
     for i in range(1000):
-        epoch_loss, _ = Args.session.run([l, opt])
+        precision_loss, spread_loss, _ = Args.session.run(
+            [precision, x_spread, optimise_spread])
         if i % 100 == 0:
-            print('Precision loss:', epoch_loss)
-            
+            print('Precision loss: {}\tSpread loss: {}'.format(
+                precision_loss, spread_loss))
+
+    plot_latent_relation(y_sample, x_sample, save=loc + 'y_vs_x_intermediate')
+    plot_x_histogram(save=loc + 'x_intermediate')
+    plot_gamma_histogram(save=loc + 'gamma_intermediate')
+
+    for i in range(2000):
+        precision_loss, spread_loss, _ = Args.session.run(
+            [precision, x_spread, balance])
+        if i % 100 == 0:
+            print('Precision loss: {}\tSpread loss: {}'.format(
+                precision_loss, spread_loss))
+
+    plot_latent_relation(y_sample, x_sample, save=loc + 'y_vs_x_after')
     plot_x_histogram(save=loc + 'x_after')
     plot_gamma_histogram(save=loc + 'gamma_after')
