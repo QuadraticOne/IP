@@ -47,7 +47,8 @@ def f(x):
     Create a Tensorflow graph representing the objective function, which
     is expected to output values between 0 and 1.
     """
-    return sigmoid_bump(x, width=Args.w, offset=0.5)
+    return sigmoid_bump(x, width=Args.w, offset=0.5) + \
+        sigmoid_bump(x, width=Args.w, offset=-0.5)
 
 
 def sigmoid_bump(x, width=4, offset=0., fatness=0.05, y_scale=1.):
@@ -133,18 +134,29 @@ def sample_target_distribution(dimensions, samples, skip):
         [0.0] * dimensions)
 
 
+def spread(samples):
+    """
+    Calculate the mean squared distance between each pair of samples.
+
+    Takes a (b, n) tensor and splits it into two (b * b, n) tensors such
+    that, when lined up, each sample is paired with a different sample
+    from the same set.  Then calculates the L2 distance between each of
+    the pair and returns the mean of the result.
+    """
+    shape = tf.shape(samples)
+    repeated = tf.tile(samples, [shape[0], 1])
+    grouped = tf.reshape(tf.tile(samples, [1, shape[0]]),
+        [shape[0] * shape[0], shape[1]])
+    squared_difference = tf.square(repeated - grouped)
+    return tf.reduce_mean(squared_difference)
+
+
 def run():
     """
     () -> ()
     Attempt to learn a function which maps samples from a unit hypercube
     to another space defined as the values of x for which f(x) > 0.5.
     """
-    ss = [x[0] for x in sample_target_distribution(1, 10000, 4)]
-    plt.hist(ss, bins=20, range=(-1, 1))
-    plt.show()
-
-    exit(0)
-
     y_sample = uniform_node()
     x_sample = g(y_sample)
     gamma_sample = f(x_sample)
