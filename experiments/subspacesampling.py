@@ -13,6 +13,8 @@ class Args:
 
     n = 1
     batch_size = 256
+    spread_epochs = 512
+    precision_epochs = 2048
     session = tf.Session()
     g_hidden = [[8], [8]]
     w = 5
@@ -181,15 +183,15 @@ def mean_magnitude_squared(samples):
     return tf.reduce_mean(tf.square(samples))
 
 
-def identity_optimiser(latent_samples, solution_samples):
+def identity_error(latent_samples, solution_samples):
     """
-    tf.Node -> tf.Node -> tf.Op
-    Create an optimiser that encourages the generater to replicate
-    the identity function.
+    tf.Node -> tf.Node -> tf.Node
+    Create a node that reflects the distance in the function space between
+    the generator and the identity function.
     """
-    target = 2 * latent_samples + 1
+    target = 2 * latent_samples - 1
     difference = 0.5 * tf.reduce_mean(tf.square(solution_samples - target))
-    return default_adam_optimiser(difference, 'identity_optimiser')
+    return difference
 
 
 def run():
@@ -206,13 +208,15 @@ def run():
     precision = p_loss(gamma_sample)
     maximise_precision = default_adam_optimiser(precision, 'precision_optimiser')
     optimise_spread = default_adam_optimiser(spread_error, 'mean_minimiser')
-    optimise_identity = identity_optimiser(y_sample, x_sample)
+    identity_loss = identity_error(y_sample, x_sample)
+    optimise_identity = default_adam_optimiser(identity_loss, 'identity_optimiser')
     balance = default_adam_optimiser(1. * precision + spread_error, 'balancer')
 
     run_id = input('Enter run ID: ')
-    to_show = input('Show figures? (y/N) ') == 'y'
+    to_show = len(run_id) == 0
     loc = 'figures/subspacesampling/onedimensional/' + run_id + '/'
-    makedirs(loc)
+    if not to_show:
+        makedirs(loc)
 
     plot_f = f_plotter(-1, 1)
     plot_f(save=loc + 'objective_function' if not to_show else None)
@@ -231,12 +235,14 @@ def run():
     plot_gamma_histogram(show=to_show,
         save=loc + 'gamma_before' if not to_show else None)
 
-    for i in range(1000):
-        precision_loss, spread_loss, _ = Args.session.run(
-            [precision, x_spread, optimise_identity])
+    for i in range(Args.spread_epochs):
+        precision_loss, id_loss, _ = Args.session.run(
+            [precision, identity_loss, optimise_identity])
         if i % 100 == 0:
-            print('Precision loss: {}\tSpread loss: {}'.format(
-                precision_loss, spread_loss))
+            print('Precision loss: {}\tIdentity loss: {}'.format(
+                precision_loss, id_loss))
+
+    print()
 
     plot_latent_relation(y_sample, x_sample, show=to_show,
         save=loc + 'y_vs_x_intermediate' if not to_show else None)
@@ -245,7 +251,7 @@ def run():
     plot_gamma_histogram(show=to_show,
         save=loc + 'gamma_intermediate' if not to_show else None)
 
-    for i in range(2000):
+    for i in range(Args.precision_epochs):
         precision_loss, spread_loss, _ = Args.session.run(
             [precision, x_spread, balance])
         if i % 100 == 0:
