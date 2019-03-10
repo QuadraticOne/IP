@@ -210,7 +210,7 @@ def run():
     optimise_spread = default_adam_optimiser(spread_error, 'mean_minimiser')
     identity_loss = identity_error(y_sample, x_sample)
     optimise_identity = default_adam_optimiser(identity_loss, 'identity_optimiser')
-    balance = default_adam_optimiser(1. * precision + spread_error, 'balancer')
+    balance = default_adam_optimiser(precision + spread_error * 0.0, 'balancer')
 
     run_id = input('Enter run ID: ')
     to_show = len(run_id) == 0
