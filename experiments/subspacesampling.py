@@ -233,7 +233,7 @@ def run():
     # Loss nodes
     linearity_loss = make_linearity_loss(y_sample, x_sample)
     precision_proxy_loss = make_precision_proxy_loss(gamma_sample)
-    recall_proxy_loss = make_spread_loss(x_sample)
+    recall_proxy_loss = linearity_loss
 
     # Optimisers
     linearity_optimiser = default_adam_optimiser(linearity_loss, 'linearity_optimiser')
