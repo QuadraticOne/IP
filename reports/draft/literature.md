@@ -45,3 +45,19 @@ Diederik P Kingma, Jimmy Ba
 12. Neural Network Optimisation  
 Renqian Luo et al  
 `https://arxiv.org/pdf/1808.07233.pdf`  
+
+13. Inverting feedforward neural networks  
+Lu BL, Kita H, Nishikawa Y  
+`https://www.ncbi.nlm.nih.gov/pubmed/18252630`  
+
+14. Inversion of neural networks  
+Ashima Dua, Amar Gupta  
+`http://web.mit.edu/profit/PDFS/DuaA.pdf`  
+
+15. Polyhedral Computation  
+Komei Fukuda  
+`https://www.inf.ethz.ch/personal/fukudak/lect/pclect/notes2014/PolyComp2014.pdf`  
+
+16. Simplices and simplicial complexes  
+NJ Wildberger  
+`https://www.youtube.com/watch?v=Uq4dTjHfLpI`  
