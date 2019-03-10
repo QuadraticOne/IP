@@ -11,15 +11,23 @@ import tensorflow as tf
 
 class Args:
 
-    n = 1
-    batch_size = 256
-    spread_epochs = 1024
-    precision_epochs = 4096
-    session = tf.Session()
-    g_hidden = [[8], [8]]
-    w = 5
+    # Generator hyperparameters
+    latent_dimensions = 1
+    generator_hidden_layers = [[8], [8]]
     output_activation = Activation.TANH
     internal_activation = Activation.LEAKY_RELU
+
+    # Training parameters
+    batch_size = 256
+    initialisation_epochs = 1024
+    training_epochs = 4096
+    recall_weight = 1.0
+
+    # Tensorflow session
+    session = tf.Session()
+
+    # Target distribution parameters
+    w = 5
     target_spread = 1.0
 
 
@@ -29,7 +37,7 @@ def uniform_node():
     Create a node that represents a list of samples from an n-dimensional
     unit hypercube.
     """
-    return tf.random.uniform([Args.batch_size, Args.n])
+    return tf.random.uniform([Args.batch_size, Args.latent_dimensions])
 
 
 def g(y):
@@ -39,7 +47,8 @@ def g(y):
     generated space S_G.
     """
     return FeedforwardNetwork(
-        'g', Args.session, [Args.n], Args.g_hidden + [[1]],
+        'generator', Args.session, [Args.latent_dimensions],
+            Args.generator_hidden_layers + [[1]],
         activations=Activation.all_except_last(
             Args.internal_activation, Args.output_activation),
         input_node=y).output_node
@@ -65,7 +74,7 @@ def sigmoid_bump(x, width=4, offset=0., fatness=0.05, y_scale=1.):
         tf.sigmoid(after_offset - width))
 
 
-def p_loss(gamma):
+def make_precision_proxy_loss(gamma):
     """
     tf.Node -> tf.Node
     Create a node that estimates the a proxy loss for maximising the
@@ -181,6 +190,15 @@ def spread(samples):
     return tf.reduce_mean(squared_difference)
 
 
+def make_spread_loss(samples):
+    """
+    tf.Node -> tf.Node
+    Create a node representing the spread of a set of samples, as a proxy
+    for the precision of a set approximation.
+    """
+    return 0.5 * tf.square(Args.target_spread - spread(samples))
+
+
 def mean_magnitude_squared(samples):
     """
     tf.Node -> tf.Node
@@ -189,7 +207,7 @@ def mean_magnitude_squared(samples):
     return tf.reduce_mean(tf.square(samples))
 
 
-def identity_error(latent_samples, solution_samples):
+def make_linearity_loss(latent_samples, solution_samples):
     """
     tf.Node -> tf.Node -> tf.Node
     Create a node that reflects the distance in the function space between
@@ -206,26 +224,32 @@ def run():
     Attempt to learn a function which maps samples from a unit hypercube
     to another space defined as the values of x for which f(x) > 0.5.
     """
+
+    # Sampling nodes
     y_sample = uniform_node()
     x_sample = g(y_sample)
-    x_spread = spread(x_sample)
-    spread_error = 0.5 * tf.square(Args.target_spread - x_spread)
     gamma_sample = f(x_sample)
-    precision = p_loss(gamma_sample)
-    maximise_precision = default_adam_optimiser(precision, 'precision_optimiser')
-    optimise_spread = default_adam_optimiser(spread_error, 'mean_minimiser')
-    identity_loss = identity_error(y_sample, x_sample)
-    optimise_identity = default_adam_optimiser(identity_loss, 'identity_optimiser')
-    balance = default_adam_optimiser(precision + spread_error * 0.0, 'balancer')
 
+    # Loss nodes
+    linearity_loss = make_linearity_loss(y_sample, x_sample)
+    precision_proxy_loss = make_precision_proxy_loss(gamma_sample)
+    recall_proxy_loss = make_spread_loss(x_sample)
+
+    # Optimisers
+    linearity_optimiser = default_adam_optimiser(linearity_loss, 'linearity_optimiser')
+    optimiser = default_adam_optimiser(precision_proxy_loss + \
+        Args.recall_weight * recall_proxy_loss, 'optimiser')
+
+    # Set up plotting configuration
     run_id = input('Enter run ID: ')
     to_show = len(run_id) == 0
-    loc = 'figures/subspacesampling/onedimensional/' + run_id + '/'
+    location = 'figures/subspacesampling/proxies/' + run_id + '/'
     if not to_show:
-        makedirs(loc)
+        makedirs(location)
 
+    # Plotting functions
     plot_f = f_plotter(-1, 1)
-    plot_f(save=loc + 'objective_function' if not to_show else None, show=to_show)
+    plot_f(save=location + 'objective_function' if not to_show else None, show=to_show)
 
     def plot_x_histogram(show=False, save=None):
         plot_histogram(x_sample, lower=-1, upper=1, show=show, save=save,
@@ -235,40 +259,32 @@ def run():
         plot_histogram(gamma_sample, lower=0, upper=1, show=show, save=save,
             x_label='Estimated satisfaction probability')
 
+    def make_plots(identifier):
+        plot_latent_relation(y_sample, x_sample, show=to_show,
+            save=location + 'y_vs_x_' + identifier if not to_show else None)
+        plot_x_histogram(show=to_show, save=location + 'x_' + identifier \
+            if not to_show else None)
+        plot_gamma_histogram(show=to_show, save=location + 'gamma_' + identifier \
+            if not to_show else None)
+
+    # Perform setup
     Args.session.run(tf.global_variables_initializer())
 
-    plot_latent_relation(y_sample, x_sample, show=to_show,
-        save=loc + 'y_vs_x_before' if not to_show else None)
-    plot_x_histogram(show=to_show, save=loc + 'x_before' if not to_show else None)
-    plot_gamma_histogram(show=to_show,
-        save=loc + 'gamma_before' if not to_show else None)
+    make_plots('before')
 
-    for i in range(Args.spread_epochs):
-        precision_loss, id_loss, _ = Args.session.run(
-            [precision, identity_loss, optimise_identity])
+    for i in range(Args.initialisation_epochs):
+        batch_linearity_loss, _ = Args.session.run(
+            [linearity_loss, linearity_optimiser])
         if i % 100 == 0:
-            print('Precision loss: {}\tIdentity loss: {}'.format(
-                precision_loss, id_loss))
+            print('Linearity loss: {}'.format(batch_linearity_loss))
 
-    print()
+    make_plots('intermediate')
 
-    plot_latent_relation(y_sample, x_sample, show=to_show,
-        save=loc + 'y_vs_x_intermediate' if not to_show else None)
-    plot_x_histogram(show=to_show,
-        save=loc + 'x_intermediate' if not to_show else None)
-    plot_gamma_histogram(show=to_show,
-        save=loc + 'gamma_intermediate' if not to_show else None)
-
-    for i in range(Args.precision_epochs):
-        precision_loss, spread_loss, _ = Args.session.run(
-            [precision, x_spread, balance])
+    for i in range(Args.training_epochs):
+        batch_precision_loss, batch_recall_loss, _ = Args.session.run(
+            [precision_proxy_loss, recall_proxy_loss, optimiser])
         if i % 100 == 0:
-            print('Precision loss: {}\tSpread loss: {}'.format(
-                precision_loss, spread_loss))
+            print('Precision loss: {}\tRecall loss: {}'.format(
+                batch_precision_loss, batch_recall_loss))
 
-    plot_latent_relation(y_sample, x_sample, show=to_show,
-        save=loc + 'y_vs_x_after' if not to_show else None)
-    plot_x_histogram(show=to_show,
-        save=loc + 'x_after' if not to_show else None)
-    plot_gamma_histogram(show=to_show,
-        save=loc + 'gamma_after' if not to_show else None)
+    make_plots('after')
