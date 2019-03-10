@@ -18,10 +18,11 @@ class Args:
     internal_activation = Activation.LEAKY_RELU
 
     # Training parameters
+    initialise_to_identity = False
     batch_size = 256
     initialisation_epochs = 1024
-    training_epochs = 4096
-    recall_weight = 1.0
+    training_epochs = 8192
+    recall_weight = 8.0
 
     # Tensorflow session
     session = tf.Session()
@@ -272,14 +273,17 @@ def run():
 
     make_plots('before')
 
-    for i in range(Args.initialisation_epochs):
-        batch_linearity_loss, _ = Args.session.run(
-            [linearity_loss, linearity_optimiser])
-        if i % 100 == 0:
-            print('Linearity loss: {}'.format(batch_linearity_loss))
+    # Perform linear initialisation
+    if Args.initialise_to_identity:
+        for i in range(Args.initialisation_epochs):
+            batch_linearity_loss, _ = Args.session.run(
+                [linearity_loss, linearity_optimiser])
+            if i % 100 == 0:
+                print('Linearity loss: {}'.format(batch_linearity_loss))
 
-    make_plots('intermediate')
+        make_plots('intermediate')
 
+    # Perform normal training
     for i in range(Args.training_epochs):
         batch_precision_loss, batch_recall_loss, _ = Args.session.run(
             [precision_proxy_loss, recall_proxy_loss, optimiser])
