@@ -74,9 +74,10 @@ def p_loss(gamma):
     return tf.reduce_mean(-tf.log(gamma + 1))
 
 
-def plot_histogram(node, lower=None, upper=None, steps=50, show=False, save=None):
+def plot_histogram(node, lower=None, upper=None, steps=50,
+        x_label=None, show=False, save=None):
     """
-    tf.Node -> Float? -> Float? -> Int? -> Bool? -> String? -> ()
+    tf.Node -> Float? -> Float? -> Int? -> String? -> Bool? -> String? -> ()
     Plot a histogram of the given node, where the node is assumed to be
     a list of vectors, and the first component of each vector is used.
     """
@@ -84,6 +85,9 @@ def plot_histogram(node, lower=None, upper=None, steps=50, show=False, save=None
     l = lower if lower is not None else values[0]
     u = upper if upper is not None else values[-1]
     plt.hist(values, bins=steps, range=(l, u))
+    if x_label is not None:
+        plt.xlabel(x_label)
+    plt.ylabel('Frequency')
     if show:
         plt.show()
     if save is not None:
@@ -101,6 +105,8 @@ def f_plotter(lower, upper, steps=50):
     fs = Args.session.run(f(tf.constant(xs)))
     def plot(show=False, save=None):
         plt.plot(xs, fs)
+        plt.xlabel('Solution value')
+        plt.ylabel('Objective function value')
         if show:
             plt.show()
         if save is not None:
@@ -219,13 +225,15 @@ def run():
         makedirs(loc)
 
     plot_f = f_plotter(-1, 1)
-    plot_f(save=loc + 'objective_function' if not to_show else None)
+    plot_f(save=loc + 'objective_function' if not to_show else None, show=to_show)
 
     def plot_x_histogram(show=False, save=None):
-        plot_histogram(x_sample, lower=-1, upper=1, show=show, save=save)
+        plot_histogram(x_sample, lower=-1, upper=1, show=show, save=save,
+            x_label='Solution value')
 
     def plot_gamma_histogram(show=False, save=None):
-        plot_histogram(gamma_sample, lower=0, upper=1, show=show, save=save)
+        plot_histogram(gamma_sample, lower=0, upper=1, show=show, save=save,
+            x_label='Estimated satisfaction probability')
 
     Args.session.run(tf.global_variables_initializer())
 
