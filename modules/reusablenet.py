@@ -1,3 +1,4 @@
+from wise.util.tensors import glorot_initialised_vars
 import tensorflow as tf
 
 
@@ -29,5 +30,17 @@ def feedforward_layer(input_dict):
     }[input_dict['activation']]
     copy = deep_copy(input_dict)
     copy['output'] = activation(tf.matmul(
-        input_dict['weights'], input_dict['input']) + input_dict['biases'])
+        input_dict['input'], input_dict['weights']) + input_dict['biases'])
     return copy
+
+
+def feedforward_layer_input_dict(input_dimension, output_dimension,
+        activation, input_node=None):
+    """Create an input dictionary for a reusable feedforward layer."""
+    return {
+        'input': tf.placeholder(tf.float32, shape=[None, input_dimension]),
+        'weights': glorot_initialised_vars('weights',
+            [input_dimension, output_dimension]),
+        'biases': glorot_initialised_vars('biases', [output_dimension]),
+        'activation': activation
+    }
