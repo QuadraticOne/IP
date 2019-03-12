@@ -38,7 +38,8 @@ def feedforward_layer_input_dict(name, input_dimension, output_dimension,
         activation, input_node=None):
     """Create an input dictionary for a reusable feedforward layer."""
     return {
-        'input': tf.placeholder(tf.float32, shape=[None, input_dimension]),
+        'input': tf.placeholder(tf.float32, shape=[None, input_dimension]) \
+            if input_node is None else input_node,
         'weights': glorot_initialised_vars(name + '.weights',
             [input_dimension, output_dimension]),
         'biases': glorot_initialised_vars(name + '.biases', [output_dimension]),
@@ -65,3 +66,23 @@ def feedforward_network(input_dict):
         previous_output = copy['layers'][-1]['output']
     copy['output'] = previous_output
     return copy
+
+
+def feedforward_network_input_dict(name, input_dimension, layer_specs,
+        input_node=None):
+    """
+    Create an input dictionary for a reusable feedforward network.
+
+    Layer specifications should be given as tuples containing the number
+    of hidden nodes and the activation.
+    """
+    _layer_specs = [layer_specs] if isinstance(layer_specs, tuple) \
+        else layer_specs
+    make_layer = feedforward_layer_input_dict
+    return {
+        'input': tf.placeholder(tf.float32, shape=[None, input_dimension]) \
+            if input_node is None else input_node,
+        'layers': [make_layer(name + '.' + str(i), n_in, n_out, activation) \
+            for i, n_in, (n_out, activation) in zip(range(len(_layer_specs)),
+                [input_dimension] + [f for f, _ in _layer_specs], _layer_specs)]
+    }
