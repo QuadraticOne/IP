@@ -47,6 +47,13 @@ def feedforward_layer_input_dict(name, input_dimension, output_dimension,
     }
 
 
+def make_layer(name, input_dimension, output_dimension,
+        activation, input_node=None):
+    """Create a feedforward layer from some input parameters."""
+    return feedforward_layer(feedforward_layer_input_dict(name,
+        input_dimension, output_dimension, activation, input_node=input_node))
+
+
 def feedforward_network(input_dict):
     """
     Create a feedforward network from an input dictionary.
@@ -86,3 +93,10 @@ def feedforward_network_input_dict(name, input_dimension, layer_specs,
             for i, n_in, (n_out, activation) in zip(range(len(_layer_specs)),
                 [input_dimension] + [f for f, _ in _layer_specs], _layer_specs)]
     }
+
+
+def make_network(name, input_dimension, layer_specs,
+        input_node=None):
+    """Create a feedforward network from some input parameters."""
+    return feedforward_network(feedforward_network_input_dict(name,
+        input_dimension, layer_specs, input_node=input_node))
