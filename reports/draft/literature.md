@@ -18,9 +18,9 @@ Raja Giryes at al
 Sergey Ioffe, Christian Szegedy  
 `https://arxiv.org/abs/1502.03167`
 
-6. Dropout: A Simple Way to Prevent Neural Networks from Overfitting
-Nitish Srivastava et al
-`http://jmlr.org/papers/v15/srivastava14a.html`
+6. Dropout: A Simple Way to Prevent Neural Networks from Overfitting  
+Nitish Srivastava et al  
+`http://jmlr.org/papers/v15/srivastava14a.html`  
 
 7. Understanding the Disharmony between Dropout and Batch Normalisation by Variance Shift  
 Xiang Li et al  
