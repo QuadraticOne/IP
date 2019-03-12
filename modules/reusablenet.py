@@ -34,13 +34,34 @@ def feedforward_layer(input_dict):
     return copy
 
 
-def feedforward_layer_input_dict(input_dimension, output_dimension,
+def feedforward_layer_input_dict(name, input_dimension, output_dimension,
         activation, input_node=None):
     """Create an input dictionary for a reusable feedforward layer."""
     return {
         'input': tf.placeholder(tf.float32, shape=[None, input_dimension]),
-        'weights': glorot_initialised_vars('weights',
+        'weights': glorot_initialised_vars(name + '.weights',
             [input_dimension, output_dimension]),
-        'biases': glorot_initialised_vars('biases', [output_dimension]),
+        'biases': glorot_initialised_vars(name + '.biases', [output_dimension]),
         'activation': activation
     }
+
+
+def feedforward_network(input_dict):
+    """
+    Create a feedforward network from an input dictionary.
+
+    The input dictionary should contain an entry for the input node,
+    and a list of input dicts from which the individual layers
+    can be created.  Each of these layer dictionaries will have their
+    output node added, and the dictionary for the whole network will
+    also have an output node added.
+    """
+    previous_output = input_dict['input']
+    copy = {'input': input_dict['input'], 'layers': []}
+    for layer in input_dict['layers']:
+        layer_copy = deep_copy(layer)
+        layer_copy['input'] = previous_output
+        copy['layers'].append(feedforward_layer(layer_copy))
+        previous_output = copy['layers'][-1]['output']
+    copy['output'] = previous_output
+    return copy
