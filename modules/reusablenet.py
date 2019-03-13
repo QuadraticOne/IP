@@ -12,6 +12,11 @@ def deep_copy(value):
         return value
 
 
+def join_inputs(left, right):
+    """Join two inputs into a single vector."""
+    return tf.concat([left, right], -1)
+
+
 def feedforward_layer(input_dict):
     """
     Create a feedforward layer from an input dictionary.
