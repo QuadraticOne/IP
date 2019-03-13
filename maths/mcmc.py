@@ -8,8 +8,10 @@ def standard_gaussian_generator(n):
     Create a function which, when called, returns a list of
     n floats sampled from a standard Gaussian.
     """
+
     def generate():
         return normal(size=n)
+
     return generate
 
 

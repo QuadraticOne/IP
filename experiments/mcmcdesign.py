@@ -30,5 +30,5 @@ def run(n):
     even a simple objective function, regardless of whether or not
     it had a smooth derivative.
     """
-    y = metropolis_hastings(n, g, [0.])
+    y = metropolis_hastings(n, g, [0.0])
     print(y, g(y))

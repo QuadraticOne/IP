@@ -101,8 +101,12 @@ class ContinuousEnvironment:
         """
         raise NotImplementedError()
 
-    def environment_sampler(constraint_input='constraint', solution_input='solution',
-            satisfaction_input='satisfaction', sampler_transform=identity):
+    def environment_sampler(
+        constraint_input="constraint",
+        solution_input="solution",
+        satisfaction_input="satisfaction",
+        sampler_transform=identity,
+    ):
         """
         Object? -> Object? -> Object? -> (Sampler (Constraint, Solution, Bool)
             -> Sampler a)? -> FeedDictSampler a
@@ -114,9 +118,13 @@ class ContinuousEnvironment:
         raise NotImplementedError()
 
     @classmethod
-    def environment_representation_sampler(cls, constraint_input='constraint',
-            solution_input='solution', satisfaction_input='satisfaction',
-            sampler_transform=identity):
+    def environment_representation_sampler(
+        cls,
+        constraint_input="constraint",
+        solution_input="solution",
+        satisfaction_input="satisfaction",
+        sampler_transform=identity,
+    ):
         """
         Object? -> Object? -> Object? -> (Sampler (Tensor, Tensor, Bool) ->
             Sampler a)? -> FeedDictSampler a
@@ -125,17 +133,30 @@ class ContinuousEnvironment:
         The raw sampler is mapped through a user-provided transform, optionally
         producing a mapped sampler, before being extracted into a FeedDictSampler.
         """
+
         def take_reps(constraint_solution_satisfaction):
             con, sol, sat = constraint_solution_satisfaction
-            return cls.constraint_representation(con), cls.solution_representation(sol), sat
+            return (
+                cls.constraint_representation(con),
+                cls.solution_representation(sol),
+                sat,
+            )
 
-        return cls.environment_sampler(constraint_input, solution_input,
-            satisfaction_input, lambda s: sampler_transform(MappedSampler(s, take_reps)))
-    
+        return cls.environment_sampler(
+            constraint_input,
+            solution_input,
+            satisfaction_input,
+            lambda s: sampler_transform(MappedSampler(s, take_reps)),
+        )
+
     @classmethod
-    def flattened_environment_representation_sampler(cls, constraint_input='constraint',
-            solution_input='solution', satisfaction_input='satisfaction',
-            sampler_transform=identity):
+    def flattened_environment_representation_sampler(
+        cls,
+        constraint_input="constraint",
+        solution_input="solution",
+        satisfaction_input="satisfaction",
+        sampler_transform=identity,
+    ):
         """
         Object? -> Object? -> Object? -> (Sampler ([Float], [Float], Bool)
             -> Sampler a)? -> FeedDictSampler a
@@ -145,12 +166,17 @@ class ContinuousEnvironment:
         optionally producing a mapped sampler, before being extracted into a
         FeedDictSampler.
         """
+
         def take_reps(constraint_solution_satisfaction):
             con, sol, sat = constraint_solution_satisfaction
             return cls.flatten_constraint(con), cls.flatten_solution(sol), sat
 
-        return cls.environment_sampler(constraint_input, solution_input,
-            satisfaction_input, lambda s: sampler_transform(MappedSampler(s, take_reps)))
+        return cls.environment_sampler(
+            constraint_input,
+            solution_input,
+            satisfaction_input,
+            lambda s: sampler_transform(MappedSampler(s, take_reps)),
+        )
 
     @staticmethod
     def draw(image):
@@ -176,7 +202,7 @@ class DrawableEnvironment:
         Return the type of the class which stores image data.  By default, this
         is a list of lists of floats.
         """
-        return type([[0.]])
+        return type([[0.0]])
 
     def image_shape():
         """
@@ -216,8 +242,11 @@ class DrawableEnvironment:
             output += row
         return output
 
-    def pixel_environment_sampler(pixels_input='pixels', satisfaction_input='satisfaction',
-            sampler_transform=identity):
+    def pixel_environment_sampler(
+        pixels_input="pixels",
+        satisfaction_input="satisfaction",
+        sampler_transform=identity,
+    ):
         """
         Object? -> Object? -> (Sampler ([[Float]], [Float]) -> Sampler a)?
             -> FeedDictSampler a

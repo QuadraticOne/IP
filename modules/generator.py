@@ -99,6 +99,9 @@ class ParametricGenerator:
         embedder_weights_architecture['input'] = constraint_input
         weights_embedder = rnet.feedforward_network(
             embedder_weights_architecture)
+        weights_embedder['output'] = tf.reshape(weights_embedder['output'],
+            [tf.shape(weights_embedder['output'])[0],
+            self.embedding_dimension, self.solution_dimension])
 
         embedder_biases_architecture = rnet.deep_copy(
             self.embedder_biases_architecture)
@@ -106,4 +109,22 @@ class ParametricGenerator:
         biases_embedder = rnet.feedforward_network(
             embedder_biases_architecture)
 
-        return weights_embedder, biases_embedder  
+        return weights_embedder, biases_embedder
+
+    def build_generator(self, latent_input, weights_embedder,
+            biases_embedder):
+        """
+        tf.Node -> Dict -> Dict -> Dict
+        Build the generator given an input node and the weights and biases
+        produced by the constraint embedder.
+        """
+        architecture = rnet.deep_copy(self.generator_architecture)
+        architecture['input'] = latent_input
+        output_layer = architecture['layers'][-1]
+        output_layer['weights'] = weights_embedder['output']
+        output_layer['biases'] = biases_embedder['output']
+        print(architecture['layers'][-1])
+        try:
+            return rnet.feedforward_network(architecture)
+        except:
+            print(architecture['layers'][-1]['input'])

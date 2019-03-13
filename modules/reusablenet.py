@@ -28,35 +28,41 @@ def feedforward_layer(input_dict):
     or 'tanh'.
     """
     activation = {
-        'sigmoid': tf.nn.sigmoid,
-        'relu': tf.nn.relu,
-        'leaky-relu': tf.nn.leaky_relu,
-        'tanh': tf.nn.tanh
-    }[input_dict['activation']]
+        "sigmoid": tf.nn.sigmoid,
+        "relu": tf.nn.relu,
+        "leaky-relu": tf.nn.leaky_relu,
+        "tanh": tf.nn.tanh,
+    }[input_dict["activation"]]
     copy = deep_copy(input_dict)
-    copy['output'] = activation(tf.matmul(
-        input_dict['input'], input_dict['weights']) + input_dict['biases'])
+    copy["output"] = activation(
+        tf.matmul(input_dict["input"], input_dict["weights"]) + input_dict["biases"]
+    )
     return copy
 
 
-def feedforward_layer_input_dict(name, input_dimension, output_dimension,
-        activation, input_node=None):
+def feedforward_layer_input_dict(
+    name, input_dimension, output_dimension, activation, input_node=None
+):
     """Create an input dictionary for a reusable feedforward layer."""
     return {
-        'input': tf.placeholder(tf.float32, shape=[None, input_dimension]) \
-            if input_node is None else input_node,
-        'weights': glorot_initialised_vars(name + '.weights',
-            [input_dimension, output_dimension]),
-        'biases': glorot_initialised_vars(name + '.biases', [output_dimension]),
-        'activation': activation
+        "input": tf.placeholder(tf.float32, shape=[None, input_dimension])
+        if input_node is None
+        else input_node,
+        "weights": glorot_initialised_vars(
+            name + ".weights", [input_dimension, output_dimension]
+        ),
+        "biases": glorot_initialised_vars(name + ".biases", [output_dimension]),
+        "activation": activation,
     }
 
 
-def make_layer(name, input_dimension, output_dimension,
-        activation, input_node=None):
+def make_layer(name, input_dimension, output_dimension, activation, input_node=None):
     """Create a feedforward layer from some input parameters."""
-    return feedforward_layer(feedforward_layer_input_dict(name,
-        input_dimension, output_dimension, activation, input_node=input_node))
+    return feedforward_layer(
+        feedforward_layer_input_dict(
+            name, input_dimension, output_dimension, activation, input_node=input_node
+        )
+    )
 
 
 def feedforward_network(input_dict):
@@ -69,39 +75,45 @@ def feedforward_network(input_dict):
     output node added, and the dictionary for the whole network will
     also have an output node added.
     """
-    previous_output = input_dict['input']
-    copy = {'input': input_dict['input'], 'layers': []}
-    for layer in input_dict['layers']:
+    previous_output = input_dict["input"]
+    copy = {"input": input_dict["input"], "layers": []}
+    for layer in input_dict["layers"]:
         layer_copy = deep_copy(layer)
-        layer_copy['input'] = previous_output
-        copy['layers'].append(feedforward_layer(layer_copy))
-        previous_output = copy['layers'][-1]['output']
-    copy['output'] = previous_output
+        layer_copy["input"] = previous_output
+        copy["layers"].append(feedforward_layer(layer_copy))
+        previous_output = copy["layers"][-1]["output"]
+    copy["output"] = previous_output
     return copy
 
 
-def feedforward_network_input_dict(name, input_dimension, layer_specs,
-        input_node=None):
+def feedforward_network_input_dict(name, input_dimension, layer_specs, input_node=None):
     """
     Create an input dictionary for a reusable feedforward network.
 
     Layer specifications should be given as tuples containing the number
     of hidden nodes and the activation.
     """
-    _layer_specs = [layer_specs] if isinstance(layer_specs, tuple) \
-        else layer_specs
+    _layer_specs = [layer_specs] if isinstance(layer_specs, tuple) else layer_specs
     make_layer = feedforward_layer_input_dict
     return {
-        'input': tf.placeholder(tf.float32, shape=[None, input_dimension]) \
-            if input_node is None else input_node,
-        'layers': [make_layer(name + '.' + str(i), n_in, n_out, activation) \
-            for i, n_in, (n_out, activation) in zip(range(len(_layer_specs)),
-                [input_dimension] + [f for f, _ in _layer_specs], _layer_specs)]
+        "input": tf.placeholder(tf.float32, shape=[None, input_dimension])
+        if input_node is None
+        else input_node,
+        "layers": [
+            make_layer(name + "." + str(i), n_in, n_out, activation)
+            for i, n_in, (n_out, activation) in zip(
+                range(len(_layer_specs)),
+                [input_dimension] + [f for f, _ in _layer_specs],
+                _layer_specs,
+            )
+        ],
     }
 
 
-def make_network(name, input_dimension, layer_specs,
-        input_node=None):
+def make_network(name, input_dimension, layer_specs, input_node=None):
     """Create a feedforward network from some input parameters."""
-    return feedforward_network(feedforward_network_input_dict(name,
-        input_dimension, layer_specs, input_node=input_node))
+    return feedforward_network(
+        feedforward_network_input_dict(
+            name, input_dimension, layer_specs, input_node=input_node
+        )
+    )

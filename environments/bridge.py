@@ -1,5 +1,4 @@
-from environments.environment \
-    import ContinuousEnvironment, DrawableEnvironment
+from environments.environment import ContinuousEnvironment, DrawableEnvironment
 from maths.activations import identity
 from random import uniform, randint
 from numpy import reshape, vectorize
@@ -39,7 +38,7 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         () -> Class
         Return the type of the class which stores constraint data.
         """
-        return type([[[0.]]])
+        return type([[[0.0]]])
 
     def constraint_shape():
         """
@@ -90,7 +89,7 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         () -> Class
         Return the type of the class which stores solution data.
         """
-        return type([[0.]])
+        return type([[0.0]])
 
     def solution_shape():
         """
@@ -142,8 +141,9 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         Test whether the parameters of the given solution satisfy the parameters
         of the constraint.
         """
-        return Bridge._is_structurally_stable(solution) and \
-            Bridge._within_allowed_ranges(constraint, solution)
+        return Bridge._is_structurally_stable(
+            solution
+        ) and Bridge._within_allowed_ranges(constraint, solution)
 
     def _is_structurally_stable(solution):
         """
@@ -151,8 +151,9 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         Determines whether or not the given solution can hold its own weight
         according to some set of rules.
         """
-        return Bridge._elementwise_predicate(lambda s, l: s < l, solution,
-            Bridge._create_load_map(solution))
+        return Bridge._elementwise_predicate(
+            lambda s, l: s < l, solution, Bridge._create_load_map(solution)
+        )
 
     def _create_load_map(solution):
         """
@@ -163,23 +164,27 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
 
         for row in range(Bridge.HEIGHT - 1):
             for column in range(Bridge.WIDTH):
-                supporting_indices, supporting_weights = \
-                    Bridge._get_supporting_indices_and_strengths(solution, row, column)
+                supporting_indices, supporting_weights = Bridge._get_supporting_indices_and_strengths(
+                    solution, row, column
+                )
                 propagated_loads = Bridge._calculate_propagated_loads(
-                    solution[row][column], supporting_weights)
+                    solution[row][column], supporting_weights
+                )
                 for index, additional_load in zip(supporting_indices, propagated_loads):
                     loads[row + 1][index] += additional_load
-        
+
         return loads
-                
+
     def _get_supporting_indices_and_strengths(solution, row, column):
         """
         [[Float]] -> Int -> Int -> Range -> [Float]
         Given a solution and a row and column specifying a block in the solution,
         return a range of column indices and a list of their corresponding weights.
         """
-        columns = range(max([0, column - Bridge.SUPPORTING_MEMBERS]),
-            min([column + Bridge.SUPPORTING_MEMBERS + 1, Bridge.WIDTH]))
+        columns = range(
+            max([0, column - Bridge.SUPPORTING_MEMBERS]),
+            min([column + Bridge.SUPPORTING_MEMBERS + 1, Bridge.WIDTH]),
+        )
         weights = [solution[row + 1][c] for c in columns]
         return columns, weights
 
@@ -196,8 +201,9 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         if total_distribution_weight == 0.0:
             even_share = propagated_load / len(targets)
             return [even_share] * len(targets)
-        return [propagated_load * (weight / total_distribution_weight) \
-            for weight in targets]
+        return [
+            propagated_load * (weight / total_distribution_weight) for weight in targets
+        ]
 
     def _within_allowed_ranges(constraint, solution):
         """
@@ -205,8 +211,9 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         Determine whether or not every value in the solution is within its designated
         range as specified by the constraint.
         """
-        return Bridge._elementwise_predicate(lambda c, s: c[0] <= s <= c[1],
-            constraint, solution)
+        return Bridge._elementwise_predicate(
+            lambda c, s: c[0] <= s <= c[1], constraint, solution
+        )
 
     def _elementwise_predicate(predicate, solution, constraint):
         """
@@ -221,8 +228,12 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
                     return False
         return True
 
-    def environment_sampler(constraint_input='constraint', solution_input='solution',
-            satisfaction_input='satisfaction', sampler_transform=identity):
+    def environment_sampler(
+        constraint_input="constraint",
+        solution_input="solution",
+        satisfaction_input="satisfaction",
+        sampler_transform=identity,
+    ):
         """
         Object? -> Object? -> Object? -> (Sampler a -> Sampler a)?
             -> FeedDictSampler ([Float], [Float], [Float])
@@ -231,16 +242,22 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         mapped through a user-provided transform, optionally producing a mapped
         sampler, before being extracted into a FeedDictSampler.
         """
-        io = IO('data/datasets/10x7/')
-        dataset = map(lambda path: io.restore_object(path),
-            io.all_files(remove_extensions=True, include_sub_folders=False))
-        dataset_sampler = DataSetSampler(list(map(
-            lambda b: (b.constraint, b.solution, True), dataset)))
-        return FeedDictSampler(sampler_transform(dataset_sampler), {
-            constraint_input: lambda t: t[0],
-            solution_input: lambda t: t[1],
-            satisfaction_input: lambda t: t[2]
-        })
+        io = IO("data/datasets/10x7/")
+        dataset = map(
+            lambda path: io.restore_object(path),
+            io.all_files(remove_extensions=True, include_sub_folders=False),
+        )
+        dataset_sampler = DataSetSampler(
+            list(map(lambda b: (b.constraint, b.solution, True), dataset))
+        )
+        return FeedDictSampler(
+            sampler_transform(dataset_sampler),
+            {
+                constraint_input: lambda t: t[0],
+                solution_input: lambda t: t[1],
+                satisfaction_input: lambda t: t[2],
+            },
+        )
 
     def image_shape(fidelity=None):
         """
@@ -258,7 +275,7 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
         should be in the interval [0, 1], where 0 represents fully off and 1
         represents fully on.
         """
-        _solution = solution if type(solution) == type([[0.]]) else solution.tolist()
+        _solution = solution if type(solution) == type([[0.0]]) else solution.tolist()
         output = []
         for row in _solution:
             output.append(row)
@@ -268,8 +285,12 @@ class Bridge(ContinuousEnvironment, DrawableEnvironment):
             output.append([cell[1] for cell in row])
         return output
 
-    def pixel_environment_sampler(pixels_input='pixels', satisfaction_input='satisfaction',
-            fidelity=None, sampler_transform=identity):
+    def pixel_environment_sampler(
+        pixels_input="pixels",
+        satisfaction_input="satisfaction",
+        fidelity=None,
+        sampler_transform=identity,
+    ):
         """
         Object? -> Object? -> Object? -> (Sampler a -> Sampler a)?
             -> FeedDictSampler ([[Float]], [Float])
@@ -296,7 +317,7 @@ class BridgeFactory:
         Return an empty constraint (one where the allowable range of each pixel
         is [0, 1]).
         """
-        return [[[0., 1.] for _ in range(Bridge.WIDTH)] for _ in range(Bridge.HEIGHT)]
+        return [[[0.0, 1.0] for _ in range(Bridge.WIDTH)] for _ in range(Bridge.HEIGHT)]
 
     @staticmethod
     def set_lower_bound(constraint, lower_bound_on_index):
@@ -336,8 +357,10 @@ class BridgeFactory:
         Rows are 0-indexed from top to bottom, and columns are 0-indexed from
         left to right, in a list-of-rows configuration.
         """
-        return [[cell_value_on_index(row, column) \
-            for column in range(Bridge.WIDTH)] for row in range(Bridge.HEIGHT)]
+        return [
+            [cell_value_on_index(row, column) for column in range(Bridge.WIDTH)]
+            for row in range(Bridge.HEIGHT)
+        ]
 
     @staticmethod
     def blank_solution():
@@ -345,7 +368,7 @@ class BridgeFactory:
         () -> [[Float]]
         Create a solution whose cells are all set to 0.
         """
-        return BridgeFactory.solution_from_indices(lambda _1, _2: 0.)
+        return BridgeFactory.solution_from_indices(lambda _1, _2: 0.0)
 
     @staticmethod
     def uniform_solution():
@@ -370,10 +393,10 @@ class BridgeFactory:
             x = 0
             for column in row:
                 if is_in_zone(x, y):
-                    constraint[y][x] = [threshold, 1.]
+                    constraint[y][x] = [threshold, 1.0]
                 x += 1
             y += 1
-        
+
     @staticmethod
     def set_exclusion_zone(constraint, is_in_zone, threshold=EPS):
         """
@@ -388,7 +411,7 @@ class BridgeFactory:
             x = 0
             for column in row:
                 if is_in_zone(x, y):
-                    constraint[y][x] = [0., threshold]
+                    constraint[y][x] = [0.0, threshold]
                 x += 1
             y += 1
 
@@ -404,8 +427,9 @@ class BridgeFactory:
             for column in range(Bridge.WIDTH):
                 min_value = constraint[row][column][0]
                 max_value = constraint[row][column][1]
-                solution[row][column] = min_value + \
-                    (max_value - min_value) * solution[row][column]
+                solution[row][column] = (
+                    min_value + (max_value - min_value) * solution[row][column]
+                )
 
     @staticmethod
     def objective_function(constraint):
@@ -416,16 +440,19 @@ class BridgeFactory:
         the bridge by minimising the stress of the most overstressed cell,
         and so should only be used for dataset creation.
         """
+
         def maximum_stress(solution):
-            unflattened_solution = BridgeFactory.preprocess_solution(constraint,
-                solution)
+            unflattened_solution = BridgeFactory.preprocess_solution(
+                constraint, solution
+            )
             load_map = Bridge._create_load_map(unflattened_solution)
 
-            current_max_overstress = 0.
+            current_max_overstress = 0.0
             for row in range(Bridge.HEIGHT):
                 for column in range(Bridge.WIDTH):
-                    cell_overstress = load_map[row][column] - \
-                        unflattened_solution[row][column]
+                    cell_overstress = (
+                        load_map[row][column] - unflattened_solution[row][column]
+                    )
                     if cell_overstress > current_max_overstress:
                         current_max_overstress = cell_overstress
             return current_max_overstress
@@ -441,14 +468,20 @@ class BridgeFactory:
         solution.  Then return the result.  The solution must be in the form
         of a rank-one numpy ndarray.
         """
-        sigmoid = vectorize(lambda x: 1. / (1 + exp(-_clamp(x))))
+        sigmoid = vectorize(lambda x: 1.0 / (1 + exp(-_clamp(x))))
         solution = Bridge.unflatten_solution(sigmoid(raw_solution))
         BridgeFactory.map_to_allowable_range(constraint, solution)
         return solution
 
     @staticmethod
-    def generate_pillared_constraint(left_offset, width, exclusion_height, gap_height,
-            inclusion_height, inclusion_threshold):
+    def generate_pillared_constraint(
+        left_offset,
+        width,
+        exclusion_height,
+        gap_height,
+        inclusion_height,
+        inclusion_threshold,
+    ):
         """
         Int -> Int -> Int -> Int -> Int -> Float -> [[[Float]]]
         Generate a constraint for the Bridge environment which has an exclusion
@@ -457,17 +490,21 @@ class BridgeFactory:
         exclusion_top = Bridge.HEIGHT
         inclusion_top = Bridge.HEIGHT - exclusion_height - gap_height
         constraint = BridgeFactory.blank_constraint()
-        BridgeFactory.set_exclusion_zone(constraint, lambda column, row:
-            left_offset <= column < left_offset + width and
-            exclusion_top > row >= exclusion_top - exclusion_height)
-        BridgeFactory.set_inclusion_zone(constraint, lambda column, row: 
-            left_offset <= column < left_offset + width and
-            inclusion_top > row >= inclusion_top - inclusion_height,
-            inclusion_threshold)
+        BridgeFactory.set_exclusion_zone(
+            constraint,
+            lambda column, row: left_offset <= column < left_offset + width
+            and exclusion_top > row >= exclusion_top - exclusion_height,
+        )
+        BridgeFactory.set_inclusion_zone(
+            constraint,
+            lambda column, row: left_offset <= column < left_offset + width
+            and inclusion_top > row >= inclusion_top - inclusion_height,
+            inclusion_threshold,
+        )
         return constraint
 
     @staticmethod
-    def find_viable_design(constraint, method='SLSQP'):
+    def find_viable_design(constraint, method="SLSQP"):
         """
         [[[Float]]] -> String? -> (Float, Bool, [[Float]])
         Attempt to find a bridge design which satisfies the constraints.
@@ -476,12 +513,14 @@ class BridgeFactory:
         fully.
         """
         objective_function = BridgeFactory.objective_function(constraint)
-        ansatz = BridgeFactory.solution_from_indices(
-            lambda _1, _2: uniform(0, 0.15))
+        ansatz = BridgeFactory.solution_from_indices(lambda _1, _2: uniform(0, 0.15))
         # TODO: constraint SLSQP inputs instead of squashing using sigmoid
         result = minimize(objective_function, ansatz, method=method)
-        return result.fun, result.success, \
-            BridgeFactory.preprocess_solution(constraint, result.x)
+        return (
+            result.fun,
+            result.success,
+            BridgeFactory.preprocess_solution(constraint, result.x),
+        )
 
     @staticmethod
     def build_bridge_dataset(name, maximum_size, maximum_overstress):
@@ -504,22 +543,22 @@ class BridgeFactory:
                 exclusion_height=randint(1, maximum_exclusion_height),
                 gap_height=randint(1, 2),
                 inclusion_height=randint(1, maximum_inclusion_height),
-                inclusion_threshold=uniform(0.1, 0.45)
+                inclusion_threshold=uniform(0.1, 0.45),
             )
 
-        io = IO('data/datasets/{}/'.format(name), True)
+        io = IO("data/datasets/{}/".format(name), True)
         i = 0
         while i < maximum_size:
             constraint = make_constraint()
-            overstress, success, solution = BridgeFactory.find_viable_design(
-                constraint)
+            overstress, success, solution = BridgeFactory.find_viable_design(constraint)
             if overstress <= maximum_overstress and success:
-                print('Found viable solution for design {}.'.format(i))
-                io.save_object(BridgeConstraintSolutionPair(
-                    constraint, solution), str(i))
+                print("Found viable solution for design {}.".format(i))
+                io.save_object(
+                    BridgeConstraintSolutionPair(constraint, solution), str(i)
+                )
                 i += 1
             else:
-                print('Failed to find viable solution for design {}.'.format(i))
+                print("Failed to find viable solution for design {}.".format(i))
 
 
 class BridgeConstraintSolutionPair:

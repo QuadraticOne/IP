@@ -38,8 +38,9 @@ def gaussian_sampler(mean, stddev, batch_size):
     Create a node of shape [batch_size] which samples from a Gaussian
     probability distribution.
     """
-    return tf.random_normal([batch_size], mean=mean, stddev=stddev,
-        dtype=Args.data_type)
+    return tf.random_normal(
+        [batch_size], mean=mean, stddev=stddev, dtype=Args.data_type
+    )
 
 
 def gaussian_pdf(mean, stddev):
@@ -50,9 +51,12 @@ def gaussian_pdf(mean, stddev):
     standard deviation.
     """
     tau = tf.constant(2 * pi, dtype=Args.data_type)
+
     def apply(x):
         return (1 / tf.sqrt(tau * tf.square(stddev))) * tf.exp(
-            -tf.square(x - mean) / (2 * tf.square(stddev)))
+            -tf.square(x - mean) / (2 * tf.square(stddev))
+        )
+
     return apply
 
 
@@ -75,9 +79,10 @@ def clipped_gradients(loss):
     """
     optimiser = tf.train.AdamOptimizer()
     gradients = optimiser.compute_gradients(loss)
-    clipped_gradients = [(tf.clip_by_value(gradient, -Args.gradient_cutoff,
-        Args.gradient_cutoff), var)
-        for gradient, var in gradients]
+    clipped_gradients = [
+        (tf.clip_by_value(gradient, -Args.gradient_cutoff, Args.gradient_cutoff), var)
+        for gradient, var in gradients
+    ]
     operation = optimiser.apply_gradients(clipped_gradients)
     return operation
 
@@ -90,8 +95,8 @@ def run():
     """
     batch_size = 1024
 
-    mu_a = tf.Variable(0., dtype=Args.data_type)
-    sigma_a = tf.Variable(1., dtype=Args.data_type)
+    mu_a = tf.Variable(0.0, dtype=Args.data_type)
+    sigma_a = tf.Variable(1.0, dtype=Args.data_type)
     mu_b = tf.constant(0.5, dtype=Args.data_type)
     sigma_b = tf.constant(0.08, dtype=Args.data_type)
     x = gaussian_sampler(mu_a, sigma_a, batch_size)
@@ -111,5 +116,8 @@ def run():
     for i in range(10000):
         output = s.run([mu_a, sigma_a, kl, kl_real, minimiser])
         if i % 150 == 0:
-            print('mu: {}, sigma: {}, kl: {}, kl_real: {}'.format(
-                output[0], output[1], output[2], output[3]))
+            print(
+                "mu: {}, sigma: {}, kl: {}, kl_real: {}".format(
+                    output[0], output[1], output[2], output[3]
+                )
+            )

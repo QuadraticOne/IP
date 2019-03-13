@@ -1,5 +1,4 @@
-from environments.environment \
-    import ContinuousEnvironment, DrawableEnvironment
+from environments.environment import ContinuousEnvironment, DrawableEnvironment
 from math import sqrt
 from numpy import linspace
 from random import uniform
@@ -22,13 +21,13 @@ class Circles(ContinuousEnvironment, DrawableEnvironment):
     # Number of pixels along each edge of the environment when
     # presented as an image
     PIXELS = 10
-    
+
     def constraint_type():
         """
         () -> Class
         Return the type of the class which stores constraint data.
         """
-        return type([0.])
+        return type([0.0])
 
     def constraint_shape():
         """
@@ -70,7 +69,7 @@ class Circles(ContinuousEnvironment, DrawableEnvironment):
         () -> Class
         Return the type of the class which stores solution data.
         """
-        return type([0.])
+        return type([0.0])
 
     def solution_shape():
         """
@@ -125,9 +124,12 @@ class Circles(ContinuousEnvironment, DrawableEnvironment):
         sol_x, sol_y, sol_r = solution[0], solution[1], solution[2]
         return _distance(cons_x, cons_y, sol_x, sol_y) < cons_r + sol_r
 
-    def environment_sampler(constraint_input='constraint',
-            solution_input='solution', satisfaction_input='satisfaction',
-            sampler_transform=BinomialResampler.halves_on_last_element_head):
+    def environment_sampler(
+        constraint_input="constraint",
+        solution_input="solution",
+        satisfaction_input="satisfaction",
+        sampler_transform=BinomialResampler.halves_on_last_element_head,
+    ):
         """
         Object? -> Object? -> Object? -> (Sampler a -> Sampler a)?
             -> FeedDictSampler ([Float], [Float], [Float])
@@ -135,11 +137,14 @@ class Circles(ContinuousEnvironment, DrawableEnvironment):
         matches them with the satisfaction of the constraint.
         """
         sampler = AnonymousSampler(single=Circles._make_environment)
-        return FeedDictSampler(sampler_transform(sampler), {
-            constraint_input: lambda t: t[0],
-            solution_input: lambda t: t[1],
-            satisfaction_input: lambda t: t[2]
-        })
+        return FeedDictSampler(
+            sampler_transform(sampler),
+            {
+                constraint_input: lambda t: t[0],
+                solution_input: lambda t: t[1],
+                satisfaction_input: lambda t: t[2],
+            },
+        )
 
     def image_shape():
         """
@@ -160,32 +165,39 @@ class Circles(ContinuousEnvironment, DrawableEnvironment):
         sol_x, sol_y, sol_r = solution[0], solution[1], solution[2]
         steps = linspace(-1, 1, Circles.PIXELS)
         reversed_steps = steps[::-1]
+
         def inside_circle(x, y):
-            return _distance(x, y, cons_x, cons_y) < cons_r \
+            return (
+                _distance(x, y, cons_x, cons_y) < cons_r
                 or _distance(x, y, sol_x, sol_y) < sol_r
+            )
+
         return [
-            [1. if inside_circle(x, y) else 0. for x in steps] \
-                for y in reversed_steps
+            [1.0 if inside_circle(x, y) else 0.0 for x in steps] for y in reversed_steps
         ]
 
-    def pixel_environment_sampler(pixels_input='pixels',
-            satisfaction_input='satisfaction',
-            sampler_transform=BinomialResampler.halves_on_last_element_head):
+    def pixel_environment_sampler(
+        pixels_input="pixels",
+        satisfaction_input="satisfaction",
+        sampler_transform=BinomialResampler.halves_on_last_element_head,
+    ):
         """
         Object? -> Object? -> (Sampler ([[Float]], [Float]) -> Sampler a)?
             -> FeedDictSampler a
         Return a sampler that generates pixel representations of environments and
         puts them into a feed dict along with their satisfactions.
         """
+
         def generate_pixels():
             cons, sol, satisfied = Circles._make_environment()
             pixels = Circles.as_image(cons, sol, Circles.PIXELS)
             return pixels, satisfied
+
         sampler = AnonymousSampler(single=generate_pixels)
-        return FeedDictSampler(sampler_transform(sampler), {
-            pixels_input: lambda t: t[0],
-            satisfaction_input: lambda t: t[1]
-        })
+        return FeedDictSampler(
+            sampler_transform(sampler),
+            {pixels_input: lambda t: t[0], satisfaction_input: lambda t: t[1]},
+        )
 
     def _make_circle():
         return [uniform(-1, 1), uniform(-1, 1), uniform(0, 1)]
@@ -202,6 +214,7 @@ def _distance(x0, y0, x1, y1):
     Float -> Float -> Float -> Float -> Float
     Determine the Euclidian distance between two points.
     """
+
     def sqr(x):
         return x * x
 

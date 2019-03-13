@@ -1,5 +1,4 @@
-from wise.networks.deterministic.feedforwardnetwork \
-    import FeedforwardNetwork
+from wise.networks.deterministic.feedforwardnetwork import FeedforwardNetwork
 from wise.networks.activation import Activation
 from wise.util.tensors import placeholder_node
 from wise.util.training import classification_metrics
@@ -15,11 +14,10 @@ class Params:
     session = tf.Session()
     # Do not include output layer shape:
     internal_layer_shapes = [[20]]
-    activation = Activation.all_except_last(
-        Activation.LEAKY_RELU, Activation.SIGMOID)
+    activation = Activation.all_except_last(Activation.LEAKY_RELU, Activation.SIGMOID)
     save_location = None
     batch_size = 32
-    fidelity=10
+    fidelity = 10
 
 
 def make_discriminator():
@@ -27,16 +25,19 @@ def make_discriminator():
     () -> (tf.Placeholder, FeedforwardNetwork)
     """
     image_shape = Params.environment.image_shape(Params.fidelity)
-    image_input = placeholder_node('image_input', image_shape, 1)
+    image_input = placeholder_node("image_input", image_shape, 1)
 
-    return image_input, FeedforwardNetwork(
-        name='pixel_discriminator',
-        session=Params.session,
-        input_shape=image_shape,
-        layer_shapes=Params.internal_layer_shapes + [[1]],
-        activations=Params.activation,
-        input_node=image_input,
-        save_location=Params.save_location
+    return (
+        image_input,
+        FeedforwardNetwork(
+            name="pixel_discriminator",
+            session=Params.session,
+            input_shape=image_shape,
+            layer_shapes=Params.internal_layer_shapes + [[1]],
+            activations=Params.activation,
+            input_node=image_input,
+            save_location=Params.save_location,
+        ),
     )
 
 
@@ -45,8 +46,12 @@ def make_training_nodes(discriminator):
     FeedforwardNetwork -> (TargetNode, LossNode, Accuracy, Optimiser)
     Create training nodes relevant to the problem.
     """
-    return classification_metrics([1], discriminator.output_node,
-        'discriminator_training', variables=discriminator.get_variables())
+    return classification_metrics(
+        [1],
+        discriminator.output_node,
+        "discriminator_training",
+        variables=discriminator.get_variables(),
+    )
 
 
 def make_sampler(image_node, satisfaction_node):
@@ -56,7 +61,7 @@ def make_sampler(image_node, satisfaction_node):
     return Params.environment.pixel_environment_sampler(
         pixels_input=image_node,
         satisfaction_input=satisfaction_node,
-        sampler_transform=BinomialResampler.halves_on_last_element_head
+        sampler_transform=BinomialResampler.halves_on_last_element_head,
     )
 
 
@@ -74,8 +79,18 @@ def run():
 
     disc.get_session().run(tf.global_variables_initializer())
 
-    fit(disc.get_session(), optimiser, training_set_sampler,
-        1000, 2000, 32, [('Loss', loss), ('Accuracy', accuracy)])
+    fit(
+        disc.get_session(),
+        optimiser,
+        training_set_sampler,
+        1000,
+        2000,
+        32,
+        [("Loss", loss), ("Accuracy", accuracy)],
+    )
 
-    print('Validation accuracy: {}'.format(disc.feed(
-        accuracy, test_set_sampler.batch(1024))))
+    print(
+        "Validation accuracy: {}".format(
+            disc.feed(accuracy, test_set_sampler.batch(1024))
+        )
+    )

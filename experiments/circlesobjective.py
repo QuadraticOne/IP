@@ -3,52 +3,50 @@ from modules.discriminator import LearnedObjectiveFunction
 import tensorflow as tf
 
 
-training_parameters = [
-    LearnedObjectiveFunction.TrainingParameters(50, 2000, 32)
-]
+training_parameters = [LearnedObjectiveFunction.TrainingParameters(50, 2000, 32)]
 
 transformed_input_builders = [
     LearnedObjectiveFunction.TransformedInputBuilder(None),
     LearnedObjectiveFunction.TransformedInputBuilder(0.01),
     LearnedObjectiveFunction.TransformedInputBuilder(0.02),
     LearnedObjectiveFunction.TransformedInputBuilder(0.05),
-    LearnedObjectiveFunction.TransformedInputBuilder(0.1)
+    LearnedObjectiveFunction.TransformedInputBuilder(0.1),
 ]
 
 network_builders = [
     LearnedObjectiveFunction.NetworkBuilder([8, 8]),
     LearnedObjectiveFunction.NetworkBuilder([8, 8], bayesian=True),
     LearnedObjectiveFunction.NetworkBuilder([4]),
-    LearnedObjectiveFunction.NetworkBuilder([4], batch_normalisation=True)
+    LearnedObjectiveFunction.NetworkBuilder([4], batch_normalisation=True),
 ]
 
 regularisation_builders = [
     LearnedObjectiveFunction.RegularisationBuilder(l2_weight=None),
     LearnedObjectiveFunction.RegularisationBuilder(l2_weight=0.5),
-    LearnedObjectiveFunction.RegularisationBuilder(l2_weight=1.0)
+    LearnedObjectiveFunction.RegularisationBuilder(l2_weight=1.0),
 ]
 
 error_builders = [
     LearnedObjectiveFunction.ErrorBuilder(True),
-    LearnedObjectiveFunction.ErrorBuilder(False)
+    LearnedObjectiveFunction.ErrorBuilder(False),
 ]
 
 loss_builders = [
     LearnedObjectiveFunction.LossBuilder(),
-    LearnedObjectiveFunction.LossBuilder(regularisation_weight=2.0)
+    LearnedObjectiveFunction.LossBuilder(regularisation_weight=2.0),
 ]
 
 data_builders = [
     LearnedObjectiveFunction.DataBuilder(),
-    LearnedObjectiveFunction.DataBuilder(training_set_size=64,
-        validation_set_size=2048),
-    LearnedObjectiveFunction.DataBuilder(training_set_size=128,
-        validation_set_size=2048)
+    LearnedObjectiveFunction.DataBuilder(
+        training_set_size=64, validation_set_size=2048
+    ),
+    LearnedObjectiveFunction.DataBuilder(
+        training_set_size=128, validation_set_size=2048
+    ),
 ]
 
-optimiser_builders = [
-    LearnedObjectiveFunction.OptimiserBuilder()
-]
+optimiser_builders = [LearnedObjectiveFunction.OptimiserBuilder()]
 
 builders = [
     training_parameters,
@@ -58,7 +56,7 @@ builders = [
     error_builders,
     loss_builders,
     data_builders,
-    optimiser_builders
+    optimiser_builders,
 ]
 
 
@@ -70,8 +68,9 @@ def combinations(lists):
     in which the candidates can be combined in the main list.
     """
     indices = iterate_tensor_shapes([len(builder_list) for builder_list in lists])
-    return [[builder_list[i] for i, builder_list in zip(index, lists)] \
-        for index in indices]
+    return [
+        [builder_list[i] for i, builder_list in zip(index, lists)] for index in indices
+    ]
 
 
 def iterate_tensor_shapes(shape):
@@ -109,22 +108,34 @@ def run():
     parameter_combinations = combinations(builders)
 
     n_combinations = len(parameter_combinations)
-    check = input('This experiment will run {} configurations.  Are you sure? (y/N) '
-        .format(n_combinations))
-    if check != 'y':
+    check = input(
+        "This experiment will run {} configurations.  Are you sure? (y/N) ".format(
+            n_combinations
+        )
+    )
+    if check != "y":
         return None
 
-    repeats = int(input('Enter number of times to repeat each experiment: '))
+    repeats = int(input("Enter number of times to repeat each experiment: "))
 
     for pars in parameter_combinations:
         tf.reset_default_graph()
         objective_function = LearnedObjectiveFunction(
-            'circles_objective_function', tf.Session(), Circles,
-            pars[0], pars[1], pars[2], pars[3], pars[4], pars[5],
-            pars[6], pars[7]
+            "circles_objective_function",
+            tf.Session(),
+            Circles,
+            pars[0],
+            pars[1],
+            pars[2],
+            pars[3],
+            pars[4],
+            pars[5],
+            pars[6],
+            pars[7],
         )
         for _ in range(repeats):
             objective_function.feed(tf.global_variables_initializer())
-            objective_function.log_experiment('circlesobjective/combination-{}'
-                .format(i))
+            objective_function.log_experiment(
+                "circlesobjective/combination-{}".format(i)
+            )
         i += 1

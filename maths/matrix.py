@@ -3,7 +3,6 @@ from numpy.random import normal
 
 
 class SkewSymmetricMatrix:
-
     def __init__(self, size):
         """Create a skew-symmetric matrix with normally distributed values."""
         self.size = size
@@ -15,7 +14,6 @@ class SkewSymmetricMatrix:
 
 
 class OrthogonalMatrix:
-
     @staticmethod
     def new(size):
         """Create an orthogonal matrix of the given size."""

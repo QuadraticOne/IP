@@ -48,11 +48,15 @@ def g(y):
     generated space S_G.
     """
     return FeedforwardNetwork(
-        'generator', Args.session, [Args.latent_dimensions],
-            Args.generator_hidden_layers + [[1]],
+        "generator",
+        Args.session,
+        [Args.latent_dimensions],
+        Args.generator_hidden_layers + [[1]],
         activations=Activation.all_except_last(
-            Args.internal_activation, Args.output_activation),
-        input_node=y).output_node
+            Args.internal_activation, Args.output_activation
+        ),
+        input_node=y,
+    ).output_node
 
 
 def f(x):
@@ -61,18 +65,20 @@ def f(x):
     Create a Tensorflow graph representing the objective function, which
     is expected to output values between 0 and 1.
     """
-    return sigmoid_bump(x, width=Args.w, offset=0.5) + \
-        sigmoid_bump(x, width=Args.w, offset=-0.5)
+    return sigmoid_bump(x, width=Args.w, offset=0.5) + sigmoid_bump(
+        x, width=Args.w, offset=-0.5
+    )
 
 
-def sigmoid_bump(x, width=4, offset=0., fatness=0.05, y_scale=1.):
+def sigmoid_bump(x, width=4, offset=0.0, fatness=0.05, y_scale=1.0):
     """
     tf.Node -> Float -> Float? -> Float? -> Float? -> tf.Node
     Create a Tensorflow graph representing a sigmoid bump.
     """
     after_offset = (x - offset) / fatness
-    return y_scale * (tf.sigmoid(after_offset + width) -
-        tf.sigmoid(after_offset - width))
+    return y_scale * (
+        tf.sigmoid(after_offset + width) - tf.sigmoid(after_offset - width)
+    )
 
 
 def make_precision_proxy_loss(gamma):
@@ -84,8 +90,9 @@ def make_precision_proxy_loss(gamma):
     return tf.reduce_mean(-tf.log(gamma + 1))
 
 
-def plot_histogram(node, lower=None, upper=None, steps=50,
-        x_label=None, show=False, save=None):
+def plot_histogram(
+    node, lower=None, upper=None, steps=50, x_label=None, show=False, save=None
+):
     """
     tf.Node -> Float? -> Float? -> Int? -> String? -> Bool? -> String? -> ()
     Plot a histogram of the given node, where the node is assumed to be
@@ -97,7 +104,7 @@ def plot_histogram(node, lower=None, upper=None, steps=50,
     plt.hist(values, bins=steps, range=(l, u))
     if x_label is not None:
         plt.xlabel(x_label)
-    plt.ylabel('Frequency')
+    plt.ylabel("Frequency")
     if show:
         plt.show()
     if save is not None:
@@ -113,15 +120,17 @@ def f_plotter(lower, upper, steps=50):
     """
     xs = linspace(lower, upper, steps)
     fs = Args.session.run(f(tf.constant(xs)))
+
     def plot(show=False, save=None):
         plt.plot(xs, fs)
-        plt.xlabel('Solution value')
-        plt.ylabel('Objective function value')
+        plt.xlabel("Solution value")
+        plt.ylabel("Objective function value")
         if show:
             plt.show()
         if save is not None:
             plt.savefig(save)
         plt.cla()
+
     return plot
 
 
@@ -132,9 +141,9 @@ def plot_latent_relation(latent_samples, solution_samples, show=False, save=None
     both are one-dimensional.
     """
     xs, ys = Args.session.run([solution_samples, latent_samples])
-    plt.plot(xs, ys, '.')
-    plt.xlabel('Solution value')
-    plt.ylabel('Latent value')
+    plt.plot(xs, ys, ".")
+    plt.xlabel("Solution value")
+    plt.ylabel("Latent value")
     plt.xlim(-1, 1)
     plt.ylim(0, 1)
     if show:
@@ -144,8 +153,9 @@ def plot_latent_relation(latent_samples, solution_samples, show=False, save=None
     plt.cla()
 
 
-def mcmc_samples(distribution_input, distribution_output,
-        tensorflow_session, n_samples, skip, start):
+def mcmc_samples(
+    distribution_input, distribution_output, tensorflow_session, n_samples, skip, start
+):
     """
     tf.Node -> tf.Node -> tf.Session -> Int -> Int -> [Float] -> [[Float]]
     Take a number of samples from a target distribution, as defined by a
@@ -153,10 +163,15 @@ def mcmc_samples(distribution_input, distribution_output,
     """
     samples = [start]
     for _ in range(n_samples):
-        samples.append(metropolis_hastings(skip,
-            lambda x: tensorflow_session.run(distribution_output,
-                feed_dict={distribution_input: x}),
-            samples[-1]))
+        samples.append(
+            metropolis_hastings(
+                skip,
+                lambda x: tensorflow_session.run(
+                    distribution_output, feed_dict={distribution_input: x}
+                ),
+                samples[-1],
+            )
+        )
     return samples
 
 
@@ -169,8 +184,9 @@ def sample_target_distribution(dimensions, samples, skip):
     pdf_input = tf.placeholder(tf.float32, shape=[dimensions])
     pdf_output = f(pdf_input)
     session = tf.Session()
-    return mcmc_samples(pdf_input, pdf_output, session, samples, skip,
-        [0.0] * dimensions)
+    return mcmc_samples(
+        pdf_input, pdf_output, session, samples, skip, [0.0] * dimensions
+    )
 
 
 def spread(samples):
@@ -185,8 +201,9 @@ def spread(samples):
     """
     shape = tf.shape(samples)
     repeated = tf.tile(samples, [shape[0], 1])
-    grouped = tf.reshape(tf.tile(samples, [1, shape[0]]),
-        [shape[0] * shape[0], shape[1]])
+    grouped = tf.reshape(
+        tf.tile(samples, [1, shape[0]]), [shape[0] * shape[0], shape[1]]
+    )
     squared_difference = tf.square(repeated - grouped)
     return tf.reduce_mean(squared_difference)
 
@@ -237,58 +254,78 @@ def run():
     recall_proxy_loss = linearity_loss
 
     # Optimisers
-    linearity_optimiser = default_adam_optimiser(linearity_loss, 'linearity_optimiser')
-    optimiser = default_adam_optimiser(precision_proxy_loss + \
-        Args.recall_weight * recall_proxy_loss, 'optimiser')
+    linearity_optimiser = default_adam_optimiser(linearity_loss, "linearity_optimiser")
+    optimiser = default_adam_optimiser(
+        precision_proxy_loss + Args.recall_weight * recall_proxy_loss, "optimiser"
+    )
 
     # Set up plotting configuration
-    run_id = input('Enter run ID: ')
+    run_id = input("Enter run ID: ")
     to_show = len(run_id) == 0
-    location = 'figures/subspacesampling/proxies/' + run_id + '/'
+    location = "figures/subspacesampling/proxies/" + run_id + "/"
     if not to_show:
         makedirs(location)
 
     # Plotting functions
     plot_f = f_plotter(-1, 1)
-    plot_f(save=location + 'objective_function' if not to_show else None, show=to_show)
+    plot_f(save=location + "objective_function" if not to_show else None, show=to_show)
 
     def plot_x_histogram(show=False, save=None):
-        plot_histogram(x_sample, lower=-1, upper=1, show=show, save=save,
-            x_label='Solution value')
+        plot_histogram(
+            x_sample, lower=-1, upper=1, show=show, save=save, x_label="Solution value"
+        )
 
     def plot_gamma_histogram(show=False, save=None):
-        plot_histogram(gamma_sample, lower=0, upper=1, show=show, save=save,
-            x_label='Estimated satisfaction probability')
+        plot_histogram(
+            gamma_sample,
+            lower=0,
+            upper=1,
+            show=show,
+            save=save,
+            x_label="Estimated satisfaction probability",
+        )
 
     def make_plots(identifier):
-        plot_latent_relation(y_sample, x_sample, show=to_show,
-            save=location + 'y_vs_x_' + identifier if not to_show else None)
-        plot_x_histogram(show=to_show, save=location + 'x_' + identifier \
-            if not to_show else None)
-        plot_gamma_histogram(show=to_show, save=location + 'gamma_' + identifier \
-            if not to_show else None)
+        plot_latent_relation(
+            y_sample,
+            x_sample,
+            show=to_show,
+            save=location + "y_vs_x_" + identifier if not to_show else None,
+        )
+        plot_x_histogram(
+            show=to_show, save=location + "x_" + identifier if not to_show else None
+        )
+        plot_gamma_histogram(
+            show=to_show, save=location + "gamma_" + identifier if not to_show else None
+        )
 
     # Perform setup
     Args.session.run(tf.global_variables_initializer())
 
-    make_plots('before')
+    make_plots("before")
 
     # Perform linear initialisation
     if Args.initialise_to_identity:
         for i in range(Args.initialisation_epochs):
             batch_linearity_loss, _ = Args.session.run(
-                [linearity_loss, linearity_optimiser])
+                [linearity_loss, linearity_optimiser]
+            )
             if i % 100 == 0:
-                print('Linearity loss: {}'.format(batch_linearity_loss))
+                print("Linearity loss: {}".format(batch_linearity_loss))
 
-        make_plots('intermediate')
+        make_plots("intermediate")
 
     # Perform normal training
     for i in range(Args.training_epochs):
         batch_precision_loss, batch_recall_loss, _ = Args.session.run(
-            [precision_proxy_loss, recall_proxy_loss, optimiser])
+            [precision_proxy_loss, recall_proxy_loss, optimiser]
+        )
         if i % 100 == 0:
-            print('Precision loss: {}\tRecall loss: {}'.format(
-                batch_precision_loss, batch_recall_loss))
+            print(
+                "Precision loss: {}\tRecall loss: {}".format(
+                    batch_precision_loss, batch_recall_loss
+                )
+            )
 
-    make_plots('after')
+    make_plots("after")
+
