@@ -12,6 +12,22 @@ def deep_copy(value):
         return value
 
 
+def all_variables(architecture):
+    """Return a list of all tf.Variable nodes in the architecture."""
+    if isinstance(architecture, dict):
+        variables = []
+        for a in architecture.values():
+            variables += all_variables(a)
+        return variables
+    elif isinstance(architecture, list):
+        variables = []
+        for a in architecture:
+            variables += all_variables(a)
+        return variables
+    else:
+        return [architecture] if isinstance(architecture, tf.Variable) else []
+
+
 def join_inputs(left, right):
     """Join two inputs into a single vector."""
     return tf.concat([left, right], -1)
