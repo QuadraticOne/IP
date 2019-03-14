@@ -148,3 +148,17 @@ class ParametricGenerator:
         output_layer["weights"] = weights_embedder["output"]
         output_layer["biases"] = biases_embedder["output"]
         return rnet.feedforward_network(architecture)
+
+    def build_discriminator(self, solution_input, constraint_input):
+        """
+        tf.Node -> tf.Node -> Dict
+        Build the discriminator, given nodes containing batches of
+        solutions and constraints respectively.
+        """
+        architecture = rnet.deep_copy(self.discriminator_architecture)
+        architecture["input"] = rnet.join_inputs(solution_input, constraint_input)
+        discriminator = rnet.feedforward_network(architecture)
+        discriminator["output"] = tf.reshape(
+            discriminator["output"], [tf.shape(discriminator["output"])[0]]
+        )
+        return discriminator
