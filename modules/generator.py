@@ -194,10 +194,10 @@ class ParametricGenerator:
 
     def recall_proxy(self, generator, discriminator):
         """
-        Dict -> tf.Node
-        Return a loss node that measures the distance of the generator from
-        the identity function in the function space.  Only defined when the
-        latent dimension is equal to the solution dimension.
+        Dict -> Dict -> tf.Node
+        Return a loss node that can be used to optimise a proxy for the recall of
+        the generator, measuring the likelihood that a viable solution exists in
+        the generated set.
         """
         if self.latent_dimension != self.solution_dimension:
             raise ValueError(
@@ -212,3 +212,12 @@ class ParametricGenerator:
             ),
             name=self.extend_name("linearity_loss"),
         )
+
+    def precision_proxy(self, generator, discriminator):
+        """
+        Dict -> Dict -> tf.Node
+        Return a loss node that can be used to optimise a proxy for the precision
+        of the generator, measuring the likelihood of a generated sample belonging
+        to the target set.
+        """
+        pass
