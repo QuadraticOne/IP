@@ -5,6 +5,8 @@
 *.out
 
 wise/
+
+graphs/
 data/
 
 main.py
