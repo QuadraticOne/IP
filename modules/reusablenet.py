@@ -35,7 +35,11 @@ def feedforward_layer(input_dict):
     }[input_dict["activation"]]
     copy = deep_copy(input_dict)
     copy["output"] = activation(
-        tf.tensordot(input_dict["input"], input_dict["weights"], axes=1)
+        tf.tensordot(
+            input_dict["input"],
+            input_dict["weights"],
+            axes=1 if "axes" not in input_dict else input_dict["axes"],
+        )
         + input_dict["biases"]
     )
     return copy

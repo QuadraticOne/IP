@@ -21,6 +21,9 @@ class ParametricGenerator:
         self.constraint_dimension = constraint_dimension
         self.embedding_dimension = embedding_dimension
 
+        # NOTE: if strange errors about non-matching dimensions are observed,
+        #       it is likely because the batch size fed into the constraint node
+        #       did not match this value
         self.generator_training_batch_size = 64
 
     def set_generator_architecture(
@@ -35,7 +38,9 @@ class ParametricGenerator:
             self.latent_dimension,
             internal_layers + [(self.embedding_dimension, internal_activation)],
         )
-        self.generator_architecture["layers"].append({"activation": output_activation})
+        self.generator_architecture["layers"].append(
+            {"axes": 2, "activation": output_activation}
+        )
 
     def set_embedder_architecture(
         self,
@@ -97,6 +102,9 @@ class ParametricGenerator:
         """
         self.latent_sample = tf.random.uniform(
             [self.generator_training_batch_size, self.latent_dimension]
+        )
+        self.constraint_sample = tf.random.uniform(
+            [self.generator_training_batch_size, self.constraint_dimension]
         )
 
     def build_embedder(self, constraint_input):
