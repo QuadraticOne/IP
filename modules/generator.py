@@ -208,9 +208,9 @@ class ParametricGenerator:
             tf.squared_difference(
                 2 * (generator["input"] - 1),
                 generator["output"],
-                name=self.extend_name("linearity_squared_difference"),
+                name=self.extend_name("linearity_error"),
             ),
-            name=self.extend_name("linearity_loss"),
+            name=self.extend_name("recall_proxy"),
         )
 
     def precision_proxy(self, generator, discriminator):
@@ -220,4 +220,10 @@ class ParametricGenerator:
         of the generator, measuring the likelihood of a generated sample belonging
         to the target set.
         """
-        pass
+        return tf.reduce_mean(
+            -tf.log(
+                discriminator["output"] + 1,
+                name=self.extend_name("precision_logarithm"),
+            ),
+            name=self.extend_name("precision_proxy"),
+        )
