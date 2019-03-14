@@ -1,4 +1,4 @@
-from modules.generator import ParametricGenerator
+from modules.parametric.generator import ParametricGenerator
 import modules.reusablenet as rnet
 import tensorflow as tf
 

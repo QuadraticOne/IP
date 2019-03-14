@@ -175,7 +175,6 @@ class ParametricGenerator:
         produced by the constraint embedder.
         """
         architecture = rnet.deep_copy(self.generator_architecture)
-        print(architecture["name"])
         architecture["input"] = latent_input
         output_layer = architecture["layers"][-1]
         output_layer["weights"] = weights_embedder["output"]
