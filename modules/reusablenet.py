@@ -35,7 +35,8 @@ def feedforward_layer(input_dict):
     }[input_dict["activation"]]
     copy = deep_copy(input_dict)
     copy["output"] = activation(
-        tf.matmul(input_dict["input"], input_dict["weights"]) + input_dict["biases"]
+        tf.tensordot(input_dict["input"], input_dict["weights"], axes=1)
+        + input_dict["biases"]
     )
     return copy
 
