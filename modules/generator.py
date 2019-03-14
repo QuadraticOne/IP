@@ -180,3 +180,14 @@ class ParametricGenerator:
             discriminator["output"], [tf.shape(discriminator["output"])[0]]
         )
         return discriminator
+
+    def discriminator_training_nodes(self, discriminator):
+        """
+        Dict -> (tf.Node, tf.Node)
+        Return a target node and loss node useful for training the discriminator.
+        """
+        target = placeholder_node(
+            self.extend_name("discriminator_target"), [], dynamic_dimensions=1
+        )
+        loss = tf.losses.mean_squared_error(target, discriminator["output"])
+        return target, loss
