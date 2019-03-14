@@ -192,7 +192,7 @@ class ParametricGenerator:
         loss = tf.losses.mean_squared_error(target, discriminator["output"])
         return target, loss
 
-    def generator_pretraining_nodes(self, generator):
+    def recall_proxy(self, generator, discriminator):
         """
         Dict -> tf.Node
         Return a loss node that measures the distance of the generator from
@@ -212,4 +212,3 @@ class ParametricGenerator:
             ),
             name=self.extend_name("linearity_loss"),
         )
-
