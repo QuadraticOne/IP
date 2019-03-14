@@ -114,11 +114,26 @@ class ParametricGenerator:
         () -> ()
         Construct sample nodes for training the generator.
         """
-        self.latent_sample = tf.random.uniform(
+        self.latent_sample = self.make_latent_sample_node()
+        self.constraint_sample = self.make_constraint_sample_node()
+
+    def make_latent_sample_node(self):
+        """
+        () -> tf.Node
+        Create an instance of a node sampling uniformly from the latent space.
+        """
+        return tf.random.uniform(
             [self.generator_training_batch_size, self.latent_dimension],
             name=self.extend_name("latent_sample"),
         )
-        self.constraint_sample = tf.random.uniform(
+
+    def make_constraint_sample_node(self):
+        """
+        () -> tf.Node
+        Create an instance of a node sampling from the constraint space in
+        a manner likely to create a realistic distribution.
+        """
+        return tf.random.uniform(
             [self.generator_training_batch_size, self.constraint_dimension],
             name=self.extend_name("constraint_sample"),
         )
