@@ -71,6 +71,4 @@ def run():
     s = tf.Session()
     s.run(tf.global_variables_initializer())
 
-    f = p.build_discriminator(g["output"], p.constraint_sample)
-
-    print(s.run([g["output"][0], f]))
+    d = p.build_discriminator(g["output"], p.constraint_sample)
