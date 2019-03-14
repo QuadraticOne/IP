@@ -191,3 +191,25 @@ class ParametricGenerator:
         )
         loss = tf.losses.mean_squared_error(target, discriminator["output"])
         return target, loss
+
+    def generator_pretraining_nodes(self, generator):
+        """
+        Dict -> tf.Node
+        Return a loss node that measures the distance of the generator from
+        the identity function in the function space.  Only defined when the
+        latent dimension is equal to the solution dimension.
+        """
+        if self.latent_dimension != self.solution_dimension:
+            raise ValueError(
+                "latent and solution dimensions must be equal "
+                + "for linearity loss to be well defined"
+            )
+        return tf.reduce_mean(
+            tf.squared_difference(
+                2 * (generator["input"] - 1),
+                generator["output"],
+                name=self.extend_name("linearity_squared_difference"),
+            ),
+            name=self.extend_name("linearity_loss"),
+        )
+
