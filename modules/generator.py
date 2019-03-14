@@ -6,6 +6,7 @@ import tensorflow as tf
 class ParametricGenerator:
     def __init__(
         self,
+        name,
         solution_dimension,
         latent_dimension,
         constraint_dimension,
@@ -16,6 +17,9 @@ class ParametricGenerator:
         Create a parametric generator by specifying the dimensions
         of all relevant spaces.
         """
+        self.name = name
+        self.extend_name = rnet.name_extender(self.name)
+
         self.solution_dimension = solution_dimension
         self.latent_dimension = latent_dimension
         self.constraint_dimension = constraint_dimension
@@ -34,12 +38,16 @@ class ParametricGenerator:
         Provide an architecture to use when building the generator.
         """
         self.generator_architecture = rnet.feedforward_network_input_dict(
-            "generator",
+            self.extend_name("generator"),
             self.latent_dimension,
             internal_layers + [(self.embedding_dimension, internal_activation)],
         )
         self.generator_architecture["layers"].append(
-            {"axes": 2, "activation": output_activation}
+            {
+                "axes": 2,
+                "activation": output_activation,
+                "name": "solution_embedding_layer",
+            }
         )
 
     def set_embedder_architecture(
@@ -55,7 +63,7 @@ class ParametricGenerator:
         embedders.
         """
         self.embedder_weights_architecture = rnet.feedforward_network_input_dict(
-            "embedder_weights",
+            self.extend_name("embedder_weights"),
             self.constraint_dimension,
             weights_internal_layers
             + [
@@ -64,7 +72,7 @@ class ParametricGenerator:
         )
 
         self.embedder_biases_architecture = rnet.feedforward_network_input_dict(
-            "embedder_biases",
+            self.extend_name("embedder_biases"),
             self.constraint_dimension,
             biases_internal_layers + [(self.solution_dimension, biases_activation)],
         )
@@ -75,7 +83,7 @@ class ParametricGenerator:
         Provide an architecture to use when building the discriminator.
         """
         self.discriminator_architecture = rnet.feedforward_network_input_dict(
-            "discriminator",
+            self.extend_name("discriminator"),
             self.solution_dimension + self.constraint_dimension,
             internal_layers + [(1, "sigmoid")],
         )
@@ -128,6 +136,7 @@ class ParametricGenerator:
                 tf.shape(weights_embedder["output"])[0],
                 self.solution_dimension,
             ],
+            name=self.extend_name("reshaped_constraint_embedding"),
         )
 
         embedder_biases_architecture = rnet.deep_copy(self.embedder_biases_architecture)
@@ -143,6 +152,7 @@ class ParametricGenerator:
         produced by the constraint embedder.
         """
         architecture = rnet.deep_copy(self.generator_architecture)
+        print(architecture["name"])
         architecture["input"] = latent_input
         output_layer = architecture["layers"][-1]
         output_layer["weights"] = weights_embedder["output"]
