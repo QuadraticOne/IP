@@ -94,13 +94,19 @@ class ParametricGenerator:
         Construct input placeholder nodes for the tensorflow graph.
         """
         self.solution_input = placeholder_node(
-            "solution_input", [self.solution_dimension], dynamic_dimensions=1
+            self.extend_name("solution_input"),
+            [self.solution_dimension],
+            dynamic_dimensions=1,
         )
         self.latent_input = placeholder_node(
-            "latent_input", [self.latent_dimension], dynamic_dimensions=1
+            self.extend_name("latent_input"),
+            [self.latent_dimension],
+            dynamic_dimensions=1,
         )
         self.constraint_input = placeholder_node(
-            "constraint_input", [self.constraint_dimension], dynamic_dimensions=1
+            self.extend_name("constraint_input"),
+            [self.constraint_dimension],
+            dynamic_dimensions=1,
         )
 
     def build_sample_nodes(self):
@@ -109,10 +115,12 @@ class ParametricGenerator:
         Construct sample nodes for training the generator.
         """
         self.latent_sample = tf.random.uniform(
-            [self.generator_training_batch_size, self.latent_dimension]
+            [self.generator_training_batch_size, self.latent_dimension],
+            name=self.extend_name("latent_sample"),
         )
         self.constraint_sample = tf.random.uniform(
-            [self.generator_training_batch_size, self.constraint_dimension]
+            [self.generator_training_batch_size, self.constraint_dimension],
+            name=self.extend_name("constraint_sample"),
         )
 
     def build_embedder(self, constraint_input):
