@@ -225,6 +225,39 @@ class NTree:
         """
         return self.point_count / self.volume
 
+    def probability_density(self, point):
+        """
+        [Float] -> Float
+        Calculate the probability density of the tree, interpreted as a probability
+        distribution, at the given location.
+        """
+        return self._probability_density_inner(point, 1.0, 1.0) / self.volume
+
+    def _probability_density_inner(self, point, data_proportion, volume_proportion):
+        """
+        [Float] -> Float -> Float -> Float
+        Calculate the probability density of the tree, interpreted as a probability
+        distribution, at the given location.
+        """
+        if self.within_bounds(point):
+            if self.has_children:
+                # Calculated as the ratio of proportion of points to proportion
+                # of volume
+                number_of_points = self.point_count
+                return self.first_child._probability_density_inner(
+                    point,
+                    self.first_child.point_count / number_of_points,
+                    0.5 * volume_proportion,
+                ) + self.second_child._probability_density_inner(
+                    point,
+                    self.second_child.point_count / number_of_points,
+                    0.5 * volume_proportion,
+                )
+            else:
+                return data_proportion / volume_proportion
+        else:
+            return 0.0
+
     def histogram(self, save_location=None):
         """
         String? -> ()
