@@ -1,3 +1,6 @@
+import matplotlib.pyplot as plt
+
+
 class NTree:
     def __init__(
         self,
@@ -190,3 +193,62 @@ class NTree:
             if not self.has_children
             else "({}, {})".format(str(self.first_child), str(self.second_child))
         )
+
+    @property
+    def child_buckets(self):
+        """
+        () -> [NTree]
+        Return a list of all children of the n-tree which themselves have no children.
+        """
+        return (
+            [self]
+            if not self.has_children
+            else self.first_child.child_buckets + self.second_child.child_buckets
+        )
+
+    @property
+    def volume(self):
+        """
+        () -> Float
+        Calculate the volume of the region bounded by the bucket.
+        """
+        product = 1
+        for l, u in self.ranges:
+            product *= u - l
+        return product
+
+    @property
+    def density(self):
+        """
+        () -> Float
+        Calculate the density of the region bounded by the n-tree's bucket.
+        """
+        return self.point_count / self.volume
+
+    def histogram(self, save_location=None):
+        """
+        String? -> ()
+        Plot an histogram of the data distribution contained within the n-tree.
+        If a save location is defined then the histogram will be saved instead of
+        shown.
+        """
+        if self.dimensions == 1:
+            buckets = self.child_buckets
+            buckets.sort(key=lambda b: b.ranges[0][0])
+
+            xs, ys = [], []
+            for bucket in buckets:
+                density = bucket.density
+                xs.append(bucket.ranges[0][0])
+                xs.append(bucket.ranges[0][1])
+                ys.append(density)
+                ys.append(density)
+
+            plt.ylim(0, max(ys) * 1.15)
+            plt.xlim(min(xs), max(xs))
+            plt.plot(xs, ys)
+            plt.show()
+        else:
+            raise Exception(
+                "histogram not defined for {} dimensions".format(self.dimensions)
+            )
