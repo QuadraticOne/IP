@@ -246,11 +246,12 @@ class NTree:
                 number_of_points = self.point_count
                 return self.first_child._probability_density_inner(
                     point,
-                    self.first_child.point_count / number_of_points,
+                    data_proportion * (self.first_child.point_count / number_of_points),
                     0.5 * volume_proportion,
                 ) + self.second_child._probability_density_inner(
                     point,
-                    self.second_child.point_count / number_of_points,
+                    data_proportion
+                    * (self.second_child.point_count / number_of_points),
                     0.5 * volume_proportion,
                 )
             else:
