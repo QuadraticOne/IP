@@ -58,17 +58,16 @@ def run():
     r = "leaky-relu"
     l = (10, "leaky-relu")
 
-    p = ParametricGeneratorTest(5, 3, 10)
-    p.set_embedder_architecture([l], r, [l], r)
-    p.set_generator_architecture([l, l], r, "tanh")
+    pgt = ParametricGeneratorTest(5, 3, 10)
+    pgt.set_embedder_architecture([l], r, [l], r)
+    pgt.set_generator_architecture([l, l], r, "tanh")
 
-    p.build_input_nodes()
-    p.build_sample_nodes()
+    pgt.build_input_nodes()
+    pgt.build_sample_nodes()
 
-    w, b = p.build_embedder(p.constraint_sample)
-    g = p.build_generator(p.latent_sample, w, b)
+    weights, biases = pgt.build_embedder(pgt.constraint_sample)
+    generator = pgt.build_generator(pgt.latent_sample, weights, biases)
+    discriminator = pgt.build_discriminator(generator["output"], pgt.constraint_sample)
 
-    s = tf.Session()
-    s.run(tf.global_variables_initializer())
-
-    d = p.build_discriminator(g["output"], p.constraint_sample)
+    session = tf.Session()
+    session.run(tf.global_variables_initializer())
