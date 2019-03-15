@@ -135,6 +135,8 @@ class ParametricGenerator:
         """
         return tf.random.uniform(
             [self.generator_training_batch_size, self.constraint_dimension],
+            minval=-1.0,
+            maxval=1.0,
             name=self.extend_name("constraint_sample"),
         )
 
