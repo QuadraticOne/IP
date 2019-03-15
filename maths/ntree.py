@@ -1,20 +1,40 @@
 class NTree:
-    def __init__(self, ranges, split_dimension, points, capacity, parent=None):
+    def __init__(
+        self,
+        ranges,
+        capacity,
+        split_dimension=0,
+        points=[],
+        minimum_width=0.001,
+        parent=None,
+    ):
         """
-        [(Float, Float)] -> Int -> [[Float]] -> Int -> NTree? -> Ntree
+        [(Float, Float)] -> Int -> Int? -> [[Float]]? -> Float? -> NTree? -> NTree
         Create an n-tree, which stores points in buckets of variable density.
         """
-        self.split_dimension = split_dimension
-        self.capacity = capacity
-
-        self.points = points
         self.ranges = ranges
         self.dimensions = len(self.ranges)
+        self.split_dimension = split_dimension
+
+        self.capacity = capacity
+        self.minimum_width = minimum_width
+
+        self.points = points
 
         self.first_child, second_child = None, None
         self.has_children = False
 
         self.parent = parent
+        self.check_for_overcrowding()
+
+    def add_point(self, new_point, check_within_bounds=False):
+        """
+        [Float] -> Bool? -> ()
+        Add a new point to the n-tree, sorting it into the relevant bucket.  An
+        optional flag can be set to check that the point is actually within the
+        bounds of the tree's bucket before adding it.
+        """
+        self.add_points([new_point], check_within_bounds=check_within_bounds)
 
     def add_points(self, new_points, check_within_bounds=False):
         """
@@ -23,11 +43,10 @@ class NTree:
         it is a branch.  Includes an optional toggle which first checks that the points
         fall within the n-tree (this is disabled for recusrive calls of this function.)
         """
-        points, _ = (
-            (new_points, None)
-            if not check_within_bounds
-            else self._filter(new_points, self.within_bounds),
-        )
+        if check_within_bounds:
+            points, _ = self._partition(new_points, self.within_bounds)
+        else:
+            points = new_points
 
         if self.has_children:
             first_points, second_points = self._sort_by_child(points)
@@ -35,8 +54,21 @@ class NTree:
             self.second_child.add_points(second_points)
         else:
             self.points += points
-            if self.point_count > self.capacity:
-                self._create_children()
+            self.check_for_overcrowding()
+
+    def check_for_overcrowding(self):
+        """
+        () -> ()
+        Check that the capacity of the bucket has not been exceeded; if it has,
+        split it into two smaller child buckets and redistribute the points to
+        them.
+        """
+        can_subdivide = (
+            self.ranges[self.split_dimension][1]
+            > self.ranges[self.split_dimension][0] + self.minimum_width
+        )
+        if self.point_count > self.capacity and can_subdivide:
+            self._create_children()
 
     def _sort_by_child(self, points):
         """
@@ -44,8 +76,11 @@ class NTree:
         Sort a list of points into lists of whether they will be contained
         in the first or second child.
         """
-        return self._filter(points, lambda p: p[self.dimension] < self.split_point)
+        return self._partition(
+            points, lambda p: p[self.split_dimension] < self.split_point
+        )
 
+    @property
     def split_point(self):
         """
         () -> Float
@@ -79,24 +114,24 @@ class NTree:
 
         self.has_children = True
         self.first_child = NTree(
-            self.dimensions,
-            split_dimension,
             self._override_list_value(
                 self.ranges, self.split_dimension, (split_min, self.split_point)
             ),
-            first_points,
             self.capacity,
-            self,
+            split_dimension=split_dimension,
+            points=first_points,
+            minimum_width=self.minimum_width,
+            parent=self,
         )
         self.second_child = NTree(
-            self.dimensions,
-            split_dimension,
             self._override_list_value(
                 self.ranges, self.split_dimension, (self.split_point, split_max)
             ),
-            second_points,
             self.capacity,
-            self,
+            split_dimension=split_dimension,
+            points=second_points,
+            minimum_width=self.minimum_width,
+            parent=self,
         )
         self.points = None
 
@@ -110,10 +145,10 @@ class NTree:
         return values[:i] + [new_value] + values[i + 1 :]
 
     @staticmethod
-    def _filter(values, predicate):
+    def _partition(values, predicate):
         """
         [a] -> (a -> Bool) -> ([a], [a])
-        Filter a list of values by a predicate.
+        Parition a list of values by a predicate.
         """
         trues, falses = [], []
         for value in values:
@@ -143,3 +178,15 @@ class NTree:
         Return the number of points in the n-tree.
         """
         return len(self.all_points)
+
+    def __str__(self):
+        """
+        () -> String
+        Return a string representation of the n-tree based on the number
+        of points it contains.
+        """
+        return (
+            str(self.point_count)
+            if not self.has_children
+            else "({}, {})".format(str(self.first_child), str(self.second_child))
+        )
