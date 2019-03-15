@@ -1,22 +1,21 @@
 from modules.parametric.generator import ParametricGenerator
+from modules.parametric.training import optimiser
 import modules.reusablenet as rnet
 import tensorflow as tf
 
 
 class ParametricGeneratorTest(ParametricGenerator):
-    def __init__(self, latent_dimension, constraint_dimension, embedding_dimension):
+    def __init__(self, constraint_dimension, embedding_dimension, proxy_weight):
         """
-        Int -> Int -> Int -> ParametricGeneratorTest
+        Int -> Int -> Float -> ParametricGeneratorTest
         Create an object designed to test the parametric generator training
         algorithm on a one-dimensional environment.
         """
         super().__init__(
-            "one_dim_test",
-            1,
-            latent_dimension,
-            constraint_dimension,
-            embedding_dimension,
+            "one_dim_test", 1, 1, constraint_dimension, embedding_dimension
         )
+
+        self.proxy_weight = proxy_weight
 
     def make_constraint_sample_node(self):
         """
@@ -66,7 +65,7 @@ def run():
     r = "leaky-relu"
     l = (10, "leaky-relu")
 
-    pgt = ParametricGeneratorTest(5, 3, 10)
+    pgt = ParametricGeneratorTest(3, 10, 1.0)
     pgt.set_embedder_architecture([l], r, [l], r)
     pgt.set_generator_architecture([l, l], r, "tanh")
 
@@ -76,6 +75,12 @@ def run():
     weights, biases = pgt.build_embedder(pgt.constraint_sample)
     generator = pgt.build_generator(pgt.latent_sample, weights, biases)
     discriminator = pgt.build_discriminator(generator["output"], pgt.constraint_sample)
+
+    precision, recall = pgt.proxies(generator, discriminator)
+    weighted_proxies = precision + pgt.proxy_weight * recall
+
+    recall_optimiser = optimiser(recall, "recall_optimiser")
+    weighted_optimiser = optimiser(weighted_proxies, "weighted_optimiser")
 
     session = tf.Session()
     session.run(tf.global_variables_initializer())

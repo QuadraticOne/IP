@@ -208,6 +208,16 @@ class ParametricGenerator:
         loss = tf.losses.mean_squared_error(target, discriminator["output"])
         return target, loss
 
+    def proxies(self, generator, discriminator):
+        """
+        Dict -> Dict -> (tf.Node, tf.Node)
+        Create and return proxies for both precision and recall.
+        """
+        return (
+            self.precision_proxy(generator, discriminator),
+            self.recall_proxy(generator, discriminator),
+        )
+
     def recall_proxy(self, generator, discriminator):
         """
         Dict -> Dict -> tf.Node
