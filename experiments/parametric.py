@@ -33,10 +33,18 @@ class ParametricGeneratorTest(ParametricGenerator):
         solutions and constraints respectively.
         """
         tiled_x = tf.tile(solution_input, [1, self.constraint_dimension])
-        return tf.reduce_mean(
-            self.sigmoid_bump(tiled_x, constraint_input),
-            name=self.extend_name("objective_function"),
+        summed_output = tf.reduce_mean(
+            self.sigmoid_bump(tiled_x, constraint_input), axis=1
         )
+        return {
+            "solution_input": solution_input,
+            "constraint_input": constraint_input,
+            "output": tf.reshape(
+                summed_output,
+                [tf.shape(summed_output)[0], 1],
+                name=self.extend_name("objective_function"),
+            ),
+        }
 
     def sigmoid_bump(self, x, offset, width=5.0, fatness=0.05, y_scale=1.0):
         """
