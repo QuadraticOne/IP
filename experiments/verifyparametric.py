@@ -1,5 +1,6 @@
 from modules.parametric.generator import ParametricGenerator
 from modules.parametric.training import optimiser
+from wise.training.routines import fit
 import modules.reusablenet as rnet
 import tensorflow as tf
 
@@ -23,7 +24,7 @@ class ParametricGeneratorTest(ParametricGenerator):
         Create an instance of a node sampling from the constraint space in
         a manner likely to create a realistic distribution.
         """
-        return tf.constant([[1.0, 0.0, -1.0]] * self.generator_training_batch_size)
+        return tf.constant([[0.8, 0.0, -0.8]] * self.generator_training_batch_size)
 
     def build_discriminator(self, solution_input, constraint_input):
         """
@@ -84,3 +85,25 @@ def run():
 
     session = tf.Session()
     session.run(tf.global_variables_initializer())
+
+    print("\nPretraining:")
+    fit(
+        session,
+        recall_optimiser,
+        None,
+        10,
+        20000,
+        pgt.generator_training_batch_size,
+        [("Recall", recall), ("Precision", precision)],
+    )
+
+    print("\nTraining:")
+    fit(
+        session,
+        weighted_optimiser,
+        None,
+        50,
+        20000,
+        pgt.generator_training_batch_size,
+        [("Recall", recall), ("Precision", precision)],
+    )

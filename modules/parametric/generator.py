@@ -232,7 +232,7 @@ class ParametricGenerator:
             )
         return tf.reduce_mean(
             tf.squared_difference(
-                2 * (generator["input"] - 1),
+                (2 * generator["input"]) - 1,
                 generator["output"],
                 name=self.extend_name("linearity_error"),
             ),
