@@ -50,19 +50,28 @@ def feedforward_layer(input_dict):
         "leaky-relu": tf.nn.leaky_relu,
         "tanh": tf.nn.tanh,
     }[input_dict["activation"]]
+
     copy = deep_copy(input_dict)
+
+    copy["after_weights"] = tf.matmul(
+        tf.expand_dims(input_dict["input"], axis=input_dict["input_expansion_axis"])
+        if "input_expansion_axis" in input_dict
+        else input_dict["input"],
+        input_dict["weights"],
+        name=extend_name("after_weights"),
+    )
+    copy["after_weights"] = (
+        tf.squeeze(copy["after_weights"], axis=[input_dict["input_expansion_axis"]])
+        if "input_expansion_axis" in input_dict
+        else copy["after_weights"]
+    )
+
+    copy["after_biases"] = tf.add(
+        copy["after_weights"], input_dict["biases"], name=extend_name("after_biases")
+    )
+
     copy["output"] = activation(
-        tf.add(
-            tf.tensordot(
-                input_dict["input"],
-                input_dict["weights"],
-                axes=1 if "axes" not in input_dict else input_dict["axes"],
-                name=extend_name("after_weights"),
-            ),
-            input_dict["biases"],
-            name=extend_name("after_biases"),
-        ),
-        name=extend_name("after_activation"),
+        copy["after_biases"], name=extend_name("after_activation")
     )
     return copy
 

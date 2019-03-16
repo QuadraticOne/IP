@@ -44,7 +44,7 @@ class ParametricGenerator:
         )
         self.generator_architecture["layers"].append(
             {
-                "axes": 2,
+                "input_expansion_axis": 1,
                 "activation": output_activation,
                 "name": "solution_embedding_layer",
             }
@@ -157,8 +157,8 @@ class ParametricGenerator:
         weights_embedder["output"] = tf.reshape(
             weights_embedder["output"],
             [
-                self.embedding_dimension,
                 tf.shape(weights_embedder["output"])[0],
+                self.embedding_dimension,
                 self.solution_dimension,
             ],
             name=self.extend_name("reshaped_constraint_embedding"),
@@ -192,9 +192,7 @@ class ParametricGenerator:
         architecture = rnet.deep_copy(self.discriminator_architecture)
         architecture["input"] = rnet.join_inputs(solution_input, constraint_input)
         discriminator = rnet.feedforward_network(architecture)
-        discriminator["output"] = tf.reshape(
-            discriminator["output"], [tf.shape(discriminator["output"])[0]]
-        )
+        discriminator["output"] = tf.squeeze(discriminator["output"])
         return discriminator
 
     def discriminator_training_nodes(self, discriminator):
