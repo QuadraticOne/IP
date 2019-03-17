@@ -24,7 +24,11 @@ class ParametricGeneratorTest(ParametricGenerator):
         Create an instance of a node sampling from the constraint space in
         a manner likely to create a realistic distribution.
         """
-        return tf.constant([[-0.8, 0.0, 0.8]] * self.generator_training_batch_size)
+        return tf.random_uniform(
+            minval=-1.0,
+            maxval=1.0,
+            shape=[self.generator_training_batch_size, self.constraint_dimension],
+        )
 
     def build_discriminator(self, solution_input, constraint_input):
         """
