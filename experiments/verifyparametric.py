@@ -5,6 +5,15 @@ import modules.reusablenet as rnet
 import tensorflow as tf
 
 
+class Args:
+
+    pretraining_epochs = 10
+    pretraining_steps_per_epoch = 20000
+
+    training_epochs = 50
+    training_steps_per_epoch = 20000
+
+
 class ParametricGeneratorTest(ParametricGenerator):
     def __init__(self, constraint_dimension, embedding_dimension, proxy_weight):
         """
@@ -95,8 +104,8 @@ def run():
         session,
         recall_optimiser,
         None,
-        10,
-        20000,
+        Args.pretraining_epochs,
+        Args.pretraining_steps_per_epoch,
         pgt.generator_training_batch_size,
         [("Recall", recall), ("Precision", precision)],
     )
@@ -106,8 +115,8 @@ def run():
         session,
         weighted_optimiser,
         None,
-        50,
-        20000,
+        Args.training_epochs,
+        Args.training_steps_per_epoch,
         pgt.generator_training_batch_size,
         [("Recall", recall), ("Precision", precision)],
     )
