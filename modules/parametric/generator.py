@@ -30,6 +30,10 @@ class ParametricGenerator:
         #       did not match this value
         self.generator_training_batch_size = 64
 
+        self.generator_architecture_defined = False
+        self.embedder_architecture_defined = False
+        self.discriminator_architecture_defined = False
+
     def set_generator_architecture(
         self, internal_layers, internal_activation, output_activation
     ):
@@ -37,6 +41,10 @@ class ParametricGenerator:
         [(Int, String)] -> String -> String -> ()
         Provide an architecture to use when building the generator.
         """
+        self.generator_internal_layers = internal_layers
+        self.generator_internal_activation = internal_activation
+        self.generator_output_activation = output_activation
+
         self.generator_architecture = rnet.feedforward_network_input_dict(
             self.extend_name("generator"),
             self.latent_dimension,
@@ -50,6 +58,8 @@ class ParametricGenerator:
             }
         )
 
+        self.generator_architecture_defined = True
+
     def set_embedder_architecture(
         self,
         weights_internal_layers,
@@ -62,6 +72,11 @@ class ParametricGenerator:
         Provide architectures to use when building the constraint
         embedders.
         """
+        self.weights_internal_layers = weights_internal_layers
+        self.weights_activation = weights_activation
+        self.biases_internal_layers = biases_internal_layers
+        self.biases_activation = biases_activation
+
         self.embedder_weights_architecture = rnet.feedforward_network_input_dict(
             self.extend_name("embedder_weights"),
             self.constraint_dimension,
@@ -77,16 +92,22 @@ class ParametricGenerator:
             biases_internal_layers + [(self.solution_dimension, biases_activation)],
         )
 
+        self.embedder_architecture_defined = True
+
     def set_discriminator_architecture(self, internal_layers):
         """
         Dict -> ()
         Provide an architecture to use when building the discriminator.
         """
+        self.discriminator_internal_layers = internal_layers
+
         self.discriminator_architecture = rnet.feedforward_network_input_dict(
             self.extend_name("discriminator"),
             self.solution_dimension + self.constraint_dimension,
             internal_layers + [(1, "sigmoid")],
         )
+
+        self.discriminator_architecture_defined = True
 
     def build_input_nodes(self):
         """
@@ -266,10 +287,13 @@ class ParametricGenerator:
             args["embeddingDimension"],
         )
 
+        if "generatorTrainingBatchSize" in args:
+            generator.generator_training_batch_size = args["generatorTrainingBatchSize"]
+
         if "generatorArchitecture" in args:
             gargs = args["generatorArchitecture"]
             generator.set_generator_architecture(
-                ParametricGenerator._extract_layers(gargs["internalLayers"]),
+                ParametricGenerator._layers_from_json(gargs["internalLayers"]),
                 gargs["internalActivation"],
                 gargs["outputActivation"],
             )
@@ -277,24 +301,78 @@ class ParametricGenerator:
         if "embedderArchitecture" in args:
             eargs = args["embedderArchitecture"]
             generator.set_embedder_architecture(
-                ParametricGenerator._extract_layers(eargs["weights"]["internalLayers"]),
+                ParametricGenerator._layers_from_json(
+                    eargs["weights"]["internalLayers"]
+                ),
                 eargs["weights"]["activation"],
-                ParametricGenerator._extract_layers(eargs["biases"]["internalLayers"]),
+                ParametricGenerator._layers_from_json(
+                    eargs["biases"]["internalLayers"]
+                ),
                 eargs["biases"]["activation"],
             )
 
         if "discriminatorArchitecture" in args:
             dargs = args["discriminatorArchitecture"]
             generator.set_discriminator_architecture(
-                ParametricGenerator._extract_layers(dargs)
+                ParametricGenerator._layers_from_json(dargs)
             )
 
     @staticmethod
-    def _extract_layers(json):
+    def _layers_from_json(json):
         """
-        Dict -> [(Int, String)]
+        [Dict] -> [(Int, String)]
         Extract a list of tuples representing the number of nodes and activation
         of neural network layers from a list of JSON objects, each of which
         are assumed to have "nodes" and "activation" properties.
         """
         return [(layer["nodes"], layer["activation"]) for layer in json]
+
+    @staticmethod
+    def _layers_to_json(architecture):
+        """
+        [(Int, String)] -> [Dict]
+        Convert a list of tuples describing network layers into a JSON-like object.
+        """
+        return [{"nodes": n, "activation": a} for n, a in architecture]
+
+    def to_json(self):
+        """
+        () -> Dict
+        Return a JSON-like representation of the generator's parameters.
+        """
+        json = {
+            "name": self.name,
+            "solutionDimension": self.solution_dimension,
+            "latentDimension": self.latent_dimension,
+            "constraintDimension": self.constraint_dimension,
+            "embeddingDimension": self.embedding_dimension,
+            "generatorTrainingBatchSize": self.generator_training_batch_size,
+        }
+
+        if self.generator_architecture_defined:
+            json["generatorArchitecture"] = {
+                "internalLayers": self._layers_to_json(self.generator_internal_layers),
+                "internalActivation": self.generator_internal_activation,
+                "outputActivation": self.generator_output_activation,
+            }
+
+        if self.embedder_architecture_defined:
+            json["embedderArchitecture"] = {
+                "weights": {
+                    "internalLayers": self._layers_to_json(
+                        self.weights_internal_layers
+                    ),
+                    "activation": self.weights_activation,
+                },
+                "biases": {
+                    "internalLayers": self._layers_to_json(self.biases_internal_layers),
+                    "activation": self.biases_activation,
+                },
+            }
+
+        if self.discriminator_architecture_defined:
+            json["discriminatorArchitecture"] = self._layers_to_json(
+                self.discriminator_internal_layers
+            )
+
+        return json
