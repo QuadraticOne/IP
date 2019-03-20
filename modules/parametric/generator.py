@@ -317,6 +317,8 @@ class ParametricGenerator:
                 ParametricGenerator._layers_from_json(dargs)
             )
 
+        return generator
+
     @staticmethod
     def _layers_from_json(json):
         """
@@ -341,7 +343,6 @@ class ParametricGenerator:
         Return a JSON-like representation of the generator's parameters.
         """
         json = {
-            "name": self.name,
             "solutionDimension": self.solution_dimension,
             "latentDimension": self.latent_dimension,
             "constraintDimension": self.constraint_dimension,
