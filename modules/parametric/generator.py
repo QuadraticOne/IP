@@ -251,3 +251,50 @@ class ParametricGenerator:
             ),
             name=self.extend_name("precision_proxy"),
         )
+
+    @staticmethod
+    def from_json(args):
+        """
+        Dict -> ParametricGenerator
+        Create a parametric generator from a JSON object.
+        """
+        generator = ParametricGenerator(
+            args["name"],
+            args["solutionDimension"],
+            args["latentDimension"],
+            args["constraintDimension"],
+            args["embeddingDimension"],
+        )
+
+        if "generatorArchitecture" in args:
+            gargs = args["generatorArchitecture"]
+            generator.set_generator_architecture(
+                ParametricGenerator._extract_layers(gargs["internalLayers"]),
+                gargs["internalActivation"],
+                gargs["outputActivation"],
+            )
+
+        if "embedderArchitecture" in args:
+            eargs = args["embedderArchitecture"]
+            generator.set_embedder_architecture(
+                ParametricGenerator._extract_layers(eargs["weights"]["internalLayers"]),
+                eargs["weights"]["activation"],
+                ParametricGenerator._extract_layers(eargs["biases"]["internalLayers"]),
+                eargs["biases"]["activation"],
+            )
+
+        if "discriminatorArchitecture" in args:
+            dargs = args["discriminatorArchitecture"]
+            generator.set_discriminator_architecture(
+                ParametricGenerator._extract_layers(dargs)
+            )
+
+    @staticmethod
+    def _extract_layers(json):
+        """
+        Dict -> [(Int, String)]
+        Extract a list of tuples representing the number of nodes and activation
+        of neural network layers from a list of JSON objects, each of which
+        are assumed to have "nodes" and "activation" properties.
+        """
+        return [(layer["nodes"], layer["activation"]) for layer in json]
