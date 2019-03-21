@@ -1,9 +1,10 @@
 from modules.parametric.generator import ParametricGenerator
+from wise.util.io import IO
 import tensorflow as tf
+import numpy as np
 
 
 class ParametricGeneratorTrainer:
-
     def __init__(
         self,
         parametric_generator,
@@ -36,7 +37,7 @@ class ParametricGeneratorTrainer:
         )
         self.generator_training_parameters.batch_size = (
             parametric_generator.generator_training_batch_size
-        )        
+        )
 
     def load_data(self):
         """
@@ -44,7 +45,22 @@ class ParametricGeneratorTrainer:
         Load data from the dataset, returning it either as three numpy arrays or
         loading it from a serialised location and returning it that format.
         """
-        raise NotImplementedError()
+        data = None
+
+        if not isinstance(self.dataset, str):
+            data = self.dataset
+        else:
+            data = IO([p + "/" for p in self.dataset.split("/")[:-1]]).restore_object(
+                self.dataset.split(".")[-1]
+            )
+
+        true, false = np.array([1.0]), np.array([0.0])
+        solutions, constraints, satisfactions = [], [], []
+        for datum in data:
+            solutions.append(np.array(datum[0]))
+            constraints.append(np.array(datum[1]))
+            satisfactions.append(true if datum[2] else false)
+        return np.array(solutions), np.array(constraints), np.array(satisfactions)
 
     def to_json(self):
         """
@@ -53,7 +69,7 @@ class ParametricGeneratorTrainer:
         """
         return {
             "parametricGenerator": self.parametric_generator.to_json(),
-            "dataset": self.dataset is isinstance(self.dataset, str) else "literal",
+            "dataset": self.dataset if isinstance(self.dataset, str) else "literal",
             "recallWeight": self.recall_weight,
             "discriminatorTrainingParameters": (
                 self.discriminator_training_parameters.to_json()
@@ -87,13 +103,8 @@ class ParametricGeneratorTrainer:
         )
 
     class TrainingParameters:
-
         def __init__(
-            self,
-            epochs,
-            steps_per_epoch,
-            batch_size=None,
-            evaluation_sample_size=256,
+            self, epochs, steps_per_epoch, batch_size=None, evaluation_sample_size=256
         ):
             """
             Int -> Int -> Int? -> Int? -> TrainingParameters
@@ -110,9 +121,9 @@ class ParametricGeneratorTrainer:
             Create a JSON-like representation of the training parameters.
             """
             json = {
-                "epochs" = self.epochs,
-                "stepsPerEpoch" = self.steps_per_epoch,
-                "evaluationSampleSize" = self.evaluation_sample_size,
+                "epochs": self.epochs,
+                "stepsPerEpoch": self.steps_per_epoch,
+                "evaluationSampleSize": self.evaluation_sample_size,
             }
             if self.batch_size is not None:
                 json["batchSize"] = self.batch_size
@@ -128,7 +139,7 @@ class ParametricGeneratorTrainer:
                 json["epochs"],
                 json["stepsPerEpoch"],
                 json["batchSize"] if "batchSize" in json else None,
-                json["evaluationSampleSize"] if "evaluationSampleSize" in json,
+                json["evaluationSampleSize"],
             )
 
 
