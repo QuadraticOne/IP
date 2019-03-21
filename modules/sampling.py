@@ -1,5 +1,6 @@
 from random import uniform
 import tensorflow as tf
+import numpy as np
 
 
 def partition_randomly(data, p_true):
@@ -42,8 +43,10 @@ def sample_and_validation_nodes(training_indices, validation_indices, batch_indi
     """
 
     def generate_nodes(data):
-        training_constant = tf.constant([data[i] for i in training_indices])
-        validation_constant = tf.constant([data[i] for i in validation_indices])
+        training_constant = tf.constant(np.array([data[i] for i in training_indices]))
+        validation_constant = tf.constant(
+            np.array([data[i] for i in validation_indices])
+        )
         training_sample = tf.nn.embedding_lookup(training_constant, batch_indices)
         return training_sample, validation_constant
 

@@ -44,6 +44,8 @@ class Trainer:
 
         self.validation_proportion = 0.2
 
+        self.set_discriminator_inputs()
+
     def load_data(self):
         """
         () -> (np.array, np.array, np.array)
@@ -59,7 +61,7 @@ class Trainer:
                 self.dataset.split(".")[-1]
             )
 
-        true, false = np.array([1.0]), np.array([0.0])
+        true, false = 1.0, 0.0
         solutions, constraints, satisfactions = [], [], []
         for datum in data:
             solutions.append(np.array(datum[0]))
@@ -112,6 +114,7 @@ class Trainer:
             "generatorTrainingParameters": (
                 self.generator_training_parameters.to_json()
             ),
+            "discriminatorValidationProportion": self.validation_proportion,
         }
 
     @staticmethod
@@ -125,7 +128,7 @@ class Trainer:
         def training_pars(key):
             return Trainer.TrainingParameters.from_json(json[key])
 
-        return Trainer(
+        trainer = Trainer(
             ParametricGenerator.from_json(json["parametricGenerator"]),
             json["dataset"] if "dataset" in json else [],
             json["recallWeight"],
@@ -133,6 +136,11 @@ class Trainer:
             training_pars("generatorPretrainingParameters"),
             training_pars("generatorTrainingParameters"),
         )
+
+        if "discriminatorValidationProportion" in json:
+            trainer.validation_proportion = json["discriminatorValidationProportion"]
+
+        return trainer
 
     class TrainingParameters:
         def __init__(
