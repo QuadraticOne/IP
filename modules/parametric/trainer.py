@@ -39,6 +39,8 @@ class Trainer:
             parametric_generator.generator_training_batch_size
         )
 
+        self.session = None
+
     def load_data(self):
         """
         () -> (np.array, np.array, np.array)
@@ -61,6 +63,14 @@ class Trainer:
             constraints.append(np.array(datum[1]))
             satisfactions.append(true if datum[2] else false)
         return np.array(solutions), np.array(constraints), np.array(satisfactions)
+
+    def reset_training(self):
+        """
+        () -> ()
+        Reset all current progress, returning any weight matrices to random values.
+        """
+        self.session = tf.Session()
+        self.session.run(tf.global_variables_initializer())
 
     def to_json(self):
         """
