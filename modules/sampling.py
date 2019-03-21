@@ -43,9 +43,11 @@ def sample_and_validation_nodes(training_indices, validation_indices, batch_indi
     """
 
     def generate_nodes(data):
-        training_constant = tf.constant(np.array([data[i] for i in training_indices]))
+        training_constant = tf.constant(
+            np.array([data[i] for i in training_indices]), dtype=tf.float32
+        )
         validation_constant = tf.constant(
-            np.array([data[i] for i in validation_indices])
+            np.array([data[i] for i in validation_indices]), dtype=tf.float32
         )
         training_sample = tf.nn.embedding_lookup(training_constant, batch_indices)
         return training_sample, validation_constant

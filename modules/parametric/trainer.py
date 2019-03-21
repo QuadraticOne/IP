@@ -1,8 +1,11 @@
 from modules.parametric.generator import ParametricGenerator
 from wise.util.io import IO
+from wise.training.routines import fit
+import wise.util.training as tu
 import modules.sampling as sample
 import tensorflow as tf
 import numpy as np
+import modules.reusablenet as rnet
 
 
 class Trainer:
@@ -43,6 +46,7 @@ class Trainer:
         self.session = None
 
         self.validation_proportion = 0.2
+        self.logging = False
 
         self.set_discriminator_inputs()
 
@@ -94,6 +98,32 @@ class Trainer:
         )
         self.satisfaction_sample, self.satisfaction_validation = make_nodes(
             self.satisfactions
+        )
+
+    def train_discriminator(self):
+        """
+        () -> Dict
+        Train the discriminator, assuming it has just been reset and that samples
+        are balanced to ensure an equal proportion of each label, and return data
+        about the training progress contained in a JSON-like object.
+        """
+        data = {}
+
+        training_discriminator = self.parametric_generator.build_discriminator(
+            self.solution_sample, self.constraint_sample
+        )
+        target, loss, accuracy, optimiser = tu.classification_metrics(
+            [],
+            training_discriminator["output"],
+            "training_discriminator_nodes",
+            variables=rnet.all_variables(training_discriminator),
+            target=self.satisfaction_sample,
+        )
+        self.session.run(tf.global_variables_initializer())
+        metrics = [("Loss", loss), ("Accuracy", accuracy)] if self.logging else []
+
+        self.discriminator_training_parameters.fit(
+            self.session, optimiser, metrics=metrics
         )
 
     def to_json(self):
@@ -180,6 +210,22 @@ class Trainer:
                 json["stepsPerEpoch"],
                 json["batchSize"] if "batchSize" in json else None,
                 json["evaluationSampleSize"],
+            )
+
+        def fit(self, session, optimise_op, metrics=[], sampler=None):
+            """
+            tf.Session -> tf.Op -> [(String, tf.Node)]? -> Sampler? -> ()
+            Fit a model using the parameters defined within this data object.
+            """
+            fit(
+                session,
+                optimise_op,
+                sampler,
+                self.epochs,
+                self.steps_per_epoch,
+                self.batch_size,
+                metrics,
+                evaluation_sample_size=self.evaluation_sample_size,
             )
 
 
