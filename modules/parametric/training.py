@@ -1,3 +1,4 @@
+from modules.parametric.generator import ParametricGenerator
 import tensorflow as tf
 
 
@@ -45,51 +46,90 @@ class ParametricGeneratorTrainer:
         """
         raise NotImplementedError()
 
-
-class TrainingParameters:
-
-    def __init__(
-        self,
-        epochs,
-        steps_per_epoch,
-        batch_size=None,
-        evaluation_sample_size=256,
-    ):
-        """
-        Int -> Int -> Int? -> Int? -> TrainingParameters
-        Data class for parameterising a training pass on a neural network.
-        """
-        self.epochs = epochs
-        self.steps_per_epoch = steps_per_epoch
-        self.batch_size = batch_size
-        self.evaluation_sample_size = evaluation_sample_size
-
     def to_json(self):
         """
         () -> Dict
-        Create a JSON-like representation of the training parameters.
+        Create a JSON-like representation of the generator's training parameters.
         """
-        json = {
-            "epochs" = self.epochs,
-            "stepsPerEpoch" = self.steps_per_epoch,
-            "evaluationSampleSize" = self.evaluation_sample_size,
+        return {
+            "parametricGenerator": self.parametric_generator.to_json(),
+            "dataset": self.dataset is isinstance(self.dataset, str) else "literal",
+            "recallWeight": self.recall_weight,
+            "discriminatorTrainingParameters": (
+                self.discriminator_training_parameters.to_json()
+            ),
+            "generatorPretrainingParameters": (
+                self.generator_pretraining_parameters.to_json()
+            ),
+            "generatorTrainingParameters": (
+                self.generator_training_parameters.to_json()
+            ),
         }
-        if self.batch_size is not None:
-            json["batchSize"] = self.batch_size
-        return json
 
     @staticmethod
     def from_json(json):
         """
-        Dict -> TrainingParameters
-        Create a set of training parameters from a suitable JSON-like object.
+        Dict -> ParametricGeneratorTrainer
+        Create a trainer for a parametric generator from a serialised list of
+        parameters.
         """
-        return TrainingParameters(
-            json["epochs"],
-            json["stepsPerEpoch"],
-            json["batchSize"] if "batchSize" in json else None,
-            json["evaluationSampleSize"] if "evaluationSampleSize" in json,
+
+        def training_pars(key):
+            return ParametricGeneratorTrainer.TrainingParameters.from_json(json[key])
+
+        return ParametricGeneratorTrainer(
+            ParametricGenerator.from_json(json["parametricGenerator"]),
+            json["dataset"] if "dataset" in json else [],
+            json["recallWeight"],
+            training_pars("discriminatorTrainingParameters"),
+            training_pars("generatorPretrainingParameters"),
+            training_pars("generatorTrainingParameters"),
         )
+
+    class TrainingParameters:
+
+        def __init__(
+            self,
+            epochs,
+            steps_per_epoch,
+            batch_size=None,
+            evaluation_sample_size=256,
+        ):
+            """
+            Int -> Int -> Int? -> Int? -> TrainingParameters
+            Data class for parameterising a training pass on a neural network.
+            """
+            self.epochs = epochs
+            self.steps_per_epoch = steps_per_epoch
+            self.batch_size = batch_size
+            self.evaluation_sample_size = evaluation_sample_size
+
+        def to_json(self):
+            """
+            () -> Dict
+            Create a JSON-like representation of the training parameters.
+            """
+            json = {
+                "epochs" = self.epochs,
+                "stepsPerEpoch" = self.steps_per_epoch,
+                "evaluationSampleSize" = self.evaluation_sample_size,
+            }
+            if self.batch_size is not None:
+                json["batchSize"] = self.batch_size
+            return json
+
+        @staticmethod
+        def from_json(json):
+            """
+            Dict -> TrainingParameters
+            Create a set of training parameters from a suitable JSON-like object.
+            """
+            return TrainingParameters(
+                json["epochs"],
+                json["stepsPerEpoch"],
+                json["batchSize"] if "batchSize" in json else None,
+                json["evaluationSampleSize"] if "evaluationSampleSize" in json,
+            )
 
 
 def optimiser(loss, name="unnamed_optimiser"):
