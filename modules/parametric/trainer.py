@@ -140,6 +140,21 @@ class Trainer:
             "trainingAccuracy": self.session.run(accuracy),
         }
 
+        validation_discriminator = self.parametric_generator.build_discriminator(
+            self.solution_validation, self.constraint_validation
+        )
+        target, loss, accuracy, _ = tu.classification_metrics(
+            [],
+            validation_discriminator["output"],
+            "validation_discriminator_nodes",
+            variables=rnet.all_variables(validation_discriminator),
+            target=self.satisfaction_validation,
+        )
+
+        data["after"]["validationLoss"], data["after"][
+            "validationAccuracy"
+        ] = self.session.run([loss, accuracy])
+
         return data
 
     def to_json(self):
