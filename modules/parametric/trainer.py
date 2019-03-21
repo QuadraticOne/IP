@@ -1,5 +1,6 @@
 from modules.parametric.generator import ParametricGenerator
 from wise.util.io import IO
+import modules.sampling as sample
 import tensorflow as tf
 import numpy as np
 
@@ -41,6 +42,8 @@ class Trainer:
 
         self.session = None
 
+        self.validation_proportion = 0.2
+
     def load_data(self):
         """
         () -> (np.array, np.array, np.array)
@@ -71,6 +74,25 @@ class Trainer:
         """
         self.session = tf.Session()
         self.session.run(tf.global_variables_initializer())
+
+    def set_discriminator_inputs(self):
+        """
+        () -> ()
+        Create input nodes for solutions, constraints, and satisfaction labels, for
+        both training and validation.
+        """
+        make_nodes = sample.training_input_nodes(
+            len(self.solutions),
+            self.discriminator_training_parameters.batch_size,
+            validation_proportion=self.validation_proportion,
+        )
+        self.solution_sample, self.solution_validation = make_nodes(self.solutions)
+        self.constraint_sample, self.constraint_validation = make_nodes(
+            self.constraints
+        )
+        self.satisfaction_sample, self.satisfaction_validation = make_nodes(
+            self.satisfactions
+        )
 
     def to_json(self):
         """
