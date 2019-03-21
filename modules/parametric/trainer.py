@@ -4,7 +4,7 @@ import tensorflow as tf
 import numpy as np
 
 
-class ParametricGeneratorTrainer:
+class Trainer:
     def __init__(
         self,
         parametric_generator,
@@ -17,7 +17,7 @@ class ParametricGeneratorTrainer:
         """
         ParametricGenerator -> Either String [([Float], [Float], Bool)]
             -> Float -> TrainingParameters -> TrainingParameters
-            -> TrainingParameters -> ParametricGeneratorTrainer
+            -> TrainingParameters -> Trainer
         Create a class for training parametric generators.
         """
         self.parametric_generator = parametric_generator
@@ -85,15 +85,15 @@ class ParametricGeneratorTrainer:
     @staticmethod
     def from_json(json):
         """
-        Dict -> ParametricGeneratorTrainer
+        Dict -> Trainer
         Create a trainer for a parametric generator from a serialised list of
         parameters.
         """
 
         def training_pars(key):
-            return ParametricGeneratorTrainer.TrainingParameters.from_json(json[key])
+            return Trainer.TrainingParameters.from_json(json[key])
 
-        return ParametricGeneratorTrainer(
+        return Trainer(
             ParametricGenerator.from_json(json["parametricGenerator"]),
             json["dataset"] if "dataset" in json else [],
             json["recallWeight"],
