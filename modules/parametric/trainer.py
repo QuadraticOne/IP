@@ -6,6 +6,7 @@ import modules.sampling as sample
 import tensorflow as tf
 import numpy as np
 import modules.reusablenet as rnet
+import time
 
 
 class Trainer:
@@ -122,9 +123,24 @@ class Trainer:
         self.session.run(tf.global_variables_initializer())
         metrics = [("Loss", loss), ("Accuracy", accuracy)] if self.logging else []
 
+        data["before"] = {
+            "loss": self.session.run(loss),
+            "accuracy": self.session.run(accuracy),
+        }
+
+        data["startTime"] = time.time()
         self.discriminator_training_parameters.fit(
             self.session, optimiser, metrics=metrics
         )
+        data["endTime"] = time.time()
+        data["duration"] = data["endTime"] - data["startTime"]
+
+        data["after"] = {
+            "trainingLoss": self.session.run(loss),
+            "trainingAccuracy": self.session.run(accuracy),
+        }
+
+        return data
 
     def to_json(self):
         """
