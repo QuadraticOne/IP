@@ -1,4 +1,5 @@
 from modules.parametric.generator import ParametricGenerator
+from modules.parametric.metrics import Metrics
 from wise.util.io import IO
 from wise.training.routines import fit
 from wise.training.experiments.experiment import Experiment
@@ -77,6 +78,22 @@ class Trainer(Experiment):
             solutions.append(np.array(datum[0]))
             constraints.append(np.array(datum[1]))
             satisfactions.append(true if datum[2] else false)
+
+        solution_dimension = np.array(solutions).shape[1]
+        if solution_dimension != self.parametric_generator.solution_dimension:
+            raise Exception(
+                "solution dimension expected to be {} but was {}".format(
+                    self.parametric_generator.solution_dimension, solution_dimension
+                )
+            )
+        constraint_dimension = np.array(constraints).shape[1]
+        if constraint_dimension != self.parametric_generator.constraint_dimension:
+            raise Exception(
+                "constraint dimension expected to be {} but was {}".format(
+                    self.parametric_generator.constraint_dimension, constraint_dimension
+                )
+            )
+
         return np.array(solutions), np.array(constraints), np.array(satisfactions)
 
     def reset_training(self):
@@ -176,6 +193,8 @@ class Trainer(Experiment):
             self.parametric_generator.make_latent_sample_node(), weights, biases
         )
 
+        loss = self.metrics(generator=generator).get(self.pretraining_loss)
+
         return data
 
     def run_experiment(self, log=None):
@@ -251,6 +270,16 @@ class Trainer(Experiment):
             trainer.recall_proxy = json["recallProxy"]
 
         return trainer
+
+    def metrics(self, generator=None, embedder=None, discriminator=None):
+        """
+        () -> Metrics
+        Return an object that can be used to quickly retrieve various metrics
+        useful in the training of the generator.
+        """
+        return Metrics(
+            self, generator=generator, embedder=embedder, discriminator=discriminator
+        )
 
     class TrainingParameters:
         def __init__(
