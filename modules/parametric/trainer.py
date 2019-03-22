@@ -130,6 +130,9 @@ class Trainer(Experiment):
         are balanced to ensure an equal proportion of each label, and return data
         about the training progress contained in a JSON-like object.
         """
+        if self.log:
+            print("\nDiscriminator training:")
+
         data = {}
 
         training_discriminator = self.parametric_generator.build_discriminator(
@@ -184,6 +187,9 @@ class Trainer(Experiment):
         () -> Dict
         Pretrain the generator, as well as the constraint embedding subnetwork.
         """
+        if self.log:
+            print("\nGenerator pretraining:")
+
         data = {}
 
         weights, biases = self.parametric_generator.build_embedder(
@@ -215,6 +221,55 @@ class Trainer(Experiment):
 
         return data
 
+    def train_generator(self):
+        """
+        () -> Dict
+        Train the generator and constraint embedding subnetwork, returning various
+        metrics and results in a JSON-like object.
+        """
+        if self.log:
+            print("\nGenerator training:")
+
+        data = {}
+
+        constraint_input = self.parametric_generator.make_constraint_sample_node()
+        weights, biases = self.parametric_generator.build_embedder(constraint_input)
+        generator = self.parametric_generator.build_generator(
+            self.parametric_generator.make_latent_sample_node(), weights, biases
+        )
+        discriminator = self.parametric_generator.build_discriminator(
+            generator["output"], constraint_input
+        )
+
+        metrics = self.metrics(generator=generator, discriminator=discriminator)
+
+        precision_proxy = metrics.get(self.precision_proxy)
+        recall_proxy = metrics.get(self.recall_proxy)
+        loss = precision_proxy + self.recall_weight * recall_proxy
+
+        optimiser, init = tu.default_adam_optimiser_with_initialiser(
+            loss,
+            "generator_training_loss",
+            rnet.all_variables([weights, biases, generator, discriminator]),
+        )
+
+        logging_metrics = (
+            [
+                ("Loss", loss),
+                ("Precision proxy", precision_proxy),
+                ("Recall proxy", recall_proxy),
+            ]
+            if self.log
+            else None
+        )
+
+        self.session.run(init)
+        self.generator_training_parameters.fit(
+            self.session, optimiser, metrics=logging_metrics
+        )
+
+        return data
+
     def run_experiment(self, log=None):
         """
         Bool? -> Dict
@@ -230,6 +285,7 @@ class Trainer(Experiment):
         data = {"parameters": self.to_json()}
         data["discriminatorTraining"] = self.train_discriminator()
         data["generatorPretraining"] = self.pretrain_generator()
+        data["generatorTraining"] = self.train_generator()
 
         if log is not None:
             self.log = old_log
