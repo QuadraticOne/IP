@@ -1,6 +1,7 @@
 from modules.parametric.generator import ParametricGenerator
 from wise.util.io import IO
 from wise.training.routines import fit
+from wise.training.experiments.experiment import Experiment
 import wise.util.training as tu
 import modules.sampling as sample
 import tensorflow as tf
@@ -9,7 +10,7 @@ import modules.reusablenet as rnet
 import time
 
 
-class Trainer:
+class Trainer(Experiment):
     def __init__(
         self,
         parametric_generator,
@@ -47,7 +48,7 @@ class Trainer:
         self.session = None
 
         self.validation_proportion = 0.2
-        self.logging = False
+        self.log = False
 
         self.set_discriminator_inputs()
 
@@ -121,7 +122,7 @@ class Trainer:
             target=self.satisfaction_sample,
         )
         self.session.run(init)
-        metrics = [("Loss", loss), ("Accuracy", accuracy)] if self.logging else []
+        metrics = [("Loss", loss), ("Accuracy", accuracy)] if self.log else None
 
         data["before"] = {
             "loss": self.session.run(loss),
@@ -155,6 +156,25 @@ class Trainer:
             "validationAccuracy"
         ] = self.session.run([loss, accuracy])
 
+        return data
+
+    def run_experiment(self, log=None):
+        """
+        Bool? -> Dict
+        Reset the training and run it from start to finish, returning the results
+        within a JSON-like object.
+        """
+        if log is not None:
+            old_log = self.log
+            self.log = log
+
+        self.reset_training()
+
+        data = {"parameters": self.to_json()}
+        data["discriminatorTraining"] = self.train_discriminator()
+
+        if log is not None:
+            self.log = old_log
         return data
 
     def to_json(self):
@@ -243,7 +263,7 @@ class Trainer:
                 json["evaluationSampleSize"],
             )
 
-        def fit(self, session, optimise_op, metrics=[], sampler=None):
+        def fit(self, session, optimise_op, metrics=None, sampler=None):
             """
             tf.Session -> tf.Op -> [(String, tf.Node)]? -> Sampler? -> ()
             Fit a model using the parameters defined within this data object.
