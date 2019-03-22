@@ -27,6 +27,7 @@ class Metrics:
                     metric_name,
                 )
             )
+        return self.metrics[metric_name]()
 
     def require(self, generator=False, embedder=False, discriminator=False):
         """
@@ -69,7 +70,7 @@ class Metrics:
             tf.squared_difference(
                 (2 * self.generator["input"]) - 1,
                 self.generator["output"],
-                name=self.extend_name("linearity_error"),
+                name="uniformity_error",
             ),
-            name=self.extend_name("recall_proxy"),
+            name="uniformity",
         )

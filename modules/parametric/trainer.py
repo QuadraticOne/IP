@@ -194,6 +194,24 @@ class Trainer(Experiment):
         )
 
         loss = self.metrics(generator=generator).get(self.pretraining_loss)
+        optimiser, init = tu.default_adam_optimiser_with_initialiser(
+            loss, "pretraining_optimiser", variables=rnet.all_variables(generator)
+        )
+        self.session.run(init)
+
+        data["before"] = {"loss": self.session.run(loss)}
+        metrics = [("Loss", loss)] if self.log else None
+
+        data["startTime"] = time.time()
+
+        self.generator_pretraining_parameters.fit(
+            self.session, optimiser, metrics=metrics
+        )
+
+        data["endTime"] = time.time()
+        data["duration"] = data["endTime"] - data["startTime"]
+
+        data["after"] = {"loss": self.session.run(loss)}
 
         return data
 
