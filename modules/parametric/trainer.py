@@ -113,14 +113,14 @@ class Trainer:
         training_discriminator = self.parametric_generator.build_discriminator(
             self.solution_sample, self.constraint_sample
         )
-        target, loss, accuracy, optimiser = tu.classification_metrics(
+        target, loss, accuracy, optimiser, init = tu.classification_metrics_with_initialiser(
             [],
             training_discriminator["output"],
             "training_discriminator_nodes",
             variables=rnet.all_variables(training_discriminator),
             target=self.satisfaction_sample,
         )
-        self.session.run(tf.global_variables_initializer())
+        self.session.run(init)
         metrics = [("Loss", loss), ("Accuracy", accuracy)] if self.logging else []
 
         data["before"] = {
