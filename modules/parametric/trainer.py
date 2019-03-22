@@ -229,6 +229,7 @@ class Trainer(Experiment):
 
         data = {"parameters": self.to_json()}
         data["discriminatorTraining"] = self.train_discriminator()
+        data["generatorPretraining"] = self.pretrain_generator()
 
         if log is not None:
             self.log = old_log
