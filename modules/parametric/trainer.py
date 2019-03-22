@@ -266,9 +266,25 @@ class Trainer(Experiment):
         )
 
         self.session.run(init)
+
+        data["before"] = {}
+        data["before"]["loss"], data["before"]["precisionProxy"], data["before"][
+            "recallProxy"
+        ] = self.session.run([loss, precision_proxy, recall_proxy])
+
+        data["startTime"] = time.time()
+
         self.generator_training_parameters.fit(
             self.session, optimiser, metrics=logging_metrics
         )
+
+        data["endTime"] = time.time()
+        data["duration"] = data["endTime"] - data["startTime"]
+
+        data["after"] = {}
+        data["after"]["loss"], data["after"]["precisionProxy"], data["after"][
+            "recallProxy"
+        ] = self.session.run([loss, precision_proxy, recall_proxy])
 
         return data
 
