@@ -20,14 +20,15 @@ class Metrics:
         String -> tf.Node
         Return a tensorflow node that evaluates the named metric, if it exists.
         """
-        if metric_name not in self.metrics:
+        identifier, args = head_and_tail(metric_name.split("-"))
+        if identifier not in self.metrics:
             raise ValueError(
-                "metric should be one of {} but is '{}'".format(
+                "metric identifier should be one of {} but is '{}'".format(
                     ", ".join(["'{}'".format(m) for m in self.metrics.keys()]),
-                    metric_name,
+                    identifier,
                 )
             )
-        return self.metrics[metric_name]()
+        return self.metrics[metric_name](args)
 
     def require(self, generator=False, embedder=False, discriminator=False):
         """
@@ -41,9 +42,9 @@ class Metrics:
         if discriminator and self.discriminator is None:
             raise ValueError("discriminator should be defined but is not")
 
-    def precision(self):
+    def precision(self, _):
         """
-        () -> tf.Node
+        [String] -> tf.Node
         Return a node that computes the precision of the samples taken from the
         generator.
         """
@@ -53,9 +54,9 @@ class Metrics:
             name="precision",
         )
 
-    def uniformity(self):
+    def uniformity(self, _):
         """
-        () -> tf.Node
+        [String] -> tf.Node
         Return a node that represents the distance of the generator from the identity
         function in the function space.
         """
@@ -74,3 +75,12 @@ class Metrics:
             ),
             name="uniformity",
         )
+
+
+def head_and_tail(values):
+    """
+    [a] -> (a, [a])
+    Split a list into its head and tail, assuming it has at least one
+    value.  The tail may be an empty list.
+    """
+    return values[0], values[1:]
