@@ -76,6 +76,20 @@ class Metrics:
             name="uniformity",
         )
 
+    def satisfaction_probability(self, args):
+        """
+        [String] -> tf.Node
+        Return a node that calculates the probability that a sample from the latent
+        space, when mapped to the solution space, will satisfy its constraints.  The
+        first argument is the cutoff probability, below which the solution will not
+        count as satisfying the constraints.
+        """
+        self.require(discriminator=True)
+        cutoff = 0.8 if len(args) == 0 else float(args[0])
+        return tf.reduce_mean(
+            tf.where(tf.less(self.discriminator["output"], cutoff), 0.0, 1.0)
+        )
+
 
 def head_and_tail(values):
     """
