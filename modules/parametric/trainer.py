@@ -48,6 +48,10 @@ class Trainer(Experiment):
         self.session = None
 
         self.validation_proportion = 0.2
+        self.pretraining_loss = "uniformity"
+        self.precision_proxy = "precision"
+        self.recall_proxy = "uniformity"
+
         self.log = False
 
         self.set_discriminator_inputs()
@@ -212,6 +216,9 @@ class Trainer(Experiment):
                 self.generator_training_parameters.to_json()
             ),
             "discriminatorValidationProportion": self.validation_proportion,
+            "pretrainingLoss": self.pretraining_loss,
+            "precisionProxy": self.precision_proxy,
+            "recallProxy": self.recall_proxy,
         }
 
     @staticmethod
@@ -236,6 +243,12 @@ class Trainer(Experiment):
 
         if "discriminatorValidationProportion" in json:
             trainer.validation_proportion = json["discriminatorValidationProportion"]
+        if "pretrainingLoss" in json:
+            trainer.pretraining_loss = json["pretrainingLoss"]
+        if "precisionProxy" in json:
+            trainer.precision_proxy = json["precisionProxy"]
+        if "recallProxy" in json:
+            trainer.recall_proxy = json["recallProxy"]
 
         return trainer
 
