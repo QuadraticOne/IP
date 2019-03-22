@@ -158,6 +158,22 @@ class Trainer(Experiment):
 
         return data
 
+    def pretrain_generator(self):
+        """
+        () -> Dict
+        Pretrain the generator, as well as the constraint embedding subnetwork.
+        """
+        data = {}
+
+        weights, biases = self.parametric_generator.build_embedder(
+            self.parametric_generator.make_constraint_sample_node()
+        )
+        generator = self.parametric_generator.build_generator(
+            self.parametric_generator.make_latent_sample_node(), weights, biases
+        )
+
+        return data
+
     def run_experiment(self, log=None):
         """
         Bool? -> Dict
