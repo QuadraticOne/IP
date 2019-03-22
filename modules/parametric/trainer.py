@@ -201,7 +201,9 @@ class Trainer(Experiment):
 
         loss = self.metrics(generator=generator).get(self.pretraining_loss)
         optimiser, init = tu.default_adam_optimiser_with_initialiser(
-            loss, "pretraining_optimiser", variables=rnet.all_variables(generator)
+            loss,
+            "pretraining_optimiser",
+            variables=rnet.all_variables([weights, biases, generator]),
         )
         self.session.run(init)
 
