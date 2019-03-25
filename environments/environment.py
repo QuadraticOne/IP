@@ -299,35 +299,97 @@ def _is_list(value):
 
 
 class VectorEnvironment:
-    @classmethod
-    def sample_solution(cls):
+    def sample_solution(self):
         """
         () -> np.array
         Return a numpy array representing a possible solution.
         """
         raise NotImplementedError()
 
-    @classmethod
-    def sample_constraint(cls):
+    def sample_constraint(self):
         """
         () -> np.array
         Return a numpy array representing a possible constraint.
         """
         raise NotImplementedError()
 
-    @classmethod
-    def satisfaction(solution_constraint_pair):
+    def satisfaction(self, solution_constraint_pair):
         """
         (np.array -> np.array) -> Bool
         Determine whether a solution satisfies the constraint.
         """
         raise NotImplementedError()
 
-    @classmethod
-    def sample_solution_constraint_pair(cls):
+    def sample_solution_constraint_pair(self):
         """
         () -> (np.array, np.array)
         Take a solution and constraint and merge them into a tuple.
         By default these samples are independent.
         """
-        return cls.sample_solution(), cls.sample_constraint()
+        return self.sample_solution(), self.sample_constraint()
+
+    def sample_training_tuple(self):
+        """
+        () -> (np.array, np.array, Bool)
+        Sample a solution, constraint, satisfaction tuple that can be used
+        for training.
+        """
+        solution, constraint = self.sample_solution_constraint_pair()
+        return solution, constraint, self.satisfaction((solution, constraint))
+
+
+class UniformVectorEnvironment(VectorEnvironment):
+    def __init__(
+        self,
+        solution_dimension,
+        constraint_dimension,
+        satisfaction,
+        solution_range=(0.0, 1.0),
+        constraint_range=(0.0, 1.0),
+    ):
+        """
+        Int -> Int -> -> ((np.array, np.array) -> Bool) ->(Float, Float)?
+            -> (Float, Float)? -> UniformVectorEnvironment
+        Create a uniform vector environment, whose solutions and constraints
+        are, by default, sampled from a uniform space in m or n dimensions
+        respectively.  The objective function can be provided as a lambda.
+        """
+        self.solution_dimension = solution_dimension
+        self.constraint_dimension = constraint_dimension
+        self.solution_range = solution_range
+        self.constraint_range = constraint_range
+
+        self._satisfaction = satisfaction
+
+    def sample_solution(self):
+        """
+        () -> np.array
+        Return a numpy array representing a possible solution.
+        """
+        return np.float32(
+            np.random.uniform(
+                low=self.solution_range[0],
+                high=self.solution_range[1],
+                size=[self.solution_dimension],
+            )
+        )
+
+    def sample_constraint(self):
+        """
+        () -> np.array
+        Return a numpy array representing a possible constraint.
+        """
+        return np.float32(
+            np.random.uniform(
+                low=self.constraint_range[0],
+                high=self.constraint_range[1],
+                size=[self.constraint_dimension],
+            )
+        )
+
+    def satisfaction(self, solution_constraint_pair):
+        """
+        (np.array -> np.array) -> Bool
+        Determine whether a solution satisfies the constraint.
+        """
+        return self._satisfaction(solution_constraint_pair)
