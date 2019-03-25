@@ -2,6 +2,7 @@ from maths.activations import identity
 from wise.training.samplers.mapped import MappedSampler
 from wise.training.samplers.anonymous import AnonymousSampler
 from wise.training.samplers.resampled import BinomialResampler
+from wise.training.samplers.dataset import DataSetSampler
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -336,6 +337,49 @@ class VectorEnvironment:
         """
         solution, constraint = self.sample_solution_constraint_pair()
         return solution, constraint, self.satisfaction((solution, constraint))
+
+    def sampler(self, balanced=True):
+        """
+        Bool? -> Sampler (np.array, np.array, Float)
+        Return a sampler for solutions, constraints, and satisfactions from
+        the environment.  This sampler can optionally be balanced to produce
+        positive and negative samples with equal probability.
+        """
+        sampler = AnonymousSampler(single=self.sample_training_tuple)
+        return (
+            BinomialResampler.halves_on_last_element(sampler) if balanced else sampler
+        )
+
+    def dataset_sampler(self, size, balanced=True):
+        """
+        Int -> Bool? -> DatasetSampler (np.array, np.array, Bool)
+        Return a sampler which samples only from a fixed subset of samples of
+        the environment.
+        """
+        return DataSetSampler.from_sampler(self.sampler(balanced=balanced), size)
+
+    def make_dataset(self, size, balanced=True):
+        """
+        Int -> Bool? -> [(np.array, np.array, Bool)]
+        Create a dataset of environment samples.
+        """
+        return self.dataset_sampler(size, balanced=balanced).points
+
+    def save_dataset(self, size, directory, file_name, balanced=True):
+        """
+        Int -> String -> String -> Bool? -> ()
+        Save a dataset of environment samples to the given location.
+        """
+        self.dataset_sampler(size, balanced=balanced).save(directory, file_name)
+
+    @staticmethod
+    def load_dataset(directory, file_name, return_sampler=False):
+        """
+        String -> String -> Bool? -> [(np.array, np.array, Bool)]
+        Load a pre-saved dataset of samples from an environment.
+        """
+        sampler = DataSetSampler.restore(directory, file_name)
+        return sampler if return_sampler else sampler.points
 
 
 class UniformVectorEnvironment(VectorEnvironment):
