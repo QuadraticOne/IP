@@ -33,3 +33,20 @@ class EvaluationParameters:
             json["solutionsPerConstraintSample"],
             json["satisfactionCutoffs"],
         )
+
+    def take_sample(self, constraint, session, generator, embedder, discriminator):
+        """
+        np.array -> tf.Session -> Dict -> Dict -> Dict -> Dict
+        Take a sample from the network, putting in a constraint and value from the 
+        latent space and extracting the sampled solution and satisfaction probability.
+        """
+        solution, satisfaction, latent = session.run(
+            [generator["output"], discriminator["output"], generator["input"]],
+            feed_dict={embedder["input"]: [constraint]},
+        )
+        return {
+            "constraint": constraint,
+            "solution": solution[0],
+            "satisfaction": satisfaction[0],
+            "latent": latent[0],
+        }
