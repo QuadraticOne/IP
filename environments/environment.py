@@ -1,6 +1,9 @@
 from maths.activations import identity
 from wise.training.samplers.mapped import MappedSampler
+from wise.training.samplers.anonymous import AnonymousSampler
+from wise.training.samplers.resampled import BinomialResampler
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 class ContinuousEnvironment:
@@ -46,7 +49,7 @@ class ContinuousEnvironment:
         """
         Constraint -> [Float]
         Flatten the constraint from its tensor representation into a
-        rank-one vector.  It is recommended that this method is overriddn
+        rank-one vector.  It is recommended that this method is overridden
         to improve performance.
         """
         return _flatten_tensor(cls.constraint_representation(constraint))
@@ -88,7 +91,7 @@ class ContinuousEnvironment:
         """
         Solution -> [Float]
         Flatten the solution from its tensor representation into a
-        rank-one vector.  It is recommended that this method is overriddn
+        rank-one vector.  It is recommended that this method is overridden
         to improve performance.
         """
         return _flatten_tensor(cls.solution_representation(solution))
@@ -293,3 +296,38 @@ def _is_list(value):
         return True
     except:
         return False
+
+
+class VectorEnvironment:
+    @classmethod
+    def sample_solution(cls):
+        """
+        () -> np.array
+        Return a numpy array representing a possible solution.
+        """
+        raise NotImplementedError()
+
+    @classmethod
+    def sample_constraint(cls):
+        """
+        () -> np.array
+        Return a numpy array representing a possible constraint.
+        """
+        raise NotImplementedError()
+
+    @classmethod
+    def satisfaction(solution_constraint_pair):
+        """
+        (np.array -> np.array) -> Bool
+        Determine whether a solution satisfies the constraint.
+        """
+        raise NotImplementedError()
+
+    @classmethod
+    def sample_solution_constraint_pair(cls):
+        """
+        () -> (np.array, np.array)
+        Take a solution and constraint and merge them into a tuple.
+        By default these samples are independent.
+        """
+        return cls.sample_solution(), cls.sample_constraint()
