@@ -5,6 +5,7 @@ from wise.training.routines import fit
 from wise.training.experiments.experiment import Experiment
 import wise.util.training as tu
 import modules.sampling as sample
+import modules.parametric.evaluation as evaluation
 import tensorflow as tf
 import numpy as np
 import modules.reusablenet as rnet
@@ -12,6 +13,9 @@ import time
 
 
 class Trainer(Experiment):
+
+    EvaluationParameters = evaluation.EvaluationParameters
+
     def __init__(
         self,
         parametric_generator,
