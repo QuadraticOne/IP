@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class EvaluationParameters:
     def __init__(
         self, constraint_samples, solutions_per_constraint_sample, satisfaction_cutoffs
@@ -34,35 +37,45 @@ class EvaluationParameters:
             json["satisfactionCutoffs"],
         )
 
-    def evaluate(self, metrics):
+    def evaluate(self, trainer):
         """
         Metrics -> Dict
         Evaluate a set of trained networks and record their performance, according
         to the evaluation parameters laid out in the data class.
         """
-        return {"samples": self.take_sample(metrics)}
+        export = trainer.export()
+        constraint_samples = self.make_constraint_samples(trainer)
 
-    def take_sample(self, metrics, constraint=None):
+    def _make_constraint_samples(self, trainer):
         """
-        Metrics -> np.array? -> Dict
-        Take a sample from the network, optionally putting in a constraint and taking
-        a sample uniformly from the latent space.
+        Trainer -> [np.array]
+        Generate a list of constraints for which solutions are to be sampled.  If
+        the evaluation parameters object's `constraint_samples` parameter is a list,
+        this list will be returned.  Otherwise, its value is expected to be a string.
+        In this case, it should be the type of sampling (currently only "uniform" is
+        supported), followed by the number of constraints to sample, separated by
+        a comma, such as "uniform, 64".
         """
-        outputs = [
-            metrics.generator["output"],
-            metrics.discriminator["output"],
-            metrics.generator["input"],
-        ]
-        solution, satisfaction, latent = (
-            metrics.trainer.session.run(
-                outputs, feed_dict={metrics.embedder["input"]: constraint}
-            )
-            if constraint is not None
-            else metrics.trainer.session.run(outputs)
-        )
-        return {
-            "constraint": constraint,
-            "solution": solution,
-            "satisfaction": satisfaction,
-            "latent": latent,
-        }
+        if isinstance(self.constraint_samples, list) or isinstance(
+            self.constraint_samples, np.ndarray
+        ):
+            return self.constraint_samples
+        else:
+            if not isinstance(self.constraint_samples, str):
+                raise ValueError(
+                    "constraint_samples should be a list of numpy arrays or a string"
+                )
+
+            args = self.constraint_samples.replace(" ", "").split(",")
+            n = 64 if len(args) < 2 else int(args[1])
+            sampling_method = args[0]
+
+            if sampling_method == "unform":
+                g = trainer.parametric_generator
+                return np.random.uniform(
+                    low=-1.0, high=1.0, size=(n, g.constraint_dimension)
+                )
+
+            else:
+                raise ValueError("unknown sampling method '{}'".format(sampling_method))
+
