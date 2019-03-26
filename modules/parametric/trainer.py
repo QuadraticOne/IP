@@ -440,7 +440,7 @@ class Trainer(Experiment):
         () -> ExportedParametricGenerator
         Export the generator trained by this trainer for easy use.
         """
-        return ExportedParametricGenerator(self.parametric_generator)
+        return ExportedParametricGenerator(self.parametric_generator, self.session)
 
 
 def optimiser(loss, name="unnamed_optimiser"):

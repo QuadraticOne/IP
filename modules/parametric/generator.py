@@ -392,9 +392,9 @@ class ParametricGenerator:
 
         return json
 
-    def export(self):
+    def export(self, session):
         """
-        () -> ExportedParametricGenerator
+        tf.Session -> ExportedParametricGenerator
         Export the generator for easy use.
         """
-        return ExportedParametricGenerator(self)
+        return ExportedParametricGenerator(self, session)

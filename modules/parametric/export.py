@@ -3,17 +3,19 @@ import tensorflow as tf
 
 
 class ExportedParametricGenerator:
-    def __init__(self, generator):
+    def __init__(self, generator, session):
         """
-        ParametricGenerator -> ExportedParametricGenerator
+        ParametricGenerator -> tf.Session -> ExportedParametricGenerator
         Export a parametric generator that has been trained for easy querying
         in typical use cases.
         """
-        self.sample_for_constraint = self._make_sample_for_constraint(generator)
+        self.sample_for_constraint = self._make_sample_for_constraint(
+            generator, session
+        )
 
-    def _make_sample_for_constraint(self, parametric_generator):
+    def _make_sample_for_constraint(self, parametric_generator, session):
         """
-        ParametricGenerator -> (np.array -> Int -> [Dict])
+        ParametricGenerator -> tf.Session -> (np.array -> Int -> [Dict])
         From a generator, create a function that takes a constraint and a number
         of samples, and creates that number of output dictionaries.  Each dictionary
         contains a latent sample, solution, and satisfaction probability.
@@ -42,12 +44,44 @@ class ExportedParametricGenerator:
 
         def sample_for_constraint(constraint, samples):
             """
-            np.array -> Int -> [Dict]
+            np.array -> Int -> Either [Dict] Dict
             Given a constraint and a requested number of samples, return that
             number of dictionaries, where each dictionary represents a sample from
             the latent space for that constraint.  They contain keys for 
-            `latent`, `solution`, and `satisfaction_probability`.
+            `latent`, `solution`, and `satisfaction_probability`.  Only one dictionary,
+            rather than a list, will be returned if the number of samples is 1.
             """
-            pass
+            latent_samples, solutions, satisfaction_probabilities = session.run(
+                [generator["input"], generator["output"], discriminator["output"]],
+                feed_dict={constraint_input: constraint, sample_size: samples},
+            )
+
+            zipped_samples = [
+                ExportedParametricGenerator.GeneratorSample(l, s, p)
+                for l, s, p in zip(
+                    latent_samples, solutions, satisfaction_probabilities
+                )
+            ]
+
+            return zipped_samples if samples != 1 else zipped_samples[0]
 
         return sample_for_constraint
+
+    class GeneratorSample:
+        def __init__(self, latent, solution, satisfaction_probability):
+            """
+            np.array -> np.array -> Float -> GeneratorSample
+            Data class for easily representing samples of the generator.
+            """
+            self.latent = latent
+            self.solution = solution
+            self.satisfaction_probability = satisfaction_probability
+
+        def __str__(self):
+            """
+            () -> String
+            Return a string representation of the sample.
+            """
+            return "(\n  latent: {}\n  solution: {}\n  satisfaction_probability: {}\n)".format(
+                list(self.latent), list(self.solution), self.satisfaction_probability
+            )
