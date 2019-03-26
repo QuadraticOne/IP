@@ -45,7 +45,6 @@ class EvaluationParameters:
         """
         export = trainer.export()
         constraint_samples = self._make_constraint_samples(trainer)
-        print(constraint_samples)
         return {}
 
     def _make_constraint_samples(self, trainer):
