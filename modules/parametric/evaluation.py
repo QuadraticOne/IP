@@ -44,7 +44,9 @@ class EvaluationParameters:
         to the evaluation parameters laid out in the data class.
         """
         export = trainer.export()
-        constraint_samples = self.make_constraint_samples(trainer)
+        constraint_samples = self._make_constraint_samples(trainer)
+        print(constraint_samples)
+        return {}
 
     def _make_constraint_samples(self, trainer):
         """
@@ -70,7 +72,7 @@ class EvaluationParameters:
             n = 64 if len(args) < 2 else int(args[1])
             sampling_method = args[0]
 
-            if sampling_method == "unform":
+            if sampling_method == "uniform":
                 g = trainer.parametric_generator
                 return np.random.uniform(
                     low=-1.0, high=1.0, size=(n, g.constraint_dimension)

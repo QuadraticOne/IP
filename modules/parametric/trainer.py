@@ -25,6 +25,7 @@ class Trainer(Experiment):
         discriminator_training_parameters,
         generator_pretraining_parameters,
         generator_training_parameters,
+        evaluation_parameters=None,
     ):
         """
         ParametricGenerator -> Either String [([Float], [Float], Bool)]
@@ -38,6 +39,7 @@ class Trainer(Experiment):
         self.discriminator_training_parameters = discriminator_training_parameters
         self.generator_pretraining_parameters = generator_pretraining_parameters
         self.generator_training_parameters = generator_training_parameters
+        self.evaluation_parameters = evaluation_parameters
 
         self.solutions, self.constraints, self.satisfactions = self.load_data()
 
@@ -310,6 +312,9 @@ class Trainer(Experiment):
         data["generatorPretraining"] = self.pretrain_generator()
         data["generatorTraining"] = self.train_generator()
 
+        if self.evaluation_parameters is not None:
+            data["evaluation"] = self.evaluation_parameters.evaluate(self)
+
         if log is not None:
             self.log = old_log
         return data
@@ -319,7 +324,7 @@ class Trainer(Experiment):
         () -> Dict
         Create a JSON-like representation of the generator's training parameters.
         """
-        return {
+        json = {
             "parametricGenerator": self.parametric_generator.to_json(),
             "dataset": self.dataset if isinstance(self.dataset, str) else "literal",
             "recallWeight": self.recall_weight,
@@ -337,6 +342,11 @@ class Trainer(Experiment):
             "precisionProxy": self.precision_proxy,
             "recallProxy": self.recall_proxy,
         }
+
+        if self.evaluation_parameters is not None:
+            json["evaluationParameters"] = self.evaluation_parameters.to_json()
+
+        return json
 
     @staticmethod
     def from_json(json):
@@ -356,6 +366,11 @@ class Trainer(Experiment):
             training_pars("discriminatorTrainingParameters"),
             training_pars("generatorPretrainingParameters"),
             training_pars("generatorTrainingParameters"),
+            evaluation_parameters=Trainer.EvaluationParameters.from_json(
+                json["evaluationParameters"]
+            )
+            if "evaluationParameters" in json
+            else None,
         )
 
         if "discriminatorValidationProportion" in json:
