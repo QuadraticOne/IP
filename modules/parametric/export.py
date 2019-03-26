@@ -134,3 +134,14 @@ class ExportedParametricGenerator:
             return "(\n  latent: {}\n  solution: {}\n  satisfaction_probability: {}\n)".format(
                 list(self.latent), list(self.solution), self.satisfaction_probability
             )
+
+        def to_json(self):
+            """
+            () -> Dict
+            Return a JSON-like representation of the generator sample.
+            """
+            return {
+                "latent": self.latent,
+                "solution": self.solution,
+                "satisfactionProbability": self.satisfaction_probability,
+            }
