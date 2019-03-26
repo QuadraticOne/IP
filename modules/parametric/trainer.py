@@ -1,5 +1,6 @@
 from modules.parametric.generator import ParametricGenerator
 from modules.parametric.metrics import Metrics
+from modules.parametric.export import ExportedParametricGenerator
 from wise.util.io import IO
 from wise.training.routines import fit
 from wise.training.experiments.experiment import Experiment
@@ -433,6 +434,13 @@ class Trainer(Experiment):
                 metrics,
                 evaluation_sample_size=self.evaluation_sample_size,
             )
+
+    def export(self):
+        """
+        () -> ExportedParametricGenerator
+        Export the generator trained by this trainer for easy use.
+        """
+        return ExportedParametricGenerator(self.parametric_generator)
 
 
 def optimiser(loss, name="unnamed_optimiser"):

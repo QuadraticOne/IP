@@ -1,4 +1,5 @@
 from wise.util.tensors import placeholder_node
+from modules.parametric.export import ExportedParametricGenerator
 import modules.reusablenet as rnet
 import tensorflow as tf
 
@@ -33,6 +34,8 @@ class ParametricGenerator:
         self.generator_architecture_defined = False
         self.embedder_architecture_defined = False
         self.discriminator_architecture_defined = False
+
+        self.latent_lower_bound, self.latent_upper_bound = (-1.0, 1.0)
 
     def set_generator_architecture(
         self, internal_layers, internal_activation, output_activation
@@ -145,6 +148,8 @@ class ParametricGenerator:
         """
         return tf.random.uniform(
             [self.generator_training_batch_size, self.latent_dimension],
+            minval=self.latent_lower_bound,
+            maxval=self.latent_upper_bound,
             name=self.extend_name("latent_sample"),
         )
 
@@ -317,6 +322,10 @@ class ParametricGenerator:
                 ParametricGenerator._layers_from_json(dargs)
             )
 
+        if "latentSpace" in args:
+            generator.latent_lower_bound = args["latentSpace"]["lowerBound"]
+            generator.latent_upper_bound = args["latentSpace"]["upperBound"]
+
         return generator
 
     @staticmethod
@@ -376,4 +385,16 @@ class ParametricGenerator:
                 self.discriminator_internal_layers
             )
 
+        json["latentSpace"] = {
+            "lowerBound": self.latent_lower_bound,
+            "upperBound": self.latent_upper_bound,
+        }
+
         return json
+
+    def export(self):
+        """
+        () -> ExportedParametricGenerator
+        Export the generator for easy use.
+        """
+        return ExportedParametricGenerator(self)
