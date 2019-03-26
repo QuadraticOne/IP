@@ -13,11 +13,13 @@ class ExportedParametricGenerator:
             generator, session
         )
 
+        self.constraint_optimiser = self._make_constraint_optimiser(generator, session)
+
     def _make_sample_for_constraint(self, parametric_generator, session):
         """
         ParametricGenerator -> tf.Session -> (np.array -> Int -> [Dict])
         From a generator, create a function that takes a constraint and a number
-        of samples, and creates that number of output dictionaries.  Each dictionary
+        of samples, and creates that number of GeneratorSample instances.  Each
         contains a latent sample, solution, and satisfaction probability.
         """
         sample_size = tf.placeholder(tf.int32, shape=(), name="sample_size")
@@ -66,6 +68,53 @@ class ExportedParametricGenerator:
             return zipped_samples if samples != 1 else zipped_samples[0]
 
         return sample_for_constraint
+
+    def _make_constraint_optimiser(self, parametric_generator, session):
+        """
+        ParametricGenerator -> tf.Session -> (np.array -> (np.array -> GeneratorSample))
+        Create a function that can be used to optimise the position in the latent
+        space for a specific constraint.        
+        """
+        constraint_placeholder = rnet.make_input_node(
+            [parametric_generator.constraint_dimension]
+        )
+        latent_placeholder = rnet.make_input_node(
+            [parametric_generator.latent_dimension]
+        )
+
+        constraint_input = tf.expand_dims(constraint_placeholder, 0)
+        latent_input = tf.expand_dims(latent_placeholder, 0)
+
+        weights, biases = parametric_generator.build_embedder(constraint_input)
+        generator = parametric_generator.build_generator(latent_input, weights, biases)
+        discriminator = parametric_generator.build_discriminator(
+            generator["output"], constraint_input
+        )
+
+        solution_output = tf.squeeze(generator["output"])
+        satisfaction_output = tf.squeeze(discriminator["output"])
+
+        def constraint_optimiser(constraint):
+            """
+            np.array -> (np.array -> GeneratorSample)
+            Take a constraint and produce a function which, given a position in the
+            latent space, calculates the corresponding solution and satisfaction
+            probability.  Useful for interfacing with external optimisation algorithms.
+            """
+
+            def evaluate(latent):
+                l, s, p = session.run(
+                    [latent_placeholder, solution_output, satisfaction_output],
+                    feed_dict={
+                        constraint_placeholder: constraint,
+                        latent_placeholder: latent,
+                    },
+                )
+                return ExportedParametricGenerator.GeneratorSample(l, s, p)
+
+            return evaluate
+
+        return constraint_optimiser
 
     class GeneratorSample:
         def __init__(self, latent, solution, satisfaction_probability):
