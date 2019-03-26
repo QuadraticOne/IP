@@ -34,19 +34,35 @@ class EvaluationParameters:
             json["satisfactionCutoffs"],
         )
 
-    def take_sample(self, constraint, session, generator, embedder, discriminator):
+    def evaluate(self, metrics):
         """
-        np.array -> tf.Session -> Dict -> Dict -> Dict -> Dict
-        Take a sample from the network, putting in a constraint and value from the 
-        latent space and extracting the sampled solution and satisfaction probability.
+        Metrics -> Dict
+        Evaluate a set of trained networks and record their performance, according
+        to the evaluation parameters laid out in the data class.
         """
-        solution, satisfaction, latent = session.run(
-            [generator["output"], discriminator["output"], generator["input"]],
-            feed_dict={embedder["input"]: [constraint]},
+        return {"samples": self.take_sample(metrics)}
+
+    def take_sample(self, metrics, constraint=None):
+        """
+        Metrics -> np.array? -> Dict
+        Take a sample from the network, optionally putting in a constraint and taking
+        a sample uniformly from the latent space.
+        """
+        outputs = [
+            metrics.generator["output"],
+            metrics.discriminator["output"],
+            metrics.generator["input"],
+        ]
+        solution, satisfaction, latent = (
+            metrics.trainer.session.run(
+                outputs, feed_dict={metrics.embedder["input"]: constraint}
+            )
+            if constraint is not None
+            else metrics.trainer.session.run(outputs)
         )
         return {
             "constraint": constraint,
-            "solution": solution[0],
-            "satisfaction": satisfaction[0],
-            "latent": latent[0],
+            "solution": solution,
+            "satisfaction": satisfaction,
+            "latent": latent,
         }
