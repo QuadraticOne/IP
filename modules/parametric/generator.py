@@ -35,7 +35,9 @@ class ParametricGenerator:
         self.embedder_architecture_defined = False
         self.discriminator_architecture_defined = False
 
-        self.latent_lower_bound, self.latent_upper_bound = (-1.0, 1.0)
+        self.latent_lower_bound, self.latent_upper_bound = (0.0, 1.0)
+        self.solution_lower_bound, self.solution_upper_bound = (-1.0, 1.0)
+        self.constraint_lower_bound, self.constraint_upper_bound = (-1.0, 1.0)
 
     def set_generator_architecture(
         self, internal_layers, internal_activation, output_activation
@@ -161,8 +163,8 @@ class ParametricGenerator:
         """
         return tf.random.uniform(
             [self.generator_training_batch_size, self.constraint_dimension],
-            minval=-1.0,
-            maxval=1.0,
+            minval=self.constraint_lower_bound,
+            maxval=self.constraint_upper_bound,
             name=self.extend_name("constraint_sample"),
         )
 
@@ -325,6 +327,12 @@ class ParametricGenerator:
         if "latentSpace" in args:
             generator.latent_lower_bound = args["latentSpace"]["lowerBound"]
             generator.latent_upper_bound = args["latentSpace"]["upperBound"]
+        if "solutionSpace" in args:
+            generator.solution_lower_bound = args["solutionSpace"]["lowerBound"]
+            generator.solution_upper_bound = args["solutionSpace"]["upperBound"]
+        if "constraintSpace" in args:
+            generator.constraint_lower_bound = args["constraintSpace"]["lowerBound"]
+            generator.constraint_upper_bound = args["constraintSpace"]["upperBound"]
 
         return generator
 
@@ -388,6 +396,14 @@ class ParametricGenerator:
         json["latentSpace"] = {
             "lowerBound": self.latent_lower_bound,
             "upperBound": self.latent_upper_bound,
+        }
+        json["solutionSpace"] = {
+            "lowerBound": self.solution_lower_bound,
+            "upperBound": self.solution_upper_bound,
+        }
+        json["constraintSpace"] = {
+            "lowerBound": self.constraint_lower_bound,
+            "upperBound": self.constraint_upper_bound,
         }
 
         return json
