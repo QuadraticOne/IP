@@ -49,7 +49,7 @@ class EvaluationParameters:
         constraint_samples = self._make_constraint_samples(trainer)
         data["constraintSamples"] = [
             {
-                "constraint": constraint,
+                "constraint": constraint.tolist(),
                 "solutions": [
                     result.to_json()
                     for result in _list_wrap(
@@ -70,6 +70,14 @@ class EvaluationParameters:
                 ],
                 "Satisfaction",
             )
+
+        data["constraintSamplesSummary"] = self.summarise_values(
+            _flatmap(
+                lambda c: [s["satisfactionProbability"] for s in c["solutions"]],
+                data["constraintSamples"],
+            ),
+            "Satisfaction",
+        )
 
         return data
 
@@ -124,3 +132,14 @@ def _list_wrap(value):
     Wrap a value in a list if it is not already a list.
     """
     return value if isinstance(value, list) else [value]
+
+
+def _flatmap(f, iterable):
+    """
+    (a -> [b]) -> [a] -> [b]
+    Map over an iterable and concatenate the results into a single list.
+    """
+    output = []
+    for i in iterable:
+        output += f(i)
+    return output
