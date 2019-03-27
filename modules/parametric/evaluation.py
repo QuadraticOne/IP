@@ -62,7 +62,27 @@ class EvaluationParameters:
             for constraint in constraint_samples
         ]
 
+        for constraint in data["constraintSamples"]:
+            constraint["summary"] = self.summarise_values(
+                [
+                    solution["satisfactionProbability"]
+                    for solution in constraint["solutions"]
+                ],
+                "Satisfaction",
+            )
+
         return data
+
+    def summarise_values(self, values, name):
+        """
+        [Float] -> String -> Dict
+        Summarise the values, producing statistics such as maximum, minimum, and mean.
+        """
+        return {
+            "minimum" + name: min(values),
+            "maximum" + name: max(values),
+            "mean" + name: sum(values) / len(values),
+        }
 
     def _make_constraint_samples(self, trainer):
         """
