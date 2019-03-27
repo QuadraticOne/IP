@@ -4,6 +4,7 @@ from modules.parametric.export import ExportedParametricGenerator
 from wise.util.io import IO
 from wise.training.routines import fit
 from wise.training.experiments.experiment import Experiment
+from environments.environment import VectorEnvironment
 import wise.util.training as tu
 import modules.sampling as sample
 import modules.parametric.evaluation as evaluation
@@ -76,9 +77,9 @@ class Trainer(Experiment):
         if not isinstance(self.dataset, str):
             data = self.dataset
         else:
-            data = IO([p + "/" for p in self.dataset.split("/")[:-1]]).restore_object(
-                self.dataset.split(".")[-1]
-            )
+            folder = "".join([p + "/" for p in self.dataset.split("/")[:-1]])
+            file_name = (self.dataset.split("/")[-1]).split(".")[0]
+            data = VectorEnvironment.load_dataset(folder, file_name)
 
         true, false = 1.0, 0.0
         solutions, constraints, satisfactions = [], [], []
