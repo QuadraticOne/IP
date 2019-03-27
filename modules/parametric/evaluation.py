@@ -3,16 +3,30 @@ import numpy as np
 
 class EvaluationParameters:
     def __init__(
-        self, constraint_samples, solutions_per_constraint_sample, satisfaction_cutoffs
+        self,
+        constraint_samples,
+        generated_solutions_per_constraint,
+        true_solutions_per_constraint,
+        monte_carlo_burn_in,
+        monte_carlo_samples,
+        monte_carlo_sample_gap,
+        n_tree_bucket_size,
     ):
         """
-        Int -> Int -> [Float] -> EvaluationParameters
+        Either String [np.array] -> Int -> Int -> Int -> Int -> Int -> Int
+            -> EvaluationParameters
         Data class for storing parameters related to the evaluation JSON
         that should be produced after the experiment has run.
         """
         self.constraint_samples = constraint_samples
-        self.solutions_per_constraint_sample = solutions_per_constraint_sample
-        self.satisfaction_cutoffs = satisfaction_cutoffs
+        self.generated_solutions_per_constraint = generated_solutions_per_constraint
+        self.true_solutions_per_constraint = true_solutions_per_constraint
+
+        self.monte_carlo_burn_in = monte_carlo_burn_in
+        self.monte_carlo_samples = monte_carlo_samples
+        self.monte_carlo_sample_gap = monte_carlo_sample_gap
+
+        self.n_tree_bucket_size = n_tree_bucket_size
 
     def to_json(self):
         """
@@ -21,8 +35,14 @@ class EvaluationParameters:
         """
         return {
             "constraintSamples": self.constraint_samples,
-            "solutionsPerConstraintSample": self.solutions_per_constraint_sample,
-            "satisfactionCutoffs": self.satisfaction_cutoffs,
+            "solutionsPerConstraintSample": self.generated_solutions_per_constraint,
+            "trueSolutionsPerConstraint": self.true_solutions_per_constraint,
+            "monteCarlo": {
+                "burnIn": self.monte_carlo_burn_in,
+                "samples": self.monte_carlo_samples,
+                "sampleGap": self.monte_carlo_sample_gap,
+            },
+            "nTreeBucketSize": self.n_tree_bucket_size,
         }
 
     @staticmethod
@@ -34,7 +54,11 @@ class EvaluationParameters:
         return EvaluationParameters(
             json["constraintSamples"],
             json["solutionsPerConstraintSample"],
-            json["satisfactionCutoffs"],
+            json["trueSolutionsPerConstraint"],
+            json["monteCarlo"]["burnIn"],
+            json["monteCarlo"]["samples"],
+            json["monteCarlo"]["sampleGap"],
+            json["nTreeBucketSize"],
         )
 
     def evaluate(self, trainer):
@@ -54,7 +78,7 @@ class EvaluationParameters:
                     result.to_json()
                     for result in _list_wrap(
                         export.sample_for_constraint(
-                            constraint, self.solutions_per_constraint_sample
+                            constraint, self.generated_solutions_per_constraint
                         )
                     )
                 ],
