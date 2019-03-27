@@ -44,8 +44,25 @@ class EvaluationParameters:
         to the evaluation parameters laid out in the data class.
         """
         export = trainer.export()
+        data = {}
+
         constraint_samples = self._make_constraint_samples(trainer)
-        return {}
+        data["constraintSamples"] = [
+            {
+                "constraint": constraint,
+                "solutions": [
+                    result.to_json()
+                    for result in _list_wrap(
+                        export.sample_for_constraint(
+                            constraint, self.solutions_per_constraint_sample
+                        )
+                    )
+                ],
+            }
+            for constraint in constraint_samples
+        ]
+
+        return data
 
     def _make_constraint_samples(self, trainer):
         """
@@ -80,3 +97,10 @@ class EvaluationParameters:
             else:
                 raise ValueError("unknown sampling method '{}'".format(sampling_method))
 
+
+def _list_wrap(value):
+    """
+    Either a [a] -> [a]
+    Wrap a value in a list if it is not already a list.
+    """
+    return value if isinstance(value, list) else [value]

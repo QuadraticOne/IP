@@ -141,7 +141,7 @@ class ExportedParametricGenerator:
             Return a JSON-like representation of the generator sample.
             """
             return {
-                "latent": self.latent,
-                "solution": self.solution,
-                "satisfactionProbability": self.satisfaction_probability,
+                "latent": self.latent.tolist(),
+                "solution": self.solution.tolist(),
+                "satisfactionProbability": self.satisfaction_probability.tolist(),
             }
