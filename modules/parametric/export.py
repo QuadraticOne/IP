@@ -143,5 +143,5 @@ class ExportedParametricGenerator:
             return {
                 "latent": self.latent.tolist(),
                 "solution": self.solution.tolist(),
-                "satisfactionProbability": self.satisfaction_probability.tolist(),
+                "satisfactionProbability": self.satisfaction_probability.item(),
             }

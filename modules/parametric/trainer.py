@@ -459,16 +459,6 @@ class Trainer(Experiment):
         """
         return ExportedParametricGenerator(self.parametric_generator, self.session)
 
-    @staticmethod
-    def copy_json_to_clipboard(json):
-        """
-        Dict -> ()
-        Copy a JSON-like object to the clipboard.
-        """
-        string = str(json).replace("'", '"')
-        pyperclip.copy(string)
-        print("Copied string of length {} to clipboard.".format(len(string)))
-
 
 def optimiser(loss, name="unnamed_optimiser"):
     """
