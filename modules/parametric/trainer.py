@@ -11,6 +11,7 @@ import tensorflow as tf
 import numpy as np
 import modules.reusablenet as rnet
 import time
+import pyperclip
 
 
 class Trainer(Experiment):
@@ -456,6 +457,16 @@ class Trainer(Experiment):
         Export the generator trained by this trainer for easy use.
         """
         return ExportedParametricGenerator(self.parametric_generator, self.session)
+
+    @staticmethod
+    def copy_json_to_clipboard(json):
+        """
+        Dict -> ()
+        Copy a JSON-like object to the clipboard.
+        """
+        string = str(json).replace("'", '"')
+        pyperclip.copy(string)
+        print("Copied string of length {} to clipboard.".format(len(string)))
 
 
 def optimiser(loss, name="unnamed_optimiser"):
