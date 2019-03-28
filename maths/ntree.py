@@ -225,6 +225,40 @@ class NTree:
         """
         return self.point_count / self.volume
 
+    @property
+    def depth(self):
+        """
+        () -> Int
+        Return the depth of a particular bucket in an enclosing n-tree.
+        """
+        if self.parent is None:
+            return 0
+        else:
+            return 1 + self.parent.depth
+
+    @property
+    def enclosing_tree(self):
+        """
+        () -> NTree
+        Return the top-level tree enclosing a bucket.
+        """
+        if self.parent is None:
+            return self
+        else:
+            return self.parent.enclosing_tree
+
+    @property
+    def relative_density(self):
+        """
+        () -> Float
+        Return the ratio of proportion of total points to proportion of total
+        volume.  Can be interpreted as the density of the n-tree within this
+        bucket relative to one which is filled uniformly.
+        """
+        return (self.point_count / self.enclosing_tree.point_count) / (
+            2 ** (-self.depth)
+        )
+
     def probability_density(self, point):
         """
         [Float] -> Float
