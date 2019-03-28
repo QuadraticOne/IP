@@ -47,3 +47,40 @@ def iterate_metropolis_hastings(f, Q, x):
     acceptance_ratio = f(x_dash) / f(x)
     u = uniform(0, 1)
     return x if u > acceptance_ratio else x_dash
+
+
+def tensorflow_mcmc(
+    distribution_input,
+    distribution_output,
+    tensorflow_session,
+    burn_in,
+    n_samples,
+    skip,
+    start,
+):
+    """
+    tf.Node -> tf.Node -> tf.Session -> Int -> Int -> Int -> [Float] -> [[Float]]
+    Take a number of samples from a target distribution, as defined by a
+    tensorflow node.
+    """
+    samples = []
+    samples.append(
+        metropolis_hastings(
+            burn_in,
+            lambda x: tensorflow_session.run(
+                distribution_output, feed_dict={distribution_input: x}
+            ),
+            start,
+        )
+    )
+    for _ in range(n_samples):
+        samples.append(
+            metropolis_hastings(
+                skip,
+                lambda x: tensorflow_session.run(
+                    distribution_output, feed_dict={distribution_input: x}
+                ),
+                samples[-1],
+            )
+        )
+    return samples
