@@ -1,4 +1,5 @@
 import pyperclip
+import numpy as np
 
 
 def stringify(json, decimal_places=None):
@@ -35,7 +36,12 @@ def stringify(json, decimal_places=None):
         try:
             return stringify(json.item(), decimal_places=decimal_places)
         except:
-            raise Exception("unrecognised type {} of {}".format(type(json), str(json)))
+            try:
+                return stringify(json.tolist(), decimal_places=decimal_places)
+            except:
+                raise Exception(
+                    "unrecognised type {} of {}".format(type(json), str(json))
+                )
 
 
 def copy_to_clipboard(json, decimal_places=None):
