@@ -100,6 +100,23 @@ class NTree:
         """
         return all([l <= x < u for x, (l, u) in zip(point, self.ranges)])
 
+    def smallest_bucket_containing(self, point):
+        """
+        [Float] -> NTree
+        Find the smallest enclosing bucket that contains the given point.  If
+        the point is not within the bounds of the bucket at all, returns None.
+        """
+        if not self.within_bounds(point):
+            return None
+
+        if not self.has_children:
+            return self
+        else:
+            if self.first_child.within_bounds(point):
+                return self.first_child.smallest_bucket_containing(point)
+            else:
+                return self.second_child.smallest_bucket_containing(point)
+
     def _create_children(self):
         """
         () -> ()
