@@ -130,18 +130,23 @@ class ExportedParametricGenerator:
             generator.solution_input, generator.constraint_input
         )
 
-        def satisfaction_probability_function(constraint):
+        def satisfaction_probability_function(constraint, zero_outside_bounds=True):
             """
-            np.array -> Float
+            np.array -> Bool? -> Float
             Return a function that calculates the probability of a solution vector
             satisfying the given constraint.
             """
-            return lambda s: session.run(
-                discriminator["output"],
-                feed_dict={
-                    generator.constraint_input: [constraint],
-                    generator.solution_input: [s],
-                },
+            l, u = generator.solution_lower_bound, generator.solution_upper_bound
+            return (
+                lambda s: 0.0
+                if any([not l <= si < u for si in s])
+                else session.run(
+                    discriminator["output"],
+                    feed_dict={
+                        generator.constraint_input: [constraint],
+                        generator.solution_input: [s],
+                    },
+                )
             )
 
         return satisfaction_probability_function
