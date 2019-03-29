@@ -80,7 +80,9 @@ class EvaluationParameters:
             for constraint in constraint_samples
         ]
 
-        i = 0
+        if trainer.log:
+            i = 0
+            print()
         for constraint in data["constraintSamples"]:
             if trainer.log:
                 i += 1
@@ -96,6 +98,9 @@ class EvaluationParameters:
             constraint["summary"] = self.calculate_solution_statistics(constraint)
 
         data["summary"] = self.calculate_solution_statistics(data["constraintSamples"])
+
+        if trainer.log:
+            print("Done.")
 
         return data
 
