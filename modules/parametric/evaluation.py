@@ -85,24 +85,17 @@ class EvaluationParameters:
             if trainer.log:
                 i += 1
                 print(
-                    "Evaluating constraint {}/{}".format(
+                    "Evaluating constraint {}/{}...".format(
                         i, len(data["constraintSamples"])
-                    ),
-                    end="",
+                    )
                 )
 
             self.append_generated_solutions(constraint, export)
-            if trainer.log:
-                print(".", end="")
             self.append_true_solutions(constraint, export, trainer)
-            if trainer.log:
-                print(".", end="")
             self.calculate_solution_properties(constraint, export, trainer)
-            if trainer.log:
-                print(".", end="")
-            self.calculate_solution_statistics(constraint, export)
-            if trainer.log:
-                print(".")
+            constraint["summary"] = self.calculate_solution_statistics(constraint)
+
+        data["summary"] = self.calculate_solution_statistics(data["constraintSamples"])
 
         return data
 
@@ -160,12 +153,13 @@ class EvaluationParameters:
                 solution["solution"]
             )
 
-    def calculate_solution_statistics(self, constraint, export):
+    def calculate_solution_statistics(self, constraint):
         """
-        Dict -> ExportedParametricGenerator -> ()
-        Calculate summary statistics for each solution to a constraint.
+        Either [Dict] Dict -> Dict
+        Calculate summary statistics for each solution to a constraint or set
+        of constraints.
         """
-        constraint["summary"] = {
+        return {
             "all": self.summarise_relative_density_and_satisfaction_probability(
                 self.solutions_of_type(constraint)
             ),
