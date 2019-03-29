@@ -10,13 +10,12 @@ class EvaluationParameters:
         generated_solutions_per_constraint,
         true_solutions_per_constraint,
         monte_carlo_burn_in,
-        monte_carlo_samples,
         monte_carlo_sample_gap,
         n_tree_bucket_size,
         n_tree_population,
     ):
         """
-        Either String [np.array] -> Int -> Int -> Int -> Int -> Int -> Int -> Int
+        Either String [np.array] -> Int -> Int -> Int -> Int -> Int -> Int
             -> EvaluationParameters
         Data class for storing parameters related to the evaluation JSON
         that should be produced after the experiment has run.
@@ -26,7 +25,6 @@ class EvaluationParameters:
         self.true_solutions_per_constraint = true_solutions_per_constraint
 
         self.monte_carlo_burn_in = monte_carlo_burn_in
-        self.monte_carlo_samples = monte_carlo_samples
         self.monte_carlo_sample_gap = monte_carlo_sample_gap
 
         self.n_tree_bucket_size = n_tree_bucket_size
@@ -43,7 +41,6 @@ class EvaluationParameters:
             "trueSolutionsPerConstraint": self.true_solutions_per_constraint,
             "monteCarlo": {
                 "burnIn": self.monte_carlo_burn_in,
-                "samples": self.monte_carlo_samples,
                 "sampleGap": self.monte_carlo_sample_gap,
             },
             "nTree": {
@@ -63,7 +60,6 @@ class EvaluationParameters:
             json["generatedSolutionsPerConstraint"],
             json["trueSolutionsPerConstraint"],
             json["monteCarlo"]["burnIn"],
-            json["monteCarlo"]["samples"],
             json["monteCarlo"]["sampleGap"],
             json["nTree"]["bucketSize"],
             json["nTree"]["population"],
@@ -137,11 +133,11 @@ class EvaluationParameters:
         f = export.constraint_optimiser(constraint["constraint"])
         solutions = mcmc_samples(
             lambda x: f(x).satisfaction_probability,
-            self.monte_carlo_samples,
+            self.true_solutions_per_constraint,
             self.monte_carlo_sample_gap,
             self.monte_carlo_burn_in,
             [0.0] * trainer.parametric_generator.solution_dimension,
-        )
+        )[1:]
         for solution in solutions:
             constraint["solutions"].append({"solution": solution, "type": "true"})
 
