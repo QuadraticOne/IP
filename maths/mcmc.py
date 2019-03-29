@@ -32,7 +32,7 @@ def metropolis_hastings(iterations, f, x, Q=gaussian_about):
     """
     _x = x
     for _ in range(iterations):
-        _x = iterate_metropolis_hastings(f, Q, x)
+        _x = iterate_metropolis_hastings(f, Q, _x)
     return _x
 
 
