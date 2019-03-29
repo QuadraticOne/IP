@@ -14,6 +14,9 @@ class ExportedParametricGenerator:
         )
 
         self.constraint_optimiser = self._make_constraint_optimiser(generator, session)
+        self.satisfaction_probability = self._make_satisfaction_probability(
+            generator, session
+        )
 
     def _make_sample_for_constraint(self, parametric_generator, session):
         """
@@ -115,6 +118,33 @@ class ExportedParametricGenerator:
             return evaluate
 
         return constraint_optimiser
+
+    def _make_satisfaction_probability(self, generator, session):
+        """
+        ParametricGenerator -> tf.Session -> (np.array -> Float)
+        Return a curried function that takes the constraint vector and solution
+        vectors as input and returns the estimated probability of the solution
+        satisfying the constraint.
+        """
+        discriminator = generator.build_discriminator(
+            generator.solution_input, generator.constraint_input
+        )
+
+        def satisfaction_probability_function(constraint):
+            """
+            np.array -> Float
+            Return a function that calculates the probability of a solution vector
+            satisfying the given constraint.
+            """
+            return lambda s: session.run(
+                discriminator["output"],
+                feed_dict={
+                    generator.constraint_input: [constraint],
+                    generator.solution_input: [s],
+                },
+            )
+
+        return satisfaction_probability_function
 
     class GeneratorSample:
         def __init__(self, latent, solution, satisfaction_probability):
