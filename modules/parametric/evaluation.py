@@ -108,7 +108,7 @@ class EvaluationParameters:
 
     def append_generated_solutions(self, constraint, export):
         """
-        np.array -> ExportedParametricGenerator -> ()
+        Dict -> ExportedParametricGenerator -> ()
         Append `generated_solutions_per_constraint_sample` solutions, taken
         from the learned generator, to the list of solutions for each constraint.
         """
@@ -126,7 +126,7 @@ class EvaluationParameters:
 
     def append_true_solutions(self, constraint, export, trainer):
         """
-        np.array -> ExportedParametricGenerator -> Trainer -> ()
+        Dict -> ExportedParametricGenerator -> Trainer -> ()
         Append `true_solutions_per_constraint` solutions, taken from the true target
         distribution using a Markov chain, to the list of solutions for each constraint.
         """
@@ -143,7 +143,7 @@ class EvaluationParameters:
 
     def calculate_solution_properties(self, constraint, export, trainer):
         """
-        np.array -> ExportedParametricGenerator -> Trainer -> ()
+        Dict -> ExportedParametricGenerator -> Trainer -> ()
         Calculate satisfaction probability and relative density in the latent
         space of each solution to a constraint.
         """
@@ -162,11 +162,51 @@ class EvaluationParameters:
 
     def calculate_solution_statistics(self, constraint, export):
         """
-        np.array -> ExportedParametricGenerator -> ()
-        Calculate summary statistics for solutions to each constraint, and for
-        all constraints together.
+        Dict -> ExportedParametricGenerator -> ()
+        Calculate summary statistics for each solution to a constraint.
         """
-        pass  # Not yet implemented
+        constraint["summary"] = {
+            "all": self.summarise_relative_density_and_satisfaction_probability(
+                self.solutions_of_type(constraint)
+            ),
+            "true": self.summarise_relative_density_and_satisfaction_probability(
+                self.solutions_of_type(constraint, "true")
+            ),
+            "generated": self.summarise_relative_density_and_satisfaction_probability(
+                self.solutions_of_type(constraint, "generated")
+            ),
+        }
+
+    def solutions_of_type(self, constraint, type_name=None):
+        """
+        Either Dict [Dict] -> String? -> [Dict]
+        Return all the solutions presented for either a single constraint or
+        a list of constraints whose type matches the given type name.  If no type
+        name is specified then all solutions will be returned.
+        """
+        return _flatmap(
+            lambda c: [
+                solution
+                for solution in c["solutions"]
+                if type_name is None or solution["type"] == type_name
+            ],
+            _list_wrap(constraint),
+        )
+
+    def summarise_relative_density_and_satisfaction_probability(self, solutions):
+        """
+        [Dict] -> Dict
+        Iterate through a list of solutions and extract statistics on the maximum,
+        minimum, and mean relative densities and satisfaction probabilities.
+        """
+        return {
+            "relativeDensity": self.summarise_values(
+                [s["relativeDensity"] for s in solutions], ""
+            ),
+            "satisfactionProbability": self.summarise_values(
+                [s["satisfactionProbability"] for s in solutions], ""
+            ),
+        }
 
     def summarise_values(self, values, name):
         """
