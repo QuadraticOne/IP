@@ -261,7 +261,7 @@ class Trainer(Experiment):
         optimiser, init = tu.default_adam_optimiser_with_initialiser(
             loss,
             "generator_training_loss",
-            rnet.all_variables([weights, biases, generator, discriminator]),
+            rnet.all_variables([weights, biases, generator]),
         )
 
         logging_metrics = (
