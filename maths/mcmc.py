@@ -49,6 +49,19 @@ def iterate_metropolis_hastings(f, Q, x):
     return x if u > acceptance_ratio else x_dash
 
 
+def mcmc_samples(f, samples, gap, burn_in, start):
+    """
+    ([Float] -> Float) -> Int -> Int -> Int -> [Float] -> [[Float]]
+    Take a set number of samples, discarding some in between, from a distribution f
+    using the Metropolis-Hastings algorithm.  The first samples drawn are thrown
+    away as part of a burn-in.
+    """
+    output = [metropolis_hastings(burn_in, f, start)]
+    for _ in range(samples):
+        output.append(metropolis_hastings(gap, f, output[-1]))
+    return output
+
+
 def tensorflow_mcmc(
     distribution_input,
     distribution_output,
