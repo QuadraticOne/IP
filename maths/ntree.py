@@ -100,22 +100,33 @@ class NTree:
         """
         return all([l <= x < u for x, (l, u) in zip(point, self.ranges)])
 
-    def smallest_bucket_containing(self, point):
+    def smallest_bucket_containing(self, point, error_if_out_of_bounds=True):
         """
-        [Float] -> NTree
+        [Float] -> Bool? -> NTree
         Find the smallest enclosing bucket that contains the given point.  If
         the point is not within the bounds of the bucket at all, returns None.
         """
         if not self.within_bounds(point):
-            return None
+            if error_if_out_of_bounds:
+                raise Exception(
+                    "point {} not within bounds {} of bucket".format(
+                        str(point), str(list(self.ranges))
+                    )
+                )
+            else:
+                return None
 
         if not self.has_children:
             return self
         else:
             if self.first_child.within_bounds(point):
-                return self.first_child.smallest_bucket_containing(point)
+                return self.first_child.smallest_bucket_containing(
+                    point, error_if_out_of_bounds=error_if_out_of_bounds
+                )
             else:
-                return self.second_child.smallest_bucket_containing(point)
+                return self.second_child.smallest_bucket_containing(
+                    point, error_if_out_of_bounds=error_if_out_of_bounds
+                )
 
     def _create_children(self):
         """
@@ -263,6 +274,16 @@ class NTree:
             return self
         else:
             return self.parent.enclosing_tree
+
+    def relative_density_at_point(self, point, error_if_out_of_bounds=True):
+        """
+        [Float] -> Bool? -> Float
+        Calculate the relative density of a point within the top-level tree.
+        """
+        bucket = self.smallest_bucket_containing(
+            point, error_if_out_of_bounds=error_if_out_of_bounds
+        )
+        return bucket.relative_density if bucket is not None else 0.0
 
     @property
     def relative_density(self):
