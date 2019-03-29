@@ -130,13 +130,13 @@ class EvaluationParameters:
         Append `true_solutions_per_constraint` solutions, taken from the true target
         distribution using a Markov chain, to the list of solutions for each constraint.
         """
-        f = export.constraint_optimiser(constraint["constraint"])
+        f = export.satisfaction_probability(constraint["constraint"])
         solutions = mcmc_samples(
-            lambda x: f(x).satisfaction_probability,
+            f,
             self.true_solutions_per_constraint,
             self.monte_carlo_sample_gap,
             self.monte_carlo_burn_in,
-            [0.0] * trainer.parametric_generator.solution_dimension,
+            [0.5] * trainer.parametric_generator.solution_dimension,
         )[1:]
         for solution in solutions:
             constraint["solutions"].append({"solution": solution, "type": "true"})
