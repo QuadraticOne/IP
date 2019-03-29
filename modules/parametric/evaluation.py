@@ -1,3 +1,5 @@
+from maths.ntree import NTree
+from maths.mcmc import mcmc_samples
 import numpy as np
 
 
@@ -11,9 +13,10 @@ class EvaluationParameters:
         monte_carlo_samples,
         monte_carlo_sample_gap,
         n_tree_bucket_size,
+        n_tree_population,
     ):
         """
-        Either String [np.array] -> Int -> Int -> Int -> Int -> Int -> Int
+        Either String [np.array] -> Int -> Int -> Int -> Int -> Int -> Int -> Int
             -> EvaluationParameters
         Data class for storing parameters related to the evaluation JSON
         that should be produced after the experiment has run.
@@ -27,6 +30,7 @@ class EvaluationParameters:
         self.monte_carlo_sample_gap = monte_carlo_sample_gap
 
         self.n_tree_bucket_size = n_tree_bucket_size
+        self.n_tree_population = n_tree_population
 
     def to_json(self):
         """
@@ -35,14 +39,17 @@ class EvaluationParameters:
         """
         return {
             "constraintSamples": self.constraint_samples,
-            "solutionsPerConstraintSample": self.generated_solutions_per_constraint,
+            "generatedSolutionsPerConstraint": self.generated_solutions_per_constraint,
             "trueSolutionsPerConstraint": self.true_solutions_per_constraint,
             "monteCarlo": {
                 "burnIn": self.monte_carlo_burn_in,
                 "samples": self.monte_carlo_samples,
                 "sampleGap": self.monte_carlo_sample_gap,
             },
-            "nTreeBucketSize": self.n_tree_bucket_size,
+            "nTree": {
+                "bucketSize": self.n_tree_bucket_size,
+                "population": self.n_tree_population,
+            },
         }
 
     @staticmethod
@@ -53,12 +60,13 @@ class EvaluationParameters:
         """
         return EvaluationParameters(
             json["constraintSamples"],
-            json["solutionsPerConstraintSample"],
+            json["generatedSolutionsPerConstraint"],
             json["trueSolutionsPerConstraint"],
             json["monteCarlo"]["burnIn"],
             json["monteCarlo"]["samples"],
             json["monteCarlo"]["sampleGap"],
-            json["nTreeBucketSize"],
+            json["nTree"]["bucketSize"],
+            json["nTree"]["population"],
         )
 
     def evaluate(self, trainer):
@@ -72,38 +80,97 @@ class EvaluationParameters:
 
         constraint_samples = self._make_constraint_samples(trainer)
         data["constraintSamples"] = [
-            {
-                "constraint": constraint.tolist(),
-                "solutions": [
-                    result.to_json()
-                    for result in _list_wrap(
-                        export.sample_for_constraint(
-                            constraint, self.generated_solutions_per_constraint
-                        )
-                    )
-                ],
-            }
+            {"constraint": constraint, "solutions": []}
             for constraint in constraint_samples
         ]
 
+        i = 0
         for constraint in data["constraintSamples"]:
-            constraint["summary"] = self.summarise_values(
-                [
-                    solution["satisfactionProbability"]
-                    for solution in constraint["solutions"]
-                ],
-                "Satisfaction",
-            )
+            if trainer.log:
+                i += 1
+                print(
+                    "Evaluating constraint {}/{}".format(
+                        i, len(data["constraintSamples"])
+                    ),
+                    end="",
+                )
 
-        data["constraintSamplesSummary"] = self.summarise_values(
-            _flatmap(
-                lambda c: [s["satisfactionProbability"] for s in c["solutions"]],
-                data["constraintSamples"],
-            ),
-            "Satisfaction",
-        )
+            self.append_generated_solutions(constraint, export)
+            if trainer.log:
+                print(".", end="")
+            self.append_true_solutions(constraint, export, trainer)
+            if trainer.log:
+                print(".", end="")
+            self.calculate_solution_properties(constraint, export, trainer)
+            if trainer.log:
+                print(".", end="")
+            self.calculate_solution_statistics(constraint, export)
+            if trainer.log:
+                print(".")
 
         return data
+
+    def append_generated_solutions(self, constraint, export):
+        """
+        np.array -> ExportedParametricGenerator -> ()
+        Append `generated_solutions_per_constraint_sample` solutions, taken
+        from the learned generator, to the list of solutions for each constraint.
+        """
+        solutions = export.sample_for_constraint(
+            constraint["constraint"], self.generated_solutions_per_constraint
+        )
+        for solution in solutions:
+            constraint["solutions"].append(
+                {
+                    "solution": solution.solution,
+                    "latent": solution.latent,
+                    "type": "generated",
+                }
+            )
+
+    def append_true_solutions(self, constraint, export, trainer):
+        """
+        np.array -> ExportedParametricGenerator -> Trainer -> ()
+        Append `true_solutions_per_constraint` solutions, taken from the true target
+        distribution using a Markov chain, to the list of solutions for each constraint.
+        """
+        f = export.constraint_optimiser(constraint["constraint"])
+        solutions = mcmc_samples(
+            lambda x: f(x).satisfaction_probability,
+            self.monte_carlo_samples,
+            self.monte_carlo_sample_gap,
+            self.monte_carlo_burn_in,
+            [0.0] * trainer.parametric_generator.solution_dimension,
+        )
+        for solution in solutions:
+            constraint["solutions"].append({"solution": solution, "type": "true"})
+
+    def calculate_solution_properties(self, constraint, export, trainer):
+        """
+        np.array -> ExportedParametricGenerator -> Trainer -> ()
+        Calculate satisfaction probability and relative density in the latent
+        space of each solution to a constraint.
+        """
+        satisfaction_probability = export.satisfaction_probability(
+            constraint["constraint"]
+        )
+
+        ntree = self._make_n_tree(export, constraint["constraint"], trainer)
+        for solution in constraint["solutions"]:
+            solution["relativeDensity"] = ntree.relative_density_at_point(
+                solution["solution"], error_if_out_of_bounds=False
+            )
+            solution["satisfactionProbability"] = satisfaction_probability(
+                solution["solution"]
+            )
+
+    def calculate_solution_statistics(self, constraint, export):
+        """
+        np.array -> ExportedParametricGenerator -> ()
+        Calculate summary statistics for solutions to each constraint, and for
+        all constraints together.
+        """
+        pass  # Not yet implemented
 
     def summarise_values(self, values, name):
         """
@@ -115,6 +182,27 @@ class EvaluationParameters:
             "maximum" + name: max(values),
             "mean" + name: sum(values) / len(values),
         }
+
+    def _make_n_tree(self, export, constraint, trainer):
+        """
+        ExportedParametricGenerator -> np.array -> Trainer -> NTree
+        Build a suitably sized n-tree and populate it with samples from the
+        generator.
+        """
+        ntree = NTree(
+            [
+                (
+                    trainer.parametric_generator.solution_lower_bound,
+                    trainer.parametric_generator.solution_upper_bound,
+                )
+            ]
+            * trainer.parametric_generator.solution_dimension,
+            self.n_tree_bucket_size,
+        )
+
+        samples = export.sample_for_constraint(constraint, self.n_tree_population)
+        ntree.add_points([sample.solution for sample in samples])
+        return ntree
 
     def _make_constraint_samples(self, trainer):
         """
