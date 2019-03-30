@@ -216,6 +216,7 @@ class EvaluationParameters:
             "minimum" + name: min(values),
             "maximum" + name: max(values),
             "mean" + name: sum(values) / len(values),
+            "median" + name: _median(values),
         }
 
     def _make_n_tree(self, export, constraint, trainer):
@@ -290,3 +291,15 @@ def _flatmap(f, iterable):
     for i in iterable:
         output += f(i)
     return output
+
+
+def _median(values):
+    """
+    [Float] -> Float
+    Calculate the median of a list of values.
+    """
+    ordered = sorted(values)
+    if len(ordered) % 2 == 1:
+        return ordered[(len(ordered) - 1) // 2]
+    else:
+        return 0.5 * (ordered[len(ordered) // 2] + ordered[len(ordered) // 2 - 1])
