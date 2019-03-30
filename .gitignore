@@ -8,6 +8,8 @@ wise/
 
 graphs/
 data/
+production/datasets/
+production/results/
 
 main.py
 
