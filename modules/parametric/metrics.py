@@ -72,7 +72,11 @@ class Metrics:
             )
         return tf.reduce_mean(
             tf.squared_difference(
-                (2 * self.generator["input"]) - 1,
+                map_between(
+                    (g.latent_lower_bound, g.latent_upper_bound),
+                    (g.solution_lower_bound, g.solution_upper_bound),
+                    self.generator["output"],
+                ),
                 self.generator["output"],
                 name="uniformity_error",
             ),
@@ -101,3 +105,14 @@ def head_and_tail(values):
     value.  The tail may be an empty list.
     """
     return values[0], values[1:]
+
+
+def map_between(input_bounds, output_bounds, node):
+    """
+    (Float, Float) -> (Float, Float) -> tf.Node -> tf.Node
+    Map each dimension of a tensorflow node from one range to another, linearly.
+    """
+    input_range = input_bounds[1] - input_bounds[0]
+    output_range = output_bounds[1] - output_bounds[0]
+    scaled_input = (node - input_bounds[0]) / input_range
+    return output_bounds[0] + (output_range * scaled_input)
