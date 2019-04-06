@@ -75,7 +75,7 @@ class Metrics:
                 map_between(
                     (g.latent_lower_bound, g.latent_upper_bound),
                     (g.solution_lower_bound, g.solution_upper_bound),
-                    self.generator["output"],
+                    self.generator["input"],
                 ),
                 self.generator["output"],
                 name="uniformity_error",
