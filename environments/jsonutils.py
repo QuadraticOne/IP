@@ -2,6 +2,24 @@ import pyperclip
 import numpy as np
 
 
+def clean(json):
+    """
+    Dict -> Dict
+    Clean a JSON object, extracting numpy objects to their python counterparts
+    and throwing an error if this is not possible.
+    """
+    if isinstance(json, dict):
+        return {k: clean(v) for k, v in json.items()}
+    elif isinstance(json, list):
+        return [clean(v) for v in json]
+    elif hasattr(json, "tolist"):
+        return json.tolist()
+    elif hasattr(json, "item"):
+        return json.item()
+    else:
+        return json
+
+
 def stringify(json, decimal_places=None):
     """
     Dict -> Int? -> String
