@@ -57,6 +57,7 @@ class Trainer(Experiment):
 
         self.session = None
 
+        self.epsilon = 1.0
         self.validation_proportion = 0.2
         self.pretraining_loss = "uniformity"
         self.precision_proxy = "precision"
@@ -329,6 +330,7 @@ class Trainer(Experiment):
         json = {
             "parametricGenerator": self.parametric_generator.to_json(),
             "dataset": self.dataset if isinstance(self.dataset, str) else "literal",
+            "epsilon": self.epsilon,
             "recallWeight": self.recall_weight,
             "discriminatorTrainingParameters": (
                 self.discriminator_training_parameters.to_json()
@@ -383,6 +385,8 @@ class Trainer(Experiment):
             trainer.precision_proxy = json["precisionProxy"]
         if "recallProxy" in json:
             trainer.recall_proxy = json["recallProxy"]
+        if "epsilon" in json:
+            trainer.epsilon = json["epsilon"]
 
         return trainer
 

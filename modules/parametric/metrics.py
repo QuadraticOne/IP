@@ -50,7 +50,10 @@ class Metrics:
         """
         self.require(discriminator=True)
         return tf.reduce_mean(
-            -tf.log(self.discriminator["output"] + 1, name="precision_logarithm"),
+            -tf.log(
+                self.discriminator["output"] + trainer.epsilon,
+                name="precision_logarithm",
+            ),
             name="precision",
         )
 
