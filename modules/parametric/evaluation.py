@@ -255,19 +255,21 @@ class EvaluationParameters:
         ):
             return self.constraint_samples
         else:
-            if not isinstance(self.constraint_samples, str):
+            if not isinstance(self.constraint_samples, dict):
                 raise ValueError(
-                    "constraint_samples should be a list of numpy arrays or a string"
+                    "constraint_samples should be a list of numpy arrays or a dict"
                 )
 
-            args = self.constraint_samples.replace(" ", "").split(",")
-            n = 64 if len(args) < 2 else int(args[1])
-            sampling_method = args[0]
+            args = self.constraint_samples
+            n = 64 if "quantity" not in args else int(args["quantity"])
+            sampling_method = args["samplingMethod"]
 
             if sampling_method == "uniform":
                 g = trainer.parametric_generator
                 return np.random.uniform(
-                    low=-1.0, high=1.0, size=(n, g.constraint_dimension)
+                    low=g.constraint_lower_bound,
+                    high=g.constraint_upper_bound,
+                    size=(n, g.constraint_dimension),
                 )
 
             else:
