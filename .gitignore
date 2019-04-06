@@ -7,7 +7,7 @@
 *.fdb_latexmk
 *.fls
 reports/draft/main.pdf
-reports/draft/chapters/*/main.pdf
+reports/draft/**/main.pdf
 
 # Local packages
 wise/
