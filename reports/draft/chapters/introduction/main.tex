@@ -6,10 +6,38 @@
 
 \section{Motivation}
 
+Many engineering challenges can be expressed as optimisation problems, in which the objective is to search a space of possibilities for a value which maximises some objective function.
+In real world problems, the objective function is typically complicated enough that its maximum cannot be found analytically; in these cases, it is necessary to explore the solution space in order to find the optimal solution.
+A number of algorithms exist to search this space efficiently, but often converge slowly when the error surface of the objective function changes abruptly.
+This will often be the case when trying to optimise continuous constraints, such as maximising the thrust of an engine, while simultaneously adhering to binary constraints, such as avoiding degenerate geometries.
+
+Machine learning excels in exploiting underlying patterns in data to make predictions in the face of uncertainty.
+This project explores the use of machine learning algorithms in constructing a differentiable mapping between an arbitrary latent space and the space of solutions to a particular set of problems such that any point in the latent space, when mapped to the solution space, will satisfy some set of binary constraints.
+
 \section{Engineering problems}
 
-\section{Continuous optimisation}
+For the purposes of this project, an engineering problem is defined as a problem in which a solution $s$ must be found which maximises a continuous objective function $f_E$ for an environment $E$, under the condition that $s$ must also satisfy a binary constraint $c$ for the same environment.
+It is assumed that both the solution and constraint can be parameterised by a vector in $m$ and $n$ dimensions respectively, and that these vectors are bounded by
+$$l_S \le s_i \le u_S, 1 \le i \le m$$
+$$l_C \le c_j \le u_C, 1 \le j \le n$$
+As such, the solution space $S$ and constraint space $C$ refer to the axis-aligned hypercubes which contain every possible solution and constraint respectively.
 
-\section{Machine learning acceleration}
+The continuous objective function $f_E$ is a property of the environment which determines the value of some scalar value of a solution.
+$$f_E : S \mapsto \mathbb{R}$$
+We also imagine the existence of a constraint satisfaction function $g_E$, also a property of the environment, which determines whether a constraint is satisfied or unsatisfied by a solution.
+$$g_E : S, C \mapsto \{\text{satisfied}, \text{unsatisfied}\}$$
+The problem as a whole can therefore be broken down into two distinct parts: finding some value $s'$ which maximises $f_E$; and ensuring that $g_E(s') = \text{satisfied}$.
+
+\section{Learned latent mapping}
+
+If it were the case that any value of $s$ were valid (ie. $g_E(s) = \text{satisfied} \; \forall \; s \in S$), the engineering problem described above could easily be solved by an exploratory optimisation algorithm with no knowledge of the environment since it is able to safely explore anywhere within $S$.
+While not all solutions will be valid in reality, it may be possible to leverage the fact that the environment is governed by unchanging rules to learn which solutions will be valid, and which will not.
+Using this knowledge, samples of $s$ can be taken only from that subset of $S$ which satisfies a particular constraint.
+
+If sampling is done by means of a continuous mapping between some latent space (in which no binary constraints are imposed) and the solution space, an engineering problem subject to both a continuous objective function and a binary constraint can be transformed into a problem of simply maximising the objective function in the new latent space.
+This could make previously intractable problems much more tractable, thereby significantly accelerating the search for solutions to frequently occurring problems such as topology optimisation.
+
+One area of machine learning which has seen significant research recently is artificial neural networks, which perform function approximation based on data.
+Hence, this project will attempt to frame the engineering problem described above as a function approximation problem, using a neural network to approximate a latent mapping $\mathcal{L} : C, L \mapsto S$ such that $g_E(\mathcal{L}(c, l), c) = \text{satisfied} \; \forall \; l \in L$, where $L$ is some latent vector space.
 
 \end{document}
