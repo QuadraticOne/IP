@@ -25,12 +25,26 @@ While each environment has a unique constraint satisfaction function $h$, which 
 It is also assumed that both the solution and constraint are parameterised by a vector that is bounded by an hypercube in $m$ or $n$ dimensions respectively.
 The space of valid solutions is referred to as $S$, and the space of valid constraints is referred to as $C$.
 $$S = \{(s_1, ..., s_m) \; | \; s_i \in \{a_S, b_S\}, 1 \le i \le m\}$$
-$$C = \{(c_1, ..., c_n) \; | \; c_j \in \{a_C, b_C\}, 1 \le j \le n\}$$
+$$C = \{(c_1, ..., c_n) \; | \; c_i \in \{a_C, b_C\}, 1 \le i \le n\}$$
 where $a$ and $b$ are the arbitrary upper and lower bounds of the hypercube in each dimension.
 
 Since both $S$ and $C$ are hypercubes, it is trivial to take samples from them.
 As such, solving an engineering problem as defined here can be broken down into two steps: finding a solution vector $s$ for which $f(s)$ is suitably large; and ensuring that $h(c, s) = \text{satisfied}$ for the given constraint $c$.
 
 \section{Learned latent mapping}
+
+Considering the two parts to solving the engineering problem, it is clear that the first part can already be achieved with conventional optimisation algorithms which have no knowledge of the objective surface.
+When certain regions of the solution space do not satisfy the constraint, however, optimisation algorithms which work by exploring the solution space are not able to work efficiently since there is no natural way of reconciling a binary constraint with a scalar-valued objective function other than evaluating the constraint satisfaction function at every sampled point.
+If the regions satisfying the constraint are especially sparse, it may be a considerable amount of time before even a single viable solution is found, before then having to optimise its value according to the objective function.
+
+One way around this dilemna is to leverage the property that $h$ is constant within an environment to learn its underlying patterns using data from previous constraints that were optimised in that environment.
+This knowledge can be used to create a set of viable solutions $V$, specific to the constraint, such that any solution vector which is contained within $V$ satisfies the constraint by definition:
+$$V(c) = \{s \; | \; s \in S, \; h(c, s) = \text{satisfied}\}$$
+While envisaging such a set is trivial, sampling from it is not.
+Again, one could learn a generator function $g(c)$ which maps from an arbitrary latent space $L$ (from which samples can be easily drawn) to somewhere in $V(c)$:
+$$g(l, c) \; : \; L, C \mapsto V(c)$$
+$$L = \{(l_1, ..., l_k) \; | \; l_i \in \{a_L, b_L\}, 1 \le i \le k\}$$
+Once $V$ and $g$ have been learned, solving the engineering problem for any particular constraint is simply a matter of performing optimisation by varying values $l \in L$ of $(f \circ g) \; (l, c)$ using any exploratory optimisation algorithm.
+As such, finding a way of modelling the viable set and generator function for any given environment is the subject of this project.
 
 \end{document}
