@@ -6,12 +6,51 @@
 
 \section{Distribution matching}
 
-\section{Precision maximisation}
+\subsection{KL-divergence}
 
-\section{Recall estimation}
+Because the use of neural networks requires a space similarity problem to be framed as a distribution similarity problem, distribution distance metrics can be used.
+If the generator is modelled by a network whose p.d.f. can quickly be found, such as a radial basis function under certain constraints, the KL-divergence between $\hat{V}'(c)$ and $\hat{V}(c)$ can be estimated by drawing samples from $\hat{V'}(c)$.
+The integral form of the KL-divergence is:
+$$D_{\text{KL}}(\hat{V'}(c) \; || \; \hat{V}(c)) = 
+\int_L \hat{v'}(c)(g'(l, c)) \; \text{log} \bigg(\frac
+{\hat{v'}(c)(g'(l, c))}{\hat{v}(c)(g'(l, c))}
+\bigg) \; dl $$
+Since integration over the entirety of the latent space is unlikely to be tractable, this equation can be adapted such that the divergence is written as an expectation across a batch of samples, each weighted by their probability of occurring.
+Let $\{l_1, l_2, ..., l_{j-1}, l_j\}$ be a batch of samples drawn from the latent space.
+An estimation of the KL-divergence can then be calculated as:
+$$\textbf{E}\big[D_{\text{KL}}(\hat{V'}(c) \; || \; \hat{V}(c))\big] =
+\frac{1}{j}\sum_{i=1}^{j}
+\text{log} \bigg(\frac
+{\hat{v'}(c)(g'(l_i, c))}{\hat{v}(c)(g'(l_i, c))}
+\bigg)
+$$
+The term before the logarithm disappears in the summation equation because each sample is weighted by the inverse of its probability density under $\hat{V'}(c)$.
 
-\section{Proxies for recall}
+Since all operations in this equation are differentiable, the partial derivative of the KL-divergence with respect to the weights of the generator can be found by a library with automatic differentiation such a Tensorflow.
+Then the generator training is simply a matter of minimising the KL-divergence.
 
-\section{Proposed architecture}
+\subsection{Potential issues}
+
+While this approach is theoretically very simple, there are several practical problems that could arise during training.
+\begin{itemize}
+    \item[] \textbf{Exploding gradients}: a problem frequently encountered when minimising functions containing a logarithm is the occurrence of NaN values resulting from taking the logarithm of zero.
+    While this will not be an issue since the numerator of the fraction will be non-zero by virtue of the fact that that point has been sampled, very small values are possible.
+    These will produce large negative logarithms, whose derivatives will be excessively large and positive and rapidly cause exploding gradients.
+    Because it is known that large positive gradients are likely to result from a logarithm, but large negative ones are impossible, it may be possible to clip the derivatives to prevent exploding gradients while still maintaining roughly correct results.   
+    \item[] \textbf{Disjoint manifolds}: the points comprising real data distributions are often described in a much higher-dimensional space than the intrinsic dimension of the distribution that created them.
+    This will likely be the case for the constraint satisfaction function, and so when the learned generator is first initialised it is highly likely that $\hat{V'}(c)$ and $\hat{V}(c)$ will be disjoint.
+    If this is the case then the KL-divergence will always be 0 and no training will occur.
+    Methods of solving this problem, such as minimising the Wasserstein distance instead of KL-divergence, were considered, but judged to be beyond the scope of this project.
+  \end{itemize}
+
+\section{Metric proxies}
+
+\subsection{Precision}
+
+\subsection{Recall}
+
+\subsection{Spread}
+
+\section{Training procedure}
 
 \end{document}
