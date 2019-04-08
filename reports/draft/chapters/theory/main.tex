@@ -19,7 +19,7 @@ The performance of the generator function will therefore be measured in two dime
 \begin{itemize}
     \item[] \textbf{Precision}: the proportion of samples from the learned generator function which are actually members of the true viable space.
     $$p(g) = \int_{C}\int_{L} \; 1_{g(l, c) \; \in \; V(c)} \; dl \; dc$$ 
-    \item[] \textbf{Recall}: the proportion of solutions which actually satisfy the constraint which are members of the learned viable set.
+    \item[] \textbf{Recall}: the proportion of solutions which actually satisfy the constraint which are members of the learned viable space.
     $$r(g) = \int_{C}\int_{V(c)} 1_{g'^{-1}(s, c) \; \in \; L} \; ds \; dc$$ 
 \end{itemize}
 Methods for estimating these quantities will be discussed in Chapter 4.
@@ -32,6 +32,41 @@ The value of this weight can be tuned to determine how confident the network sho
 $$\mathcal{L}(g) = p(g) + w \cdot r(g)$$
 
 \section{Modelling spaces as distributions}
+
+One limitation of neural networks for this application is the fact that their output space is always unimodal (given that the input space is unimodal), while the viable space for a constraint will almost always be multimodal.
+This arises as a consequence of the differentiability of neural networks, which is a desirable quality for this application so that gradient-based optimisation algorithms can still be used in the latent space.
+A consequence of this is that the precision and recall, as defined above, will carry very little meaning because almost all solution vectors will be part of the learned viable space, even though small distances in the latent space can be mapped to very large distances in the solution space (effectively changing the density of solutions sampled from the generator function).
+
+This problem is solved by modelling each space as a probability distribution and defining proxy measures for precision and recall.
+Whether or not a point belongs to a space is no longer a deterministic binary property, but is instead a fuzzy value interpreted as the density of the distribution at that point.
+If the density at point $A$ is much greater than the density at point $B$, we can say that it is far more likely that point $A$ belongs to the space than point $B$.
+The probability distribution function representing a space $X$ is denoted by $\hat{X}$.
+
+Arbitrarily, the latent space is defined to be a uniform distribution within its bounds, which are set to 0 and 1 for the sake of simplicity.
+$$\hat{L}(l) =
+\left\{
+	\begin{array}{ll}
+		1  & \mbox{if } 0 \le l_i \le 1 \; \forall \; \{i \; | \; 1 \le i \le k\} \\
+		0 & \mbox{otherwise}
+	\end{array}
+\right.$$
+Since the learned viable space is formed by passing the latent space through the learned generator, its p.d.f. can be defined as the integral of the latent space p.d.f. over all points in the latent space which map to that solution:
+$$\hat{V'}(c)(s) = \int_{\{l \; | \; g(l,c) = s\}} \hat{L}(l) \; dl$$
+Finally, the true viable space's p.d.f. is defined for any solution, and is $0$ if the solution does not satisfy the constraint, and $\gamma$ if it does.
+The value of $\gamma$ is chosen such that the total mass of the p.d.f. is unity.
+$$\hat{V}(c)(s) =
+\left\{
+	\begin{array}{ll}
+		\gamma & \mbox{if } h(c,s) = \text{satisfied} \\
+		0 & \mbox{otherwise}
+	\end{array}
+\right.$$
+The continuity of neural networks should therefore not pose an issue to the feasibility of this approach to solving the problem at hand, because while regions of the solution space which are not part of the viable space may be sampled occasionally, if the generator is trained well then these regions could be much less dense than regions that are highly likely to satisfy the constraint.
+Intuitively, this can be thought of as the mapping pulling together the distinct modes of the viable space, reducing the distance between them and thereby making it easier for optimisation algorithms to find a global maximum by exploration.
+$$\text{TODO: add graphic displaying this process}$$
+Proxy metrics can now be defined which are intuitively similar to the precision and recall but are functions of a p.d.f. rather than of the generator function itself.
+It is also possible to consider a distance metric between two distributions $-$ which is much easier to define than a distance metric between two spaces $-$ and minimise this directly, to prompt $\hat{V'}(c)$ to match $\hat{V}(c)$.
+These avenues are both explored in the next chapter.
 
 \section{Generators and discriminators}
 
