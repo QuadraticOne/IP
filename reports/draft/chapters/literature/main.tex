@@ -6,25 +6,23 @@
 
 \section{Na\"{i}ve optimisation techniques}
 
-A number of algorithms exist for finding the minimum of a scalar or vector function.
-Many of these are gradient descent algorithms \cite{ruder17} which use information about the local gradient of the objective function
-to iteratively minimise error.
-Because the gradient is used to update the estimate, these algorithms often fail to converge quickly on problems where the error surface is very flat.
+A number of algorithms exist for finding the maximum of a scalar or vector function.
+Many of these are gradient ascent algorithms \cite{ruder17} which use information about the local gradient of the objective function
+to iteratively maximise an objective.
+Because the gradient is used to update the current guess, these algorithms often fail to converge quickly on problems where the objective surface is flat.
 Algorithms such as RMSProp \cite{hinton17} and Adam \cite{kingma17} have been developed to overcome this, but still fail to converge if the objective function is discretised.
 
-Gradient-free optimisation algorithms such as particle swarm optimisation \cite{kennedy12} solve this problem for environments of small dimensionality
-by rapidly exploring the state space, then focusing on areas which give good results.
-But the expected runtime of such algorithms drop off exponentially as the dimensionality of the state space increases.
+Gradient-free, stochastic optimisation algorithms such as particle swarm optimisation \cite{kennedy12} and genetic algorithms \cite{carr14} solve this problem for environments of small dimensionality by rapidly exploring the state space, then focusing on areas which give good results.
+But the expected runtime of such algorithms drops off exponentially as the dimensionality of the state space increases.
 
-Genetic algorithms \cite{carr14}, sometimes considered to fall under the umbrella of machine learning, are a certain kind of optimisation algorithm
-which are both gradient-free and stochastic.
-They are still not intelligent optimisation algorithms, however, because they only adapt solutions to constraints, and do not adapt their overall strategy to different environments.
+These algorithms are typically suitable for finding the maximum of an objective function given that any input is valid, and can therefore be used to solve the first part of the generic engineering problem described in the introduction.
+Crucially, though, they do not utilise learned information about the environment, and as such can be considered to be na\"{i}ve algorithms.
 
 \section{Artificial neural networks}
 
-At times, the function being optimised will be a particular parameterisation of a specific type of function.
-In this case, there may exist an analytical solution for the optimum which is a function of the parameters.
-It might therefore be expected that a universal function approximator could be able to learn this mapping.
+A function mapping from a latent space to the viable subset of a solution space for a particular constraint can be viewed as a function which takes two arguments: the constraint to be satisfied, and a point in the latent space.
+This function is a property of the engineering environment, and individual engineering problems within that environment can be considered to be instances or parameterisations of this function obtained by varying the latent coordinate while fixing the constraint.
+It might therefore be expected that a universal function approximator is capable of learning the generator function.
 
 ANNs are known to be universal function approximators \cite{hornik91}.
 In particular, deep neural networks (DNNs) \cite{liang17} are capable of approximating highly intractable functions to within a reasonable degree of accuracy.
@@ -36,17 +34,12 @@ Regularisation techniques have been developed \cite{goodfellow16, srivastava14, 
 These techniques generally rely on reducing the reliance of the network on singular large weights:
 this makes it more difficult for the network to detect and memorise individual data points, thereby forcing it to learn a more generic mapping.
 Bayesian neural networks \cite{giryes16} view the problem of finding the network weights through a Bayesian lens rather than a frequentist one.
-A Bayesian network will sample its weights from a probability distribution, with weight vectors more likely to be sampled if they are
-more likely to explain the dataset seen by the network during its training.
-This can boost network performance when only a small number of examples are available, and can give an idea of the uncertainty
-of the network by performing multiple forward passes and seeing how closely the network outputs from each pass agree with one another.
+A Bayesian network will sample its weights from a probability distribution, with weight vectors more likely to be sampled if they are more likely to explain the dataset seen by the network during its training.
+This can boost network performance when only a small number of examples are available, and can give an idea of the uncertainty of the network by performing multiple forward passes and seeing how closely the network outputs from each pass agree with one another.
 
-Adding noise to the network's input vector \cite{zur09} has also been shown to decrease overfitting and increase the generality of the network's estimates,
-especially for applications where the available data are sparsely spread throughout the state space.
-The effect of adding noise to the input vector is to simulate a much greater number of data points, but this method does
-assume that data points which are nearby in the state space will produce similar outputs.
-The level of noise is another hyperparameter which must be optimised: too little noise will have no effect on overfitting,
-while too much noise will make it impossible for the network to distinguish between noise and genuine information, causing a drop in accuracy.
+Adding noise to the network's input vector \cite{zur09} has also been shown to decrease overfitting and increase the generality of the network's estimates, especially for applications where the available data are sparsely spread throughout the state space.
+The effect of adding noise to the input vector is to simulate a much greater number of data points, but this method does assume that data points which are nearby in the state space will produce similar outputs.
+The level of noise is another hyperparameter which must be optimised: too little noise will have no effect on overfitting, while too much noise will make it impossible for the network to distinguish between noise and genuine information, causing a drop in accuracy.
 
 \section{Function inversion}
 
