@@ -4,10 +4,35 @@
 
 \chapter{Theoretical Formulation}
 
-\section{Solution and constraint sets}
+\section{Solution and constraint spaces}
 
-\section{Generative mappings}
+As stated in the introduction, the objective of this project is to find a way to learn a space of viable solutions parameterised by a constraint $V(c)$, and an efficient method of taking samples from it.
+Let $g'(l, c)$ be the learned generator function as opposed to the true generator function.
+Then let $V'(c)$ be the learned viable space: the space of all solutions which can be obtained by passing a coordinate in the latent space through the generator:
+$$V'(c) = \{s \; | \; g'^{-1}(s, c) \in L\}$$
+If we assume that $g$ is modelled by an artificial neural network then the condition that samples from $V(c)$ can be drawn efficiently is satisfied when $V(c) \approx V'(c)$, simply by sampling a point from $L$ and passing it through $g$.
 
-\section{Modelling sets as distributions}
+It is therefore necessary to define a distance metric for two spaces, which the neural network can be trained to minimise.
+Defining such a metric for two general vector space is not obvious, especially considering that the capacity of the neural network is limited in practice (even if not in theory) and so the two spaces will never be exactly equal.
+
+The performance of the generator function will therefore be measured in two dimensions, each describing a desired trait of the learned viable space:
+\begin{itemize}
+    \item[] \textbf{Precision}: the proportion of samples from the learned generator function which are actually members of the true viable space.
+    $$p(g) = \int_{C}\int_{L} \; 1_{g(l, c) \; \in \; V(c)} \; dl \; dc$$ 
+    \item[] \textbf{Recall}: the proportion of solutions which actually satisfy the constraint which are members of the learned viable set.
+    $$r(g) = \int_{C}\int_{V(c)} 1_{g'^{-1}(s, c) \; \in \; L} \; ds \; dc$$ 
+\end{itemize}
+Methods for estimating these quantities will be discussed in Chapter 4.
+
+Given that the network capacity is limited, a fundamental tradeoff exists between the precision and recall of the generator function.
+Too heavily weighting precision will result in a generator function which picks from a small selection of very promising solutions but misses many potential solutions; prioritising recall will result in a much larger range of solutions but which are far less likely to satisfy the constraint.
+
+This tradeoff is parameterised by a hyperparameter $w$ describing the weight of the recall in the loss function $\mathcal{L}$ that the neural network is trained to minimise.
+The value of this weight can be tuned to determine how confident the network should be that its suggestions will satisfy the constraint versus how confident it is that it is sampling from all the possible solutions.
+$$\mathcal{L}(g) = p(g) + w \cdot r(g)$$
+
+\section{Modelling spaces as distributions}
+
+\section{Generators and discriminators}
 
 \end{document}
