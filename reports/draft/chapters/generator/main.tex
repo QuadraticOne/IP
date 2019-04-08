@@ -173,6 +173,41 @@ while the latter $n_i - n_o$ dimensions can assume any value.
 This creates a space which is infinite in some dimensions, but constrained to a single point in others.
 The input space can then be obtained by rotating this intermediate space by $W^T$.
 
+Note that the infinite dimensions can be approximated by a finite polytope which extends in each unconstrained direction to a suitably large distance from the origin, under the reasonable assumption that the activations of hidden units will never greatly exceed $1$.
+Therefore the relevant region can be described by a set of simplices, also known as a simplicial complex, since any polytope can be constructed from a finite number of simplices.
+Being able to propagate these simplices backwards through the various transforms described in this section is therefore sufficient to be able to propagate the whole relevant space backwards, and thereby find its probability mass.
+
+\subsection{Activation}
+
+Several activation functions are commonly used in neural networks, but here only the ReLU activation function will be considered.
+It consists of two linear segments and is applied elementwise to a vector at the end of each layer.
+
+Because the activation function is applied elementwise, the way in which the relevant space propagates backwards through a ReLU activation function can be considered in terms of each dimension independently.
+The following rules can be applied to each dimension:
+\begin{enumerate}
+    \item any region which is above $0$ can propagate backwards unchanged, since the ReLU function mimics the identity function above $0$;
+    \item any region which is below $0$ can be ignored, since the ReLU function will never produce an input which is below $0$;
+    \item if $0$ is a possible value of a dimension, all negative values must be added to the relevant space in that dimension.
+    This is because any negative value in that dimension would have produced an output of $0$.
+    Again, simplices extending suitably far from the origin can be used to approximate an extension to infinity.
+\end{enumerate}
+
+\subsection{Obstacles}
+
+While theoretically sound, propagating a relevant space backwards through a neural network in order to compute its p.d.f. is not practical using this method.
+
+Problems arise because compressive layers require that a space be propagated back rather than simply a single point.
+A simplicial complex can be used to describe this space, but inverting a general simplicial complex through a ReLU activation function is complicated for two reasons.
+
+The first is that inverting each simplex requires determining how it intersects with an axis, if at all.
+While algorithms exist for doing this in three dimensions or less, it appears that an algorithm for $n$ dimensions does not yet exist.
+
+Secondly, the inversion requires that a single simplex is split into two every time it intersects with an axis.
+If it intersects with the zeros of $n$ axes simultaneously, it must be split into $2^n$ different simplices.
+While this split will not occur every time a simplex is propagated back through a ReLU activation, the potential for such an exponential growth could quickly become unmanageable.
+
+For this reason, methods which require the evaluation of the p.d.f. of a neural network will not be pursued further in this project.
+
 \section{Training procedure}
 
 This section assumes that the discriminator is either known analytically or has already been approximated by a neural network.
