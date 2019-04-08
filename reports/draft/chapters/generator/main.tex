@@ -143,6 +143,36 @@ $$W = e^{\ell(W') - \ell(W')^T}$$
 where $\ell$ is an operation that computer the lower triangle of a matrix and $W'$ is a base weight matrix from which the layer weights are calculated.
 Backpropagating a space of relevant outputs is then simply a matter of rotating the space by $W^T = W^{-1}$.
 
+\subsection{Expansive weight multiplication}
+
+When a weight multiplication increases the number of dimensions of the input, the input is overdefined by the output.
+Hence not every output will have an input which creates it.
+An alternate way of looking at this is that, if the input has $n_i$ dimensions and the output has $n_o$ dimensions where $n_o > n_i$, the input is fully defined by the first $n_i$ dimensions of the output.
+The latter $n_o - n_i$ dimensions of the output are therefore redundant when it comes to inverting the transformation.
+
+The weight matrix is therefore constrained such that it is constructed by concatenating a $n_i \times n_i$ orthogonal matrix with a $n_o - n_i \times n_i$ matrix whose elements can vary freely.
+To invert a single point, it is rotated by the transpose of the orthogonal matrix.
+To invert a space of relevant points, any constraints on the latter $n_o - n_i$ dimensions can be ignored, while any remaining constraints are rotated by the transpose of the orthogonal matrix.
+
+\subsection{Compressive weight multiplication}
+
+A compressive layer cuts the dimension of the input, meaning that the output underdefines the input.
+Generally, there are an infinite number of inputs which could produce any particular output, and this is why finding the probability density of a distribution transformed by a neural network requires that each step be able to handle backpropagating spaces as well as single points.
+
+Normally, the size of the weight matrix would be $n_o \times n_i$, where $n_i > n_o$.
+In this case, however, the weight matrix will be an orthogonal matrix of size $n_i$.
+The output vector is obtained by multiplying the weight matrix by the input, and then retaining only the first $n_o$ components of the vector.
+This allows a space of values to be calculated which would produce a single output when passed through the transform forwards.
+
+Consider the intermediate step, after multiplying $W$ by the input but before cutting the vector.
+The space of vectors which produce $y$ when retaining only the first $n_o$ components is constrained such that:
+$$x'_j = y_j \; \forall \; 1 \le j \le n_o$$
+where
+$$x' = Wx$$
+while the latter $n_i - n_o$ dimensions can assume any value.
+This creates a space which is infinite in some dimensions, but constrained to a single point in others.
+The input space can then be obtained by rotating this intermediate space by $W^T$.
+
 \section{Training procedure}
 
 This section assumes that the discriminator is either known analytically or has already been approximated by a neural network.
