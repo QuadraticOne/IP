@@ -2,7 +2,7 @@
 
 \begin{document}
 
-\chapter{Parametric Generator}
+\chapter{Generator Training}
 
 \section{Distribution matching}
 
@@ -85,6 +85,26 @@ The inefficiency of sampling from this chain is not a major issue, especially gi
 Like direct minimisation of the KL-divergence, this recall proxy assumes that $g'^{-1}$ is tractable.
 
 \subsection{Spread}
+
+Optimisation for the precision proxy defined above is dependent on high-density regions of $\hat{V}(c)$ being sampled at least occasionally by $\hat{V'}(c)$, and so it stands to reason that convergence will occur slowly if $\hat{V'}(c)(s) \approx 0$ for most $s$.
+
+Training might therefore be accelerated if the generator function can be pretrained such that it samples from a wide range of the solution space at least sometimes, allowing the highest density regions of the true viable distribution to be quickly identified.
+Some metrics are defined below which, when minimised, discourage the generator from sampling only a small subset of the solution space.
+\begin{itemize}
+    \item[] \textbf{Similarity to identity}: penalises according to the squared distance between a point in the latent space and its accompanying point in the solution space, when both spaces are linearly scaled such that they are unit hypercubes.
+    This effectively forces the generator to model the identity function after its initialisation.
+    $$q_\text{id}(g, l, c) = \bigg|\frac{l - a_L}{b_L - a_L} -
+    \frac{g(l, c) - a_S}{b_S - a_S}\bigg|^2$$
+    Since any point in the latent space can be sampled, if the generator closely approximates the identity function then all points in the solution space will be capable of being sampled and roughly equally likely to be sampled.
+    One clear drawback, however, is that this spread metric requires $m = k$, which may not be desirable in high-dimensional solution spaces which are presumed to have a low intrinsic dimension.
+    \item[] \textbf{Separation}: a more weakly defined spread metric for use when the dimensions of the latent and solution spaces are different.
+    $q_\text{sep}$ is calculated by sampling a batch of points from $L$ and passing them through $g'$ into $S$.
+    For every pair of points in the batch, the squared difference is calculated and the mean of these squared differences is taken.
+    Because minimisation of $q_\text{sep}$ results in convergence to a single point, and maximisation of $q_\text{sep}$ results in a distribution over an infinite domain, a target mean separation is set as a variable hyperparameter.
+    Then $|q_\text{sep} - q_\text{target}|^2$ is minimised.
+  \end{itemize}
+As well as being used in pretraining for efficient generator initialisation, these spread metrics could be used as a weak substitute for $\hat{r}(g)$ in the event that evaluating $\hat{V'}(c)$ is intractable.
+While not strictly measuring the recall, they prevent the generator from only choosing a single point repetitively.
 
 \section{Neural network inversion}
 
