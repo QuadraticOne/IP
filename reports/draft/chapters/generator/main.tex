@@ -14,8 +14,8 @@ The p.d.f. of a neural network can be found by inverting it or using a constrain
 Whether or not inverting a network is plausible is discussed later in this chapter.
 The integral form of the KL-divergence is:
 $$D_{\text{KL}}(\hat{V'}(c) \; || \; \hat{V}(c)) = 
-\int_L \hat{v'}(c)(g'(l, c)) \; \text{log} \bigg(\frac
-{\hat{v'}(c)(g'(l, c))}{\hat{v}(c)(g'(l, c))}
+\int_L \hat{V'}(c)(g'(l, c)) \; \text{log} \bigg(\frac
+{\hat{V'}(c)(g'(l, c))}{\hat{V}(c)(g'(l, c))}
 \bigg) \; dl $$
 Since integration over the entirety of the latent space is unlikely to be tractable, this equation can be adapted such that the divergence is written as an expectation across a batch of samples, each weighted by their probability of occurring.
 Let $\{l_1, l_2, ..., l_{j-1}, l_j\}$ be a batch of samples drawn from the latent space.
@@ -23,7 +23,7 @@ An estimation of the KL-divergence can then be calculated as:
 $$\textbf{E}\big[D_{\text{KL}}(\hat{V'}(c) \; || \; \hat{V}(c))\big] =
 \frac{1}{j}\sum_{i=1}^{j}
 \text{log} \bigg(\frac
-{\hat{v'}(c)(g'(l_i, c))}{\hat{v}(c)(g'(l_i, c))}
+{\hat{V'}(c)(g'(l_i, c))}{\hat{V}(c)(g'(l_i, c))}
 \bigg)
 $$
 The term before the logarithm disappears in the summation equation because each sample is weighted by the inverse of its probability density under $\hat{V'}(c)$.
@@ -71,6 +71,18 @@ Samples for which $\hat{V}(c)(s) \ll \hat{V'}(c)(s)$ will occur frequently (beca
 The result of this is that the generator function will set its weights so as to avoid that situation as much as possible.
 
 \subsection{Recall}
+
+In many ways, recall is analogous to the opposite of the precision.
+Solutions which are highly likely to satisfy the constraint, but which occur very infrequently in the learned viable distribution, will be penalised.
+$$\textbf{E}\big[\hat{r}(g)\big] = -\frac{1}{j}\sum_{i=1}^{j}
+\text{log} \big( 1 - g'^{-1}(s, c) + \epsilon \big)
+$$
+where $\{s_1, s_2, ..., s_{j-1}, s_j\}$ is a batch of solutions drawn from $\hat{V}(c)$.
+Such a batch can be produced using a Markov chain Monte Carlo method such as the Metropolis-Hastings algorithm.
+While this is inefficient, it is powerful in that it samples from the true viable distribution exactly without requiring a valid mapping to that distribution from some latent distribution.
+The inefficiency of sampling from this chain is not a major issue, especially given that the samples will generally be i.i.d. over a sufficiently long chain, and so can be densely sampled and then randomly reordered.
+
+Like direct minimisation of the KL-divergence, this recall proxy assumes that $g'^{-1}$ is tractable.
 
 \subsection{Spread}
 
