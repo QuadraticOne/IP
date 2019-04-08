@@ -4,6 +4,20 @@
 
 \chapter{Discriminator}
 
+Previous chapters have assumed that a discriminator has already been trained and is readily available.
+This chapter details the exact task of the discriminator and some rules of thumb for training the discriminator from data.
+
+\section{Formal definition}
+
+The discriminator, denoted by $h'$, is a differentiable approximation of the constraint satisfaction function $h(c, s)$.
+While in some environments the constraint satisfaction function may be known, it is assumed that most environments will be too complex for an analytical satisfaction function and so it will be learned from data by a neural network.
+
+Differentiability is required of the discriminator because gradients will pass through the discriminator during the training of the generator.
+Because the constraint satisfaction function gives binary output, gradients will always be zero, so the discriminator is trained to output a probability that the solution satisfies the constraint to smooth the gradients.
+It is for this reason that even when an analytical form of the constraint satisfaction function is available, a neural network should be used to accelerate generator training by limiting the discriminator's capacity so that gradients are non-zero.
+
+\section{Training procedure}
+
 \section{Avoiding overfitting}
 
 \section{Constraining network capacity}
