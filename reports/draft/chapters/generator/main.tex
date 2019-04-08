@@ -109,6 +109,40 @@ While not strictly measuring the recall, they prevent the generator from only ch
 
 \section{Neural network inversion}
 
+Some of the proposed training metrics depend on evaluating $\hat{V'}(c)$, the probability density of the learned viable distribution, at a particular point in the solution space.
+If the generator function is modelled by a neural network, this is not an obviously tractable problem; this section will explore methods of solving it.
+
+By viewing the generator as a series of transforms applied to a known distribution $-$ the latent distribution, which is known to be uniform $-$ the space of points which produce a given output can be traced back through the layers.
+Integrating over this region in the latent space then dividing its volume by the volume of the latent space as a whole will yield the probability density of that particular output.
+
+A neural network is made up of a series of layers, each of which applies three transformations to its input:
+$$y = \sigma(Wx + b)$$
+where $y$ is the layer output, $x$ is the layer input, $\sigma$ is the activation function, $W$ is the weight matrix, and $b$ is the bias vector.
+Depending on the number of rows in $W$, the layer will expand, reduce, or maintain the dimension of the input; these three distinct cases will be examined separately.
+
+\subsection{Bias addition}
+
+The input which will produce a specific output after the addition of a bias can be found trivially by subtracting the bias vector from the desired output.
+$$y = x + b \implies x = y - b$$
+As such, the space of relevant inputs is equivalent to the space of relevant outputs translated by $-b$.
+
+\subsection{Square weight multiplication}
+
+A layer in which $W$ is a square matrix maintains the dimension of the output, so it is equal to the dimension of the input.
+There exists exactly one input which produces the output assuming that the output is not a null vector and the determinant of the weight matrix is not zero; both these are generally valid assumptions as both conditions are highly unlikely to occur.
+Therefore the relevant input vector can be found by multiplying the inverse of the weight matrix by the output vector; similarly, the relevant input space can be found by rotating the output space according to $W^{-1}$.
+
+In general, finding the inverse of a matrix is excessively computationally expensive, especially when large matrices are used, as is often the case in neural network layers.
+One special case in which this is not true is when the inverse is equal to the transpose, which is much more efficient to calculate, and occurs when the matrix is orthogonal, corresponding to a pure rotation.
+
+Ensuring that the weight matrix is orthogonal requires the use of another property of matrices, which is that the matrix exponential of any skew-symmetric matrix is orthogonal.
+Similarly, a matrix can be constructed which is guaranteed to be skew-symmetric by taking the lower triangle $Q$ of any matrix, then computing $Q - Q^T$.
+
+In conclusion, inverting multiplication of a square weight matrix is practical as long as the weight matrix is orthogonal, which is achieved by defining the weight matrix as:
+$$W = e^{\ell(W') - \ell(W')^T}$$
+where $\ell$ is an operation that computer the lower triangle of a matrix and $W'$ is a base weight matrix from which the layer weights are calculated.
+Backpropagating a space of relevant outputs is then simply a matter of rotating the space by $W^T = W^{-1}$.
+
 \section{Training procedure}
 
 This section assumes that the discriminator is either known analytically or has already been approximated by a neural network.
