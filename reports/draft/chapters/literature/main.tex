@@ -33,9 +33,6 @@ a problem which is exacerbated in situations where the amount of training data m
 Regularisation techniques have been developed \cite{goodfellow16, srivastava14, ioffe15, li18} to prevent the overfitting of neural networks.
 These techniques generally rely on reducing the reliance of the network on singular large weights:
 this makes it more difficult for the network to detect and memorise individual data points, thereby forcing it to learn a more generic mapping.
-Bayesian neural networks \cite{giryes16} view the problem of finding the network weights through a Bayesian lens rather than a frequentist one.
-A Bayesian network will sample its weights from a probability distribution, with weight vectors more likely to be sampled if they are more likely to explain the dataset seen by the network during its training.
-This can boost network performance when only a small number of examples are available, and can give an idea of the uncertainty of the network by performing multiple forward passes and seeing how closely the network outputs from each pass agree with one another.
 
 Adding noise to the network's input vector \cite{zur09} has also been shown to decrease overfitting and increase the generality of the network's estimates, especially for applications where the available data are sparsely spread throughout the state space.
 The effect of adding noise to the input vector is to simulate a much greater number of data points, but this method does assume that data points which are nearby in the state space will produce similar outputs.
