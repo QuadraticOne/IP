@@ -46,7 +46,7 @@ Arbitrarily, the latent space is defined to be a uniform distribution within its
 $$\hat{L}(l) =
 \left\{
 	\begin{array}{ll}
-		1  & \mbox{if } 0 \le l_i \le 1 \; \forall \; \{i \; | \; 1 \le i \le k\} \\
+		1 & \mbox{if } 0 \le l_i \le 1 \; \forall \; \{i \; | \; 1 \le i \le k\} \\
 		0 & \mbox{otherwise}
 	\end{array}
 \right.$$
@@ -68,6 +68,55 @@ Proxy metrics can now be defined which are intuitively similar to the precision 
 It is also possible to consider a distance metric between two distributions $-$ which is much easier to define than a distance metric between two spaces $-$ and minimise this directly, to prompt $\hat{V'}(c)$ to match $\hat{V}(c)$.
 These avenues are both explored in the next chapter.
 
-\section{Generators and discriminators}
+\section{Adapting the GAN architecture}
+
+A probabilistic interpretation of vector spaces has been introduced which provides information on the density of points within a generated space, thereby working around the limitation of neural networks that prevents them from making discontinuous jumps from one mode to another.
+This will also later allow the definition of more tractable loss functions that can be used to train the learned generator function.
+The network architecture, however, is still not clear.
+$$\text{TODO: diagram of a typical GAN architecture}$$
+GANs, introduced in \S 2.4, are a family of neural network architectures which allow samples to be drawn from a distribution.
+A typical GAN architecture has a generator, taking samples from the latent space to the feature space, and a discriminator, which determines whether points in the feature space are true or generated.
+Their ability to sample from a distribution is already very close to the required functionality of the learned generator, so some adaptations to the traditional GAN will be proposed.
+
+\subsection{Pretrained discriminator}
+
+Traditional GAN training procedures update both the discriminator and generator iteratively.
+This forces the generator to learn a range of outputs $-$ effectively punishing low recall $-$ by having the discriminator adapt continuously to the changing output of the generator.
+
+In an engineering problem, however, $h$ is fixed and does not change.
+Whether $h$ is known in advance or learned from data, it does not make sense for it to be updated alongside the generator since the constraint satisfaction function (discriminator) is immutable.
+This has already been accounted for by optimising for a combination of precision and recall, forcing the generator to not overspecialise.
+
+\subsection{Curried generator}
+
+Distributions learned by GANs are normally fixed.
+The distribution $\hat{V}(c)$ is parameterised by the constraint vector, however, and so any adapted GAN architecture needs to be capable of taking a constraint as input and adapting its output accordingly.
+
+Perhaps a more natural way of thinking about this is to consider $g$ as a curried function; that is, it takes a constraint and then returns another function which maps from the latent space to the solution space.
+This is a subtle semantic difference to a dyadic function, but may provide direction as to the best way of integrating the constraint vector into the GAN architecture.
+
+Consider a neural network designed to perform multi-class classification.
+When fed a feature vector, the activations of units in the hidden layers do not depend on the class; in fact, information about the class is only added in the output layer.
+Likelihood estimations for each class are produced by multiplying the weights matrix of the final layer by the activation vector of the final hidden layer, and are as such independent of each other until a softmax activation is applied.
+As such, the likelihood of each class can be viewed as the dot product of the final hidden layer's activations with some vector embedding of the class.
+
+$Q$-learning performed by Deep $Q$ Networks on a discrete action space perform a similar action, except in a regression setting rather than a classification setting.
+Crucially: the DQN is a function of two parameters (state and action) which has been curried to take only one parameter (state) with the other built into its weights; the quality values produced for each action are independent of each other; the resulting quality values represent an unbounded scalar instead of a probability, and; each quality value is dependent only on the dot product of the final hidden layer's activations and some vector embedding of the related action.
+
+In other words, DQNs prove that it is possible to use neural networks as curried functions where the weights of the last layer only are provided as an embedding of the first parameter.
+
+To adapt this to our use case, we need only realise that a constraint embedding can be produced as a function of the constraint vector, which could feasibly be approximated by another neural network.
+So information about the constraint can be passed into the generator network by estimating the weights of its output layer using a separate network, the embedder network, which takes only the constraint as input.
+
+\subsection{Data-free training}
+
+If the discriminator has already been trained, or is known, no data are needed to train the generator because samples from it can be used as training examples.
+Exactly how this works will be discussed in the next chapter.
+Hence, training data are only used as examples for training the discriminator, and are not needed to train the generator.
+The advantags to this approach are twofold: examples are only needed to train a normal neural network individually rather than adversarial networks in a GAN (which are notoriously hard to train), and the generator is only capable of overfitting to the extent that the discriminator has overfit its data.
+
+When the constraint satisfaction is known already, any overfitting can be combatted by increasing the generator capacity or training for longer.
+When the constraint satisfaction function is modelled by a discriminator learned from data, knowledge of the engineering environment can be used to augment data to alleviate overfitting.
+In any case, moving all responsibility for overfitting from the generator to the discriminator $-$ where it can be more easily measured and avoided $-$ is an exceptional advantage to adapting the GAN architecture in this way.
 
 \end{document}
