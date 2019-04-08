@@ -9,7 +9,9 @@
 \subsection{KL-divergence}
 
 Because the use of neural networks requires a space similarity problem to be framed as a distribution similarity problem, distribution distance metrics can be used.
-If the generator is modelled by a network whose p.d.f. can quickly be found, such as a radial basis function under certain constraints, the KL-divergence between $\hat{V}'(c)$ and $\hat{V}(c)$ can be estimated by drawing samples from $\hat{V'}(c)$.
+If the generator is modelled by a network whose p.d.f. can quickly be found, the KL-divergence between $\hat{V}'(c)$ and $\hat{V}(c)$ can be estimated by drawing samples from $\hat{V'}(c)$.
+The p.d.f. of a neural network can be found by inverting it or using a constrained architecture such as a radial basis function.
+Whether or not inverting a network is plausible is discussed later in this chapter.
 The integral form of the KL-divergence is:
 $$D_{\text{KL}}(\hat{V'}(c) \; || \; \hat{V}(c)) = 
 \int_L \hat{v'}(c)(g'(l, c)) \; \text{log} \bigg(\frac
@@ -45,11 +47,34 @@ While this approach is theoretically very simple, there are several practical pr
 
 \section{Metric proxies}
 
+As previously discussed, modelling spaces as distributions invalidates the equations for precision and proxy that were discussed in the last chapter.
+Proxy metrics will now be defined for precision and spread, which are intuitively similar to the concepts described for spaces but applicable to distributions.
+
 \subsection{Precision}
+
+Optimising precision is intended to ensure that as many elements from the learned viable space as possible are also in the true viable space.
+When these are viewed instead as distributions, the learned viable distribution will likey cover almost the full solution space.
+This does not provide the whole picture, however, as some regions of this distribution will have far higher density than others.
+
+An adequate precision proxy might therefore be defined as one which causes a heavy penalty when samples are drawn from $\hat{V'}(c)$ which are in low-density regions of $\hat{V}(c)$.
+Infrequently drawn samples from the learned viable distribution may have very high penalties, but these will not have a large impact on the overall precision proxy because they will be significantly outnumbered by large quantities of more probable (and therefore more relevant) samples.
+
+Letting $\{l_1, l_2, ..., l_{j-1}, l_j\}$ be a batch of samples drawn from the latent space, the precision proxy can be defined as:
+$$\textbf{E}\big[\hat{p}(g)\big] = -\frac{1}{j}\sum_{i=1}^{j}
+\text{log} \big( 1 - h(c,g'(l, c)) + \epsilon \big)
+$$
+where $\epsilon$ is a small positive value added to prevent logarithms of zero.
+Note that $h(c, s)$ is proportional to $\hat{V}(c)$ but is a probability instead of a probability density and so will always be between 0 and 1.
+
+Intuitively, this is equivalent to taking a batch of points from the latent space, passing them into the solution space, calculating the satisfaction of each point, and taking the mean of the negative logarithm of each of these values.
+Samples for which $\hat{V}(c)(s) \ll \hat{V'}(c)(s)$ will occur frequently (because the density of these points in $\hat{V'}(c)$ is high) but be severely penalised (because $h(c, s)$ is small and so $\text{log}(1 - h(c, s))$ will translate to a large penalty).
+The result of this is that the generator function will set its weights so as to avoid that situation as much as possible.
 
 \subsection{Recall}
 
 \subsection{Spread}
+
+\section{Neural network inversion}
 
 \section{Training procedure}
 
