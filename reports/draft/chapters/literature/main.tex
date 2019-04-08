@@ -7,8 +7,7 @@
 \section{Na\"{i}ve optimisation techniques}
 
 A number of algorithms exist for finding the maximum of a scalar or vector function.
-Many of these are gradient ascent algorithms \cite{ruder17} which use information about the local gradient of the objective function
-to iteratively maximise an objective.
+Many of these are gradient ascent algorithms \cite{ruder17} which use information about the local gradient of the objective function to iteratively maximise an objective.
 Because the gradient is used to update the current guess, these algorithms often fail to converge quickly on problems where the objective surface is flat.
 Algorithms such as RMSProp \cite{hinton17} and Adam \cite{kingma17} have been developed to overcome this, but still fail to converge if the objective function is discretised.
 
@@ -41,48 +40,42 @@ The level of noise is another hyperparameter which must be optimised: too little
 \section{Function inversion}
 
 As well as approximating functions mapping between two sets, ANNs are capable of learning the inversion of an existing function.
-Promising results have been obtained using standard ANNs to invert sometimes intractable functions in image processing,
-for uses such as image deblurring \cite{nah18} and colourisation \cite{nguyen16}.
+Promising results have been obtained using standard ANNs to invert sometimes intractable functions in image processing, for uses such as image deblurring \cite{nah18} and colourisation \cite{nguyen16}.
 
-Autoencoders are an unsupervised learning method often used to pretrain layers of neural networks that will later be used for supervised learning \cite{rumelhart86},
-in doing so training an encoder $f(x)$ and a decoder $f^{-1}(x)$.
+Autoencoders are an unsupervised learning method often used to pretrain layers of neural networks that will later be used for supervised learning \cite{rumelhart86}, in doing so training an encoder $f(x)$ and a decoder $f^{-1}(x)$.
 This can be used to extract the more important latent features of the input space, or remove noise from corrupted data \cite{vincent08}.
 When used for pretraining, the decoder is normally thrown away; but if the encoding function $f(x)$ is already known, the autoencoder architecture can be used to approximate its inverse.
 
 Other architectures have been proposed which perform the same task as a traditional autoencoder, but train a generative model to do so.
-Variational autoencoders (VAEs) are models which allow sampling from the latent space by parameterising a probability distribution over the latent space \cite{kingma14},
-indicating which latent variables are most likely to explain the visible data.
+Variational autoencoders (VAEs) are models which allow sampling from the latent space by parameterising a probability distribution over the latent space \cite{kingma14}, indicating which latent variables are most likely to explain the visible data.
 The most common use for this is in learning a more robust latent mapping for a dataset, but the method could be adapted to create a generative model that inverts a many-to-one function.
 
 A common problem faced by traditional autoencoders is that not every point in the latent space has a meaningful equivalent in the state space.
 A regularisation term is imposed on a VAE in the $\beta$-VAE architecture \cite{higgins16} that encourages a higher standard deviation in the probability distribution over the latent space.
-The effect of this is that input data may be mapped to a greater variety of regions in the latent space,
-and therefore a greater proportion of the latent space will have a meaningful inverse mapping.
+The effect of this is that input data may be mapped to a greater variety of regions in the latent space, and therefore a greater proportion of the latent space will have a meaningful inverse mapping.
 
 \section{Adversarial algorithms}
 
 More recently, algorithms have been designed to train generative models using two competing networks in a minimax game.
 The most common adversarial networks, generative adversarial networks (GANs), can be trained to sample from an arbitrary distribution \cite{goodfellow14, horger18}.
 These have been successfully applied to a range of problems, including image resolution upscaling \cite{ledig17} and creating cross-domain transfer functions \cite{zhu18}.
-Such applications could be useful in using GANs to sample from a space of viable solutions, if the space can be parameterised according to the relevant constraints.
+Such applications could be useful in using GANs to sample from the viable space, if a parameterisation of the space with respect to the relevant constraint can be learned.
 
-Some research has also been done into the use of GANs to invert functions \cite{anirudh18};
-while autoencoders can also accomplish this task and are generally considered to be easier to train \cite{bang18},
-the generative nature of GANs is appealing considering that any given engineering problem may have more than one solution.
+Some research has also been done into the use of GANs to invert functions \cite{anirudh18}; while autoencoders can also accomplish this task and are generally considered to be easier to train \cite{bang18}, the generative nature of GANs is appealing considering that the viable space will invariably contain more than one point.
+Sampling from it is therefore a necessity.
 
 \section{Representation learning}
 
-All of the neural network architectures discussed so far require the input data to be presented in the form of a fixed-size tensor of real values.
-While many practical data structures can be meaningfully encoded in this form, many engineering problems can have solutions which are discrete,
-unbounded, or otherwise not easily represented by a tensor of real values.
+All of the neural network architectures discussed so far require the input data to be presented in the form of a fixed-size vector of real values.
+While many practical data structures can be meaningfully encoded in this form, many engineering problems can have solutions which are discrete, unbounded, or otherwise not easily represented by a vector of real values.
 
-Long short-term memory networks (LSTMs) \cite{hochreiter97} are stateful networks which collate information over a linear series of tensors into a fixed-size memory.
+Long short-term memory networks (LSTMs) \cite{hochreiter97} are stateful networks which collate information over a linear series of vectors into a fixed-size memory vector.
 At each time step, another item from the series is viewed by the network, and it decides which information to keep, and which to forget.
-If trained properly, the memory tensor at the end is a fixed-size representation of the important features of the list.
+If trained properly, the memory vector at the end is a fixed-size representation of the important features of the list.
 
 Recursive neural networks merge information about pairs of objects, allowing the construction of representations of tree-like data structures \cite{socher11}.
 As such, they are frequently used to parse sentences in natural language processing, though this technique can be applied to other trees as well.
-Like with LSTMs, because the information capacity of the final state tensor is finite, the network is forced to either generalise, or forget unimportant information.
+Like with LSTMs, because the information capacity of the final state vector is finite, the network is forced to either generalise, or forget unimportant information.
 
 Some data structures, known as tokens, cannot be represented by real values and do not consist of sub-elements that can.
 The prime example of these data structures are words; each word carries meaning but the meaning of each word is encoded in the understanding of the people using them.
