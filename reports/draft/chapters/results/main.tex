@@ -111,14 +111,42 @@ While a very high precision is obtained, with all generated solutions having a s
     \begin{center}
     \includegraphics[width=\textwidth]{sigmoidBumpHistogramBimodal.png}
     \caption{
-        Distribution of generated solutions compared to the constraint satisfaction function against which the generator was trained, in the form of a histogram consisting of 256 samples.
-        The generator had two hidden layers, each with 8 leaky-ReLU activated units, and a single $\tanh$ output unit.
+        Distribution of generated solutions compared to a bimodal constraint satisfaction function against which the generator was trained, in the form of a histogram consisting of 256 samples.
+        The generator architecture is the same as that used in Figure \ref{fig:sigmoidBumpHistogram}.
     }
     \label{fig:sigmoidBumpHistogramBimodal}
     \end{center}
 \end{figure}
 
 \subsection{Pretraining}
+
+In the absence of a recall proxy, it was suggested that the generator be pretrained to ensure that its initial distribution covers as wide a range of the solution space as possible.
+This is based on two suppositions: that the generator initially only takes samples from an isolated region of the solution space; and that a more general distribution would explore multiple high-satisfaction regions of the solution space, thereby capturing a multimodal distribution even when optimising only for precision.
+The generator's architecture remained the same as that used in \S 6.1.2, and the bimodal constraint satisfaction function from the latter half of that section was also used.
+
+That the first assumption is true is confirmed trivially by taking samples from the generator before training (Figure \ref{fig:initialisedGenerator}).
+Glorot initialisation, a common method of initialising the weights of neural networks, was used to initialise the generator's network weights.
+
+\begin{figure}
+    \centering
+    \begin{subfigure}[a]{1.\textwidth}
+        \centering
+        \includegraphics[width=0.6\textwidth]{initialisedGenerator1.png}
+    \end{subfigure}
+    \begin{subfigure}[a]{1.\textwidth}
+        \centering
+        \includegraphics[width=0.6\textwidth]{initialisedGenerator2.png}
+    \end{subfigure}
+    \begin{subfigure}[a]{1.\textwidth}
+        \centering
+        \includegraphics[width=0.6\textwidth]{initialisedGenerator3.png}
+    \end{subfigure}
+    \caption{
+        Generated distribution immediately after network initialisation for three different seeds.
+    }
+\label{fig:initialisedGenerator}
+\end{figure}
+
 \subsection{Recall proxy optimisation}
 \subsection{Constraint embeddings}
 

@@ -370,15 +370,6 @@ def optimise_precision_only(constraint_satisfaction_function):
     # Optimisers
     optimiser = default_adam_optimiser(precision_proxy_loss, "optimiser")
 
-    # Perform setup
-    Args.session.run(tf.global_variables_initializer())
-
-    # Perform normal training
-    for i in range(Args.training_epochs // 20):
-        batch_precision_loss, _ = Args.session.run([precision_proxy_loss, optimiser])
-        if i % 100 == 0:
-            print("Precision loss: {}".format(batch_precision_loss))
-
     def plot_x_histogram(show=False, save=None):
         plot_histogram_with_overlay(
             x_sample,
@@ -390,7 +381,18 @@ def optimise_precision_only(constraint_satisfaction_function):
             x_label="Solution value",
         )
 
+    # Perform setup
+    Args.session.run(tf.global_variables_initializer())
+
     plot_x_histogram(show=True)
+
+    # Perform normal training
+    for i in range(Args.training_epochs // 20):
+        batch_precision_loss, _ = Args.session.run([precision_proxy_loss, optimiser])
+        if i % 100 == 0:
+            print("Precision loss: {}".format(batch_precision_loss))
+
+    # plot_x_histogram(show=True)
 
 
 def plot_histogram_with_overlay(
