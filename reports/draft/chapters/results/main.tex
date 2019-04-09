@@ -140,10 +140,12 @@ Glorot initialisation, a common method of initialising the weights of neural net
         \includegraphics[width=0.6\textwidth]{initialisedGenerator3}
     \end{subfigure}
     \caption{
-        Generated distribution immediately after network initialisation for three different seeds.
+        Generated distribution immediately after network initialisation for three different seeds using a larger batch size of 4096.
     }
 \label{fig:initialisedGenerator}
 \end{figure}
+
+Pretraining is performed in the same way as normal training, but instead of minimising the precision loss, one of the spread losses $q_\text{id}$ or $q_\text{sep}$ is minimised.
 
 \subsection{Recall proxy optimisation}
 \subsection{Constraint embeddings}
