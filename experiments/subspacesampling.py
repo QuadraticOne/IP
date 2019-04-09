@@ -20,10 +20,10 @@ class Args:
 
     # Training parameters
     initialise_to_identity = False
-    batch_size = 256
+    batch_size = 4096
     initialisation_epochs = 1024
     training_epochs = 8192
-    recall_weight = 8.0
+    recall_weight = 1.0
 
     # Tensorflow session
     session = tf.Session()
@@ -351,10 +351,18 @@ def run():
     make_plots("after")
 
 
-def optimise_precision_only(constraint_satisfaction_function):
+def get_experiment_data(
+    constraint_satisfaction_function,
+    spread_loss_type,
+    pretrain=False,
+    precision_only=False,
+    weighted=False,
+    graphs=[],
+):
     """
-    (tf.Node -> tf.Node) -> ()
-    Perform the experiment and return or plot any relevant data.
+    (tf.Node -> tf.Node) -> String -> Bool? -> Bool? -> Bool? -> [String] -> ()
+    Perform the experiment and return or plot any relevant data.  The graphs
+    to plot is given as a list of strings.
     """
     rc("font", **{"family": "serif", "serif": ["Computer Modern"]})
     rc("text", usetex=True)
@@ -365,12 +373,24 @@ def optimise_precision_only(constraint_satisfaction_function):
     gamma_sample = constraint_satisfaction_function(x_sample)
 
     # Loss nodes
+    spread_loss = (
+        make_linearity_loss(y_sample, x_sample)
+        if spread_loss_type == "identity"
+        else make_spread_loss(x_sample)
+    )
     precision_proxy_loss = make_precision_proxy_loss(gamma_sample)
+    recall_proxy_loss = spread_loss
 
     # Optimisers
-    optimiser = default_adam_optimiser(precision_proxy_loss, "optimiser")
+    precision_only_optimiser = default_adam_optimiser(
+        precision_proxy_loss, "precision_only_optimiser"
+    )
+    linearity_optimiser = default_adam_optimiser(spread_loss, "linearity_optimiser")
+    optimiser = default_adam_optimiser(
+        precision_proxy_loss + Args.recall_weight * recall_proxy_loss, "optimiser"
+    )
 
-    def plot_x_histogram(show=False, save=None):
+    def plot_x_histogram(show=False, save=None, hide_overlay=False):
         plot_histogram_with_overlay(
             x_sample,
             constraint_satisfaction_function,
@@ -379,20 +399,54 @@ def optimise_precision_only(constraint_satisfaction_function):
             show=show,
             save=save,
             x_label="Solution value",
+            hide_overlay=hide_overlay,
         )
 
     # Perform setup
     Args.session.run(tf.global_variables_initializer())
 
-    plot_x_histogram(show=True)
+    if "after_initialisation" in graphs:
+        print("Plotting after initialisation...")
+        plot_x_histogram(show=True, hide_overlay=True)
 
-    # Perform normal training
-    for i in range(Args.training_epochs // 20):
-        batch_precision_loss, _ = Args.session.run([precision_proxy_loss, optimiser])
-        if i % 100 == 0:
-            print("Precision loss: {}".format(batch_precision_loss))
+    if pretrain:
+        # Perform pretraining
+        for i in range(Args.initialisation_epochs):
+            batch_linearity_loss, _ = Args.session.run(
+                [spread_loss, linearity_optimiser]
+            )
+            if i % 100 == 0:
+                print("Linearity loss: {}".format(batch_linearity_loss))
+        if "after_pretraining" in graphs:
+            print("Plotting after pretraining...")
+            plot_x_histogram(show=True, hide_overlay=True)
 
-    # plot_x_histogram(show=True)
+    if precision_only:
+        # Perform normal training
+        for i in range(Args.training_epochs // 20):
+            batch_precision_loss, _ = Args.session.run(
+                [precision_proxy_loss, precision_only_optimiser]
+            )
+            if i % 100 == 0:
+                print("Precision loss: {}".format(batch_precision_loss))
+        if "after_precision_only" in graphs:
+            print("Plotting after training only precision...")
+            plot_x_histogram(show=True)
+
+    if weighted:
+        for i in range(Args.training_epochs):
+            batch_precision_loss, batch_recall_loss, _ = Args.session.run(
+                [precision_proxy_loss, recall_proxy_loss, optimiser]
+            )
+            if i % 100 == 0:
+                print(
+                    "Precision loss: {}\tRecall loss: {}".format(
+                        batch_precision_loss, batch_recall_loss
+                    )
+                )
+        if "after_weighted" in graphs:
+            print("Plotting after weighted training...")
+            plot_x_histogram(show=True)
 
 
 def plot_histogram_with_overlay(
@@ -404,10 +458,11 @@ def plot_histogram_with_overlay(
     x_label=None,
     show=False,
     save=None,
+    hide_overlay=False,
 ):
     """
     tf.Node -> (tf.Node -> tf.Node) -> Float? -> Float?
-        -> Int? -> String? -> Bool? -> String? -> ()
+        -> Int? -> String? -> Bool? -> String? -> Bool? -> ()
     Plot a histogram of the given node with the constraint satisfaction function
     overlayed on a separate y-axis.
     """
@@ -416,16 +471,16 @@ def plot_histogram_with_overlay(
     u = upper if upper is not None else values[-1]
 
     figure, histogram_axes = plt.subplots()
-    csf_axes = histogram_axes.twinx()
+    if not hide_overlay:
+        xs = linspace(l, u, steps)
+        csf_axes = histogram_axes.twinx()
+        fs = Args.session.run(constraint_satisfaction_function(tf.constant(xs)))
+        csf_axes.plot(xs, fs, "black")
+        csf_axes.set_ylabel("Satisfaction probability")
 
     histogram_axes.hist(values, bins=steps, range=(l, u), color="black")
     histogram_axes.set_xlabel("Solution value")
     histogram_axes.set_ylabel("Generated frequency")
-
-    xs = linspace(l, u, steps)
-    fs = Args.session.run(constraint_satisfaction_function(tf.constant(xs)))
-    csf_axes.plot(xs, fs, "black")
-    csf_axes.set_ylabel("Satisfaction probability")
 
     plt.show()
     plt.cla()
