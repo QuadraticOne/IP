@@ -188,18 +188,29 @@ def plot_training_data(series_list):
     rc("font", **{"family": "serif", "serif": ["Computer Modern"]})
     rc("text", usetex=True)
 
+    means_plot = plt.subplot(2, 1, 1)
+    plt.xlabel("Epoch")
+    plt.ylabel("$\\mu$")
+    stddevs_plot = plt.subplot(2, 1, 2)
+    plt.xlabel("Epoch")
+    plt.ylabel("$\\sigma")
+
     evaluated_epochs = list(range(Data.epochs)[:: Data.evaluation_frequency])
     for series, initial_mean in zip(series_list, Data.initial_means):
         mean_progression, stddev_progression = (
             list(zip(*series)) if len(series) > 0 else ([], [])
         )
-        plt.plot(
+        means_plot.plot(
             evaluated_epochs[: len(mean_progression)],
             mean_progression,
-            label="$\\mu={}$".format(initial_mean),
+            label="$\\mu_0={}$".format(initial_mean),
+        )
+        stddevs_plot.plot(
+            evaluated_epochs[: len(stddev_progression)],
+            stddev_progression,
+            label="$\\mu_0={}$".format(initial_mean),
         )
 
-    plt.legend()
-    plt.xlabel("Epoch")
-    plt.ylabel("$\\mu$")
+    means_plot.legend()
+    plt.gcf().set_size_inches(8, 8)
     plt.show()
