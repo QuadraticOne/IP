@@ -5,6 +5,7 @@ from wise.training.routines import fit
 from numpy import linspace
 from os import makedirs
 from maths.mcmc import metropolis_hastings
+from matplotlib import rc
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
@@ -65,7 +66,7 @@ def f(x):
     Create a Tensorflow graph representing the objective function, which
     is expected to output values between 0 and 1.
     """
-    return sigmoid_bump(x, width=Args.w, offset=0.5) + sigmoid_bump(
+    return sigmoid_bump(x, width=Args.w, offset=0.5) + 0 * sigmoid_bump(
         x, width=Args.w, offset=-0.5
     )
 
@@ -101,7 +102,7 @@ def plot_histogram(
     values = sorted([v[0] for v in Args.session.run(node)])
     l = lower if lower is not None else values[0]
     u = upper if upper is not None else values[-1]
-    plt.hist(values, bins=steps, range=(l, u))
+    plt.hist(values, bins=steps, range=(l, u), color="black")
     if x_label is not None:
         plt.xlabel(x_label)
     plt.ylabel("Frequency")
@@ -122,9 +123,9 @@ def f_plotter(lower, upper, steps=50):
     fs = Args.session.run(f(tf.constant(xs)))
 
     def plot(show=False, save=None):
-        plt.plot(xs, fs)
+        plt.plot(xs, fs, "black")
         plt.xlabel("Solution value")
-        plt.ylabel("Objective function value")
+        plt.ylabel("Satisfaction probability")
         if show:
             plt.show()
         if save is not None:
@@ -329,3 +330,69 @@ def run():
 
     make_plots("after")
 
+
+def optimise_precision_only():
+    """
+    () -> ()
+    Perform the experiment and return or plot any relevant data.
+    """
+    rc("font", **{"family": "serif", "serif": ["Computer Modern"]})
+    rc("text", usetex=True)
+
+    # Sampling nodes
+    y_sample = uniform_node()
+    x_sample = g(y_sample)
+    gamma_sample = f(x_sample)
+
+    # Loss nodes
+    precision_proxy_loss = make_precision_proxy_loss(gamma_sample)
+
+    # Optimisers
+    optimiser = default_adam_optimiser(precision_proxy_loss, "optimiser")
+
+    plot_f = f_plotter(-1, 1)
+    # plot_f(show=True)
+
+    # Perform setup
+    Args.session.run(tf.global_variables_initializer())
+
+    # Perform normal training
+    for i in range(Args.training_epochs // 20):
+        batch_precision_loss, _ = Args.session.run([precision_proxy_loss, optimiser])
+        if i % 100 == 0:
+            print("Precision loss: {}".format(batch_precision_loss))
+
+    def plot_x_histogram(show=False, save=None):
+        plot_histogram_with_overlay(
+            x_sample, lower=-1, upper=1, show=show, save=save, x_label="Solution value"
+        )
+
+    plot_x_histogram(show=True)
+
+
+def plot_histogram_with_overlay(
+    node, lower=None, upper=None, steps=50, x_label=None, show=False, save=None
+):
+    """
+    tf.Node -> Float? -> Float? -> Int? -> String? -> Bool? -> String? -> ()
+    Plot a histogram of the given node with the constraint satisfaction function
+    overlayed on a separate y-axis.
+    """
+    values = sorted([v[0] for v in Args.session.run(node)])
+    l = lower if lower is not None else values[0]
+    u = upper if upper is not None else values[-1]
+
+    figure, histogram_axes = plt.subplots()
+    csf_axes = histogram_axes.twinx()
+
+    histogram_axes.hist(values, bins=steps, range=(l, u), color="black")
+    histogram_axes.set_xlabel("Solution value")
+    histogram_axes.set_ylabel("Generated frequency")
+
+    xs = linspace(l, u, steps)
+    fs = Args.session.run(f(tf.constant(xs)))
+    csf_axes.plot(xs, fs, "black")
+    csf_axes.set_ylabel("Satisfaction probability")
+
+    plt.show()
+    plt.cla()

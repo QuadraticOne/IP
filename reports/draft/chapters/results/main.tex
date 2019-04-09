@@ -66,8 +66,47 @@ Similarly, using 16-bit floating point values always resulted in \url{NaN} error
 It was therefore concluded that minimising KL-divergence is too inconsistent for practical use, as real distributions $-$ which are frequently disjoint $-$ would very likely cause numerical issues due to lack of the required precision.
 
 \subsection{Precision proxy optimisation}
-\subsection{Recall proxy optimisation}
+
+Potential issues with directly estimating the recall of one distribution with respect to another were discussed in \S 4.3.
+It was also hypothesised that optimising only for precision, $\hat{p}(g)$, would result in the generator sampling only a small subset of the viable solutions.
+
+A short experiment was devised to prove that this is the case and hence that some other approximation of the recall would be needed.
+A function modelling the probability of satisfaction for a solution in one dimension ($m=1$) was defined arbitrarily as:
+$$h(c,s) = \sigma(20c - 6) - \sigma(20c-14)$$
+where
+$$\sigma(x)=\frac{1}{1+e^{-x}}$$
+and there is only one possible constraint for the sake of simplicity ($n=0$).
+A graph of the constraint satisfaction function on $[-1, 1]$ is shown in Figure \ref{fig:sigmoidBumpFunction}.
+Numerically integrating $h$ between $c=-1$ and $c=1$ gives an area of $~0.3999$, so the probability density function is $\hat{V}(c)(s) \approx 2.5008 \; h(c,s)$.
+
+\begin{figure}
+    \begin{center}
+    \includegraphics[width=\textwidth]{sigmoidBumpFunction.png}
+    \caption{
+        A test function estimating the probability that a solution $s$ satisfies a singular constraint $c$.
+    }
+    \label{fig:sigmoidBumpFunction}
+    \end{center}
+\end{figure}
+
+Optimising the generator against $h(c, s)$ for the precision proxy defined in \S 4.2.1 consistently yields a distribution of generated solutions displayed in Figure \ref{fig:sigmoidBumpHistogram}.
+Only considering precision and disregarding recall has clearly produced a mapping which is of no use: it always maps to the same point in spite of the fact that around $15\%$ of the solution space has a constraint satisfaction probability above $0.9$.
+
+\begin{figure}
+    \begin{center}
+    \includegraphics[width=\textwidth]{sigmoidBumpHistogram.png}
+    \caption{
+        Distribution of generated solutions compared to the constraint satisfaction function against which the generator was trained, in the form of a histogram consisting of 256 samples.
+        The generator had two hidden layers, each with 8 leaky-ReLU activated units, and a single $\tanh$ output unit.
+    }
+    \label{fig:sigmoidBumpHistogram}
+    \end{center}
+\end{figure}
+
+This issue becomes even more pronounced when the constraint satisfaction function is altered to have two distinct modes.
+
 \subsection{Pretraining}
+\subsection{Recall proxy optimisation}
 \subsection{Constraint embeddings}
 
 \section{Method properties}
