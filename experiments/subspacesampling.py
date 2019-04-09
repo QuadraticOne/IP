@@ -66,7 +66,27 @@ def f(x):
     Create a Tensorflow graph representing the objective function, which
     is expected to output values between 0 and 1.
     """
-    return sigmoid_bump(x, width=Args.w, offset=0.5) + 0 * sigmoid_bump(
+    return sigmoid_bump(x, width=Args.w, offset=0.5) + 1 * sigmoid_bump(
+        x, width=Args.w, offset=-0.5
+    )
+
+
+def f_unimodal(x):
+    """
+    tf.Node -> tf.Node
+    Create a Tensorflow graph representing an arbitrary constraint satisfaction
+    function with only one mode.
+    """
+    return sigmoid_bump(x, width=Args.w, offset=0.5)
+
+
+def f_multimodal(x):
+    """
+    tf.Node -> tf.Node
+    Create a Tensorflow graph representing an arbitrary constraint satisfaction
+    function with two distinct modes.
+    """
+    return sigmoid_bump(x, width=Args.w, offset=0.5) + sigmoid_bump(
         x, width=Args.w, offset=-0.5
     )
 
@@ -331,9 +351,9 @@ def run():
     make_plots("after")
 
 
-def optimise_precision_only():
+def optimise_precision_only(constraint_satisfaction_function):
     """
-    () -> ()
+    (tf.Node -> tf.Node) -> ()
     Perform the experiment and return or plot any relevant data.
     """
     rc("font", **{"family": "serif", "serif": ["Computer Modern"]})
@@ -342,16 +362,13 @@ def optimise_precision_only():
     # Sampling nodes
     y_sample = uniform_node()
     x_sample = g(y_sample)
-    gamma_sample = f(x_sample)
+    gamma_sample = constraint_satisfaction_function(x_sample)
 
     # Loss nodes
     precision_proxy_loss = make_precision_proxy_loss(gamma_sample)
 
     # Optimisers
     optimiser = default_adam_optimiser(precision_proxy_loss, "optimiser")
-
-    plot_f = f_plotter(-1, 1)
-    # plot_f(show=True)
 
     # Perform setup
     Args.session.run(tf.global_variables_initializer())
@@ -364,17 +381,31 @@ def optimise_precision_only():
 
     def plot_x_histogram(show=False, save=None):
         plot_histogram_with_overlay(
-            x_sample, lower=-1, upper=1, show=show, save=save, x_label="Solution value"
+            x_sample,
+            constraint_satisfaction_function,
+            lower=-1,
+            upper=1,
+            show=show,
+            save=save,
+            x_label="Solution value",
         )
 
     plot_x_histogram(show=True)
 
 
 def plot_histogram_with_overlay(
-    node, lower=None, upper=None, steps=50, x_label=None, show=False, save=None
+    node,
+    constraint_satisfaction_function,
+    lower=None,
+    upper=None,
+    steps=50,
+    x_label=None,
+    show=False,
+    save=None,
 ):
     """
-    tf.Node -> Float? -> Float? -> Int? -> String? -> Bool? -> String? -> ()
+    tf.Node -> (tf.Node -> tf.Node) -> Float? -> Float?
+        -> Int? -> String? -> Bool? -> String? -> ()
     Plot a histogram of the given node with the constraint satisfaction function
     overlayed on a separate y-axis.
     """
@@ -390,7 +421,7 @@ def plot_histogram_with_overlay(
     histogram_axes.set_ylabel("Generated frequency")
 
     xs = linspace(l, u, steps)
-    fs = Args.session.run(f(tf.constant(xs)))
+    fs = Args.session.run(constraint_satisfaction_function(tf.constant(xs)))
     csf_axes.plot(xs, fs, "black")
     csf_axes.set_ylabel("Satisfaction probability")
 

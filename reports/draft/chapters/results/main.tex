@@ -72,7 +72,7 @@ It was also hypothesised that optimising only for precision, $\hat{p}(g)$, would
 
 A short experiment was devised to prove that this is the case and hence that some other approximation of the recall would be needed.
 A function modelling the probability of satisfaction for a solution in one dimension ($m=1$) was defined arbitrarily as:
-$$h(c,s) = \sigma(20c - 6) - \sigma(20c-14)$$
+$$h(c,s) = \sigma(20c - 6) - \sigma(20c - 14)$$
 where
 $$\sigma(x)=\frac{1}{1+e^{-x}}$$
 and there is only one possible constraint for the sake of simplicity ($n=0$).
@@ -103,7 +103,20 @@ Only considering precision and disregarding recall has clearly produced a mappin
     \end{center}
 \end{figure}
 
-This issue becomes even more pronounced when the constraint satisfaction function is altered to have two distinct modes.
+This issue becomes even more pronounced when the constraint satisfaction function is altered to have two distinct modes (Figure \ref{fig:sigmoidBumpHistogramBimodal}).
+$$h(c,s) = \sigma(20c - 6) - \sigma(20c - 14) + \sigma(20c + 6) - \sigma(20c + 14)$$
+While a very high precision is obtained, with all generated solutions having a satisfaction probability of $~96\%$, optimising solely for precision fails entirely to encapsulate the bimodality of the constraint satisfaction function even in such a simple environment, confirming that optimisation must take recall into consideration for satisfactory results.
+
+\begin{figure}
+    \begin{center}
+    \includegraphics[width=\textwidth]{sigmoidBumpHistogramBimodal.png}
+    \caption{
+        Distribution of generated solutions compared to the constraint satisfaction function against which the generator was trained, in the form of a histogram consisting of 256 samples.
+        The generator had two hidden layers, each with 8 leaky-ReLU activated units, and a single $\tanh$ output unit.
+    }
+    \label{fig:sigmoidBumpHistogramBimodal}
+    \end{center}
+\end{figure}
 
 \subsection{Pretraining}
 \subsection{Recall proxy optimisation}
