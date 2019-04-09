@@ -19,11 +19,9 @@ The target distribution was fixed as a standard normal distribution (constraints
 Although KL-divergence is analytically tractable for two normal distributions, it was estimated through sampling of the generated distribution as described in \S 4.1.1.
 Trained variables were initialised such that the standard deviation started at $1$, while the initial mean was varied.
 
-The mean $\mu$ and standard deviation $\sigma$ after each batch are shown in Figure \ref{fig:broadKLDivergence}.
-
 \begin{figure}
     \begin{center}
-    \includegraphics[scale=0.65]{broadKLDivergence.png}
+    \includegraphics[width=\textwidth]{broadKLDivergence.png}
     \caption{
         Change in $\mu$ and $\sigma$ over time when training arbitrary normal distributions with different starting means to match the standard normal distribution. 
         Parameters were updated using the Adam optimisation algorithm to minimise KL-divergence, as estimated by taking samples from the varying distribution in batches of 64.
@@ -31,6 +29,41 @@ The mean $\mu$ and standard deviation $\sigma$ after each batch are shown in Fig
     \label{fig:broadKLDivergence}
     \end{center}
 \end{figure}
+
+The mean $\mu$ and standard deviation $\sigma$ after each batch are shown in Figure \ref{fig:broadKLDivergence}.
+Convergence does occur, but the time taken for the mean to approach $0$ appears to increase exponentially as the initial mean moves away from the target.
+Two one-dimensional normal distributions whose means only differ by two and whose standard deviations are both one could still be considered to be quite close together, so the experiment was repeated with $\sigma=0.1$ for both distributions to better simulate disjoint distributions.
+
+\begin{figure}
+    \begin{center}
+    \includegraphics[width=\textwidth]{narrowKLDivergence.png}
+    \caption{
+        Change in $\mu$ and $\sigma$ over time when training arbitrary normal distributions with different starting means to match a normal distribution with $\mu=0$ and $\sigma=0.1$. 
+        Parameters were updated using the Adam optimisation algorithm to minimise KL-divergence, as estimated by taking samples from the varying distribution in batches of 64.
+    }
+    \label{fig:narrowKLDivergence}
+    \end{center}
+\end{figure}
+
+Figure \ref{fig:narrowKLDivergence} shows that the variables converge at approximately the same rate as when the standard deviation of the target distribution was $1$.
+Missing, however, are the trend lines for $\mu_0=1.0$, $\mu_0=2.0$; both $\mu$ and $\sigma$ went to \url{NaN} after the first epoch.
+This may well have been caused by an excessively large KL-divergence resulting in exploding gradients due to the limited precision of floating point numbers.
+
+Changing the computation graph to use \url{float64} values instead of \url{float32} lends further evidence to this hypothesis, as increasing the precision allowed the $\mu=1.0, 2.0$, $\sigma=0.1$ cases to be optimised without numerical errors (Figure \ref{fig:narrowKLDivergenceFloat64}).
+Similarly, using 16-bit floating point values always resulted in \url{NaN} errors occurring.
+
+\begin{figure}
+    \begin{center}
+    \includegraphics[width=\textwidth]{narrowKLDivergenceFloat64.png}
+    \caption{
+        Change in $\mu$ and $\sigma$ over time when training arbitrary normal distributions with different starting means to match a normal distribution with $\mu=0$ and $\sigma=0.1$. 
+        Experimental parameters are the same as in Figure \ref{fig:narrowKLDivergence}, but with 64-bit floating point numbers as opposed to 32-bit.
+    }
+    \label{fig:narrowKLDivergenceFloat64}
+    \end{center}
+\end{figure}
+
+It was therefore concluded that minimising KL-divergence is too inconsistent for practical use, as real distributions $-$ which are frequently disjoint $-$ would very likely cause numerical issues due to lack of the required precision.
 
 \subsection{Precision proxy optimisation}
 \subsection{Recall proxy optimisation}

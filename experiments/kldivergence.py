@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 class Args:
 
-    data_type = tf.float32
+    data_type = tf.float64
     gradient_cutoff = -1
     use_linearised_log = False
 
