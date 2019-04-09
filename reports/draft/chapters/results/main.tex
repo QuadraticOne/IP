@@ -1,7 +1,5 @@
 \documentclass[../../main.tex]{subfiles}
 
-\usepackage{pgfplots}
-
 \begin{document}
 
 \chapter{Results}
@@ -21,7 +19,7 @@ Trained variables were initialised such that the standard deviation started at $
 
 \begin{figure}
     \begin{center}
-    \includegraphics[width=\textwidth]{broadKLDivergence.png}
+    \includegraphics[width=\textwidth]{broadKLDivergence}
     \caption{
         Change in $\mu$ and $\sigma$ over time when training arbitrary normal distributions with different starting means to match the standard normal distribution. 
         Parameters were updated using the Adam optimisation algorithm to minimise KL-divergence, as estimated by taking samples from the varying distribution in batches of 64.
@@ -36,7 +34,7 @@ Two one-dimensional normal distributions whose means only differ by two and whos
 
 \begin{figure}
     \begin{center}
-    \includegraphics[width=\textwidth]{narrowKLDivergence.png}
+    \includegraphics[width=\textwidth]{narrowKLDivergence}
     \caption{
         Change in $\mu$ and $\sigma$ over time when training arbitrary normal distributions with different starting means to match a normal distribution with $\mu=0$ and $\sigma=0.1$. 
         Parameters were updated using the Adam optimisation algorithm to minimise KL-divergence, as estimated by taking samples from the varying distribution in batches of 64.
@@ -54,7 +52,7 @@ Similarly, using 16-bit floating point values always resulted in \url{NaN} error
 
 \begin{figure}
     \begin{center}
-    \includegraphics[width=\textwidth]{narrowKLDivergenceFloat64.png}
+    \includegraphics[width=\textwidth]{narrowKLDivergenceFloat64}
     \caption{
         Change in $\mu$ and $\sigma$ over time when training arbitrary normal distributions with different starting means to match a normal distribution with $\mu=0$ and $\sigma=0.1$. 
         Experimental parameters are the same as in Figure \ref{fig:narrowKLDivergence}, but with 64-bit floating point numbers as opposed to 32-bit.
@@ -81,7 +79,7 @@ Numerically integrating $h$ between $c=-1$ and $c=1$ gives an area of $~0.3999$,
 
 \begin{figure}
     \begin{center}
-    \includegraphics[width=\textwidth]{sigmoidBumpFunction.png}
+    \includegraphics[width=\textwidth]{sigmoidBumpFunction}
     \caption{
         A test function estimating the probability that a solution $s$ satisfies a singular constraint $c$.
     }
@@ -94,7 +92,7 @@ Only considering precision and disregarding recall has clearly produced a mappin
 
 \begin{figure}
     \begin{center}
-    \includegraphics[width=\textwidth]{sigmoidBumpHistogram.png}
+    \includegraphics[width=\textwidth]{sigmoidBumpHistogram}
     \caption{
         Distribution of generated solutions compared to the constraint satisfaction function against which the generator was trained, in the form of a histogram consisting of 256 samples.
         The generator had two hidden layers, each with 8 leaky-ReLU activated units, and a single $\tanh$ output unit.
@@ -109,7 +107,7 @@ While a very high precision is obtained, with all generated solutions having a s
 
 \begin{figure}
     \begin{center}
-    \includegraphics[width=\textwidth]{sigmoidBumpHistogramBimodal.png}
+    \includegraphics[width=\textwidth]{sigmoidBumpHistogramBimodal}
     \caption{
         Distribution of generated solutions compared to a bimodal constraint satisfaction function against which the generator was trained, in the form of a histogram consisting of 256 samples.
         The generator architecture is the same as that used in Figure \ref{fig:sigmoidBumpHistogram}.
@@ -131,15 +129,15 @@ Glorot initialisation, a common method of initialising the weights of neural net
     \centering
     \begin{subfigure}[a]{1.\textwidth}
         \centering
-        \includegraphics[width=0.6\textwidth]{initialisedGenerator1.png}
+        \includegraphics[width=0.6\textwidth]{initialisedGenerator1}
     \end{subfigure}
     \begin{subfigure}[a]{1.\textwidth}
         \centering
-        \includegraphics[width=0.6\textwidth]{initialisedGenerator2.png}
+        \includegraphics[width=0.6\textwidth]{initialisedGenerator2}
     \end{subfigure}
     \begin{subfigure}[a]{1.\textwidth}
         \centering
-        \includegraphics[width=0.6\textwidth]{initialisedGenerator3.png}
+        \includegraphics[width=0.6\textwidth]{initialisedGenerator3}
     \end{subfigure}
     \caption{
         Generated distribution immediately after network initialisation for three different seeds.
