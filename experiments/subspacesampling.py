@@ -22,6 +22,7 @@ class Args:
     initialise_to_identity = False
     batch_size = 4096
     initialisation_epochs = 1024
+    precision_only_epochs = 1024
     training_epochs = 8192
     recall_weight = 1.0
 
@@ -423,7 +424,7 @@ def get_experiment_data(
 
     if precision_only:
         # Perform normal training
-        for i in range(Args.training_epochs // 20):
+        for i in range(Args.precision_only_epochs):
             batch_precision_loss, _ = Args.session.run(
                 [precision_proxy_loss, precision_only_optimiser]
             )
