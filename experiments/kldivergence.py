@@ -1,5 +1,7 @@
-from math import pi
+from math import pi, isnan
+from matplotlib import rc
 import tensorflow as tf
+import matplotlib.pyplot as plt
 
 
 class Args:
@@ -88,17 +90,24 @@ def clipped_gradients(loss):
 
 
 def run(
-    initial_mean, initial_stddev, batch_size, epochs, evaluation_frequency, log=False
+    initial_mean,
+    initial_stddev,
+    target_mean,
+    target_stddev,
+    batch_size,
+    epochs,
+    evaluation_frequency,
+    log=False,
 ):
     """
-    Float -> Float -> Int -> Int -> Int -> Bool? -> [Dict]
+    Float -> Float -> Float -> Float -> Int -> Int -> Int -> Bool? -> [Dict]
     Run an experiment, trying to determine whether KL divergence
     can be accurately estimated using an average of samples.
     """
     mu_a = tf.Variable(initial_mean, dtype=Args.data_type)
     sigma_a = tf.Variable(initial_stddev, dtype=Args.data_type)
-    mu_b = tf.constant(0.0, dtype=Args.data_type)
-    sigma_b = tf.constant(1.0, dtype=Args.data_type)
+    mu_b = tf.constant(target_mean, dtype=Args.data_type)
+    sigma_b = tf.constant(target_stddev, dtype=Args.data_type)
     x = gaussian_sampler(mu_a, sigma_a, batch_size)
     p = gaussian_pdf(mu_a, sigma_a)(x)
     q = gaussian_pdf(mu_b, sigma_b)(x)
@@ -130,3 +139,67 @@ def run(
             data.append({"epoch": i, "mean": output[0], "stddev": output[1]})
 
     return data
+
+
+class Data:
+    initial_means = [0.1, 0.2, 0.5, 1.0, 2.0]
+    broad_stddev = 1.0
+    precise_stddev = 0.1
+    batch_size = 64
+    epochs = 2048
+    evaluation_frequency = 16
+
+
+def get_training_data(broad):
+    """
+    Bool -> [[(Float, Float)]]
+    Get the mean and standard deviation of the matching distribution at each time
+    step, for each of the initial means in the Data class.
+    """
+
+    def extract_mean_and_stddev(dump):
+        return [
+            (d["mean"], d["stddev"])
+            for d in dump
+            if not isnan(d["stddev"]) and not isnan(d["mean"])
+        ]
+
+    return [
+        extract_mean_and_stddev(
+            run(
+                initial_mean,
+                Data.broad_stddev if broad else Data.precise_stddev,
+                0.0,
+                Data.broad_stddev if broad else Data.precise_stddev,
+                Data.batch_size,
+                Data.epochs,
+                Data.evaluation_frequency,
+            )
+        )
+        for initial_mean in Data.initial_means
+    ]
+
+
+def plot_training_data(series_list):
+    """
+    [[(Float, Float)]] -> ()
+    Plot data from a training run.
+    """
+    rc("font", **{"family": "serif", "serif": ["Computer Modern"]})
+    rc("text", usetex=True)
+
+    evaluated_epochs = list(range(Data.epochs)[:: Data.evaluation_frequency])
+    for series, initial_mean in zip(series_list, Data.initial_means):
+        mean_progression, stddev_progression = (
+            list(zip(*series)) if len(series) > 0 else ([], [])
+        )
+        plt.plot(
+            evaluated_epochs[: len(mean_progression)],
+            mean_progression,
+            label="$\\mu={}$".format(initial_mean),
+        )
+
+    plt.legend()
+    plt.xlabel("Epoch")
+    plt.ylabel("$\\mu$")
+    plt.show()
