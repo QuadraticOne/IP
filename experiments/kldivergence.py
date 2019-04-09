@@ -4,9 +4,9 @@ import tensorflow as tf
 
 class Args:
 
-    data_type = tf.float64
-    gradient_cutoff = 5.0
-    use_linearised_log = True
+    data_type = tf.float32
+    gradient_cutoff = -1
+    use_linearised_log = False
 
 
 def safe_log(x, eps=1e-3):
@@ -87,18 +87,18 @@ def clipped_gradients(loss):
     return operation
 
 
-def run():
+def run(
+    initial_mean, initial_stddev, batch_size, epochs, evaluation_frequency, log=False
+):
     """
-    () -> ()
+    Float -> Float -> Int -> Int -> Int -> Bool? -> [Dict]
     Run an experiment, trying to determine whether KL divergence
     can be accurately estimated using an average of samples.
     """
-    batch_size = 1024
-
-    mu_a = tf.Variable(0.0, dtype=Args.data_type)
-    sigma_a = tf.Variable(1.0, dtype=Args.data_type)
-    mu_b = tf.constant(0.5, dtype=Args.data_type)
-    sigma_b = tf.constant(0.08, dtype=Args.data_type)
+    mu_a = tf.Variable(initial_mean, dtype=Args.data_type)
+    sigma_a = tf.Variable(initial_stddev, dtype=Args.data_type)
+    mu_b = tf.constant(0.0, dtype=Args.data_type)
+    sigma_b = tf.constant(1.0, dtype=Args.data_type)
     x = gaussian_sampler(mu_a, sigma_a, batch_size)
     p = gaussian_pdf(mu_a, sigma_a)(x)
     q = gaussian_pdf(mu_b, sigma_b)(x)
@@ -106,18 +106,27 @@ def run():
     kl = kl_estimator(p, q)
     kl_real = gaussian_divergence(mu_a, sigma_a, mu_b, sigma_b)
 
-    optimised_node = kl if True else tf.log(kl)
-    print(optimised_node)
-    minimiser = clipped_gradients(optimised_node)
+    optimised_node = kl
+    minimiser = (
+        clipped_gradients(optimised_node)
+        if Args.gradient_cutoff > 0
+        else (tf.train.AdamOptimizer().minimize(optimised_node))
+    )
 
     s = tf.Session()
     s.run(tf.global_variables_initializer())
 
-    for i in range(10000):
+    data = []
+
+    for i in range(epochs):
         output = s.run([mu_a, sigma_a, kl, kl_real, minimiser])
-        if i % 150 == 0:
-            print(
-                "mu: {}, sigma: {}, kl: {}, kl_real: {}".format(
-                    output[0], output[1], output[2], output[3]
+        if i % evaluation_frequency == 0:
+            if log:
+                print(
+                    "mu: {}, sigma: {}, kl: {}, kl_real: {}".format(
+                        output[0], output[1], output[2], output[3]
+                    )
                 )
-            )
+            data.append({"epoch": i, "mean": output[0], "stddev": output[1]})
+
+    return data
