@@ -18,8 +18,46 @@ It is for this reason that even when an analytical form of the constraint satisf
 
 \section{Training procedure}
 
-\section{Avoiding overfitting}
+Data are provided in the form of (constraint, solution, satisfaction) tuples where the first two vectors are network inputs and the third is the label, denoting whether or not the solution satisfies the constraint.
+The discriminator will normally take the form of a standard feedforward multi-layer perceptron, taking its two arguments as a concatenated vector and outputting a single scalar probability.
+As such, the output layer should be the sigmoid function, but the internal activations are not constrained (leaky-ReLU activations are used here unless otherwise specified).
 
-\section{Constraining network capacity}
+Training is performed in the usual way for a neural network, where batches are taken from the training data and fed forwards through the network.
+Once the predicted satisfaction probability has been found, a loss is calculated and gradients are backpropagated through the network and used to train the network weights.
+The Adam optimiser is used here unless otherwise stated.
+
+It is also strongly recommended that a proportion of the data (nominally, 20\%) is set aside for the purposes of validating the learned discriminator after training.
+
+\section{Overfitting}
+
+Because the generator is trained off the discriminator and not from data, ensuring that the discriminator does not overfit is essential.
+A number of standard techniques should be emploted, including dropout and L2 regularisation.
+The size of the dataset should be considered when choosing the network depth and width, and training should be stopped before validation error begins to rise (a sign that the network is overfitting).
+
+\section{Practical considerations}
+
+A number of different considerations should be taken into account on a case-by-case basis when training the discriminator.
+
+\subsection{Incorporating environment knowledge}
+
+Many engineering environments are understood quite well from an analytical level, and this knowledge can sometimes be leveraged to augment the training data.
+A frequently valid assumption is that data points which are nearby in the feature space will produce similar outputs.
+Adding noise to the data before feeding them into the network simulates a much greater quantity of data, thereby reducing overfitting, but may cause a loss of fidelity in environments in which the output is highly sensitive to the input.
+
+Some environments are also very sparse: that is, only a miniscule subset of all valid environments will satisfy the constraint.
+In such cases, training data may have to be hand-picked to ensure that enough positive training examples are observed.
+If carrying out experiments to obtain data is also costly, a dataset of only positive examples could be gathered.
+Negative samples could then be produced by taking the solution from one datum and combining it with the constraint from another datum, under the assumption that that solution will very likely fail to satisfy the constraint.
+
+Sparse environments may also be amenable to performing dimensionality reduction on the constraints, solutions, or both, by means of an autoencoder or VAE.
+
+\subsection{Limiting network capacity}
+
+Training a perfect discriminator is not always desirable, as such a discriminator will have near-zero gradients by virtue of the fact that it is trying to approximate a binary function.
+Deliberately forcing the discriminator to cope with greater uncertainty can reduce the chance of the discriminator's output saturating, thereby giving clearer indications to the generator by backpropagating gradients of a greater magnitude.
+
+Adding noise to the inputs as aforementioned is one way of achieving this, with another possibility being the limitation of the capacity of the network.
+Using fewer hidden nodes than would usually be used may force the discriminator to learn a simplified function, which is technically less accurate but may induce faster training of the generator.
+These changes also make the discriminator less susceptible to overfitting, which is possibly a greater threat to the success of the discriminator than a slight reduction in accuracy.
 
 \end{document}
