@@ -297,7 +297,26 @@ The first half of this chapter described experiments performed on abstract, simp
 The remainder of this chapter will examine that architecture's performance in more depth and in more concrete engineering environments.
 
 \subsection{Expected satisfaction probability}
+
+One crucial requirement of the generator is that the solutions it produces should generally have a high satisfaction probability.
+The expected satisfaction probability will be used to measure the performance of the generator on various environments, and is calculated by taking the mean across the satisfaction probability, according to $h(c, s)$, of each solution in a sample.
+
 \subsection{Relative density of true solutions}
+
+Another requirement of the generator is that it samples from the entire range of viable solutions.
+In all further experiments, identity spread is used as a subtitute for the recall due to its intractibility.
+For the purposes of evaluating the generator, the relative density of true solutions in the learned viable distribution will be calculated.
+
+Calculating this value requires a sample of solutions from the true viable distribution: this is achieved by fixing the constraint vector, and then sampling from the discriminator using the Metropolis-Hastings algorithm.
+The sampled data should be distributed in approximately the same way as $V(c)$ for sufficiently long Markov chains.
+
+Finding the relative density of each of these solutions in the learned viable distribution requires creating an histogram from a large number of samples from the generator (for $m > 1$ an $n$-tree is used to adaptively reduce the number of bins needed).
+For each true solution sampled from the Markov chain, the smallest bin within the $n$-tree containing that solution is found.
+The relative density of that solution is then defined as the ratio of proportion of generator-sampled points in that bin to the proportion of the volume of the solution space which is bounded by that bin.
+
+Intuitively, if a solution has a relative density greater than $1$ then it is being sampled more frequently than it would be if the generator simply output a uniform distribution; conversely, a relative density of less than $1$ suggests it is being sampled less frequently.
+For a generator with good recall it could therefore be expected that the mean relative density over a sample of points taken from the true viable distribution by a Markov chain Monte Carlo algorithm should be above $1$.
+
 \subsection{Effect of recall weight}
 \subsection{Equality constraints}
 
