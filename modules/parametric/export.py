@@ -49,20 +49,16 @@ class ExportedParametricGenerator:
 
         def sample_for_constraint(constraint, samples):
             """
-            np.array -> Int -> Either [Dict] Dict
+            np.array -> Int -> [Dict]
             Given a constraint and a requested number of samples, return that
             number of dictionaries, where each dictionary represents a sample from
             the latent space for that constraint.  They contain keys for 
-            `latent`, `solution`, and `satisfaction_probability`.  Only one dictionary,
-            rather than a list, will be returned if the number of samples is 1.
+            `latent`, `solution`, and `satisfaction_probability`.
             """
             latent_samples, solutions, satisfaction_probabilities = session.run(
                 [generator["input"], generator["output"], discriminator["output"]],
                 feed_dict={constraint_input: constraint, sample_size: samples},
             )
-
-            if not isinstance(satisfaction_probabilities, list):
-                satisfaction_probabilities = [satisfaction_probabilities]
 
             zipped_samples = [
                 ExportedParametricGenerator.GeneratorSample(l, s, p)
@@ -71,7 +67,7 @@ class ExportedParametricGenerator:
                 )
             ]
 
-            return zipped_samples if samples != 1 else zipped_samples[0]
+            return zipped_samples
 
         return sample_for_constraint
 

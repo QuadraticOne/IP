@@ -48,7 +48,7 @@ def default_holes_trainer(dataset_size):
         Trainer.TrainingParameters(20, 20000, batch_size=32),
         Trainer.TrainingParameters(20, 20000, batch_size=32),
         evaluation_parameters=Trainer.EvaluationParameters(
-            {"quantity": 32, "samplingMethod": "uniform"}, 128, 128, 1024, 64, 16, 2048
+            {"quantity": 1, "samplingMethod": "uniform"}, 128, 128, 1024, 64, 16, 2048
         ),
         experiment_log_folder="production/datasets/holes/",
     )
