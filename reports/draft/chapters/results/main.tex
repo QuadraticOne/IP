@@ -18,7 +18,6 @@ The target distribution was fixed as a standard normal distribution (constraints
 
 Although KL-divergence is analytically tractable for two normal distributions, it was estimated through sampling of the generated distribution as described in \S 4.1.1.
 Trained variables were initialised such that the standard deviation started at $1$, while the initial mean was varied.
-
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{broadKLDivergence}
@@ -29,11 +28,9 @@ Trained variables were initialised such that the standard deviation started at $
     \label{fig:broadKLDivergence}
     \end{center}
 \end{figure}
-
 The mean $\mu$ and standard deviation $\sigma$ after each batch are shown in Figure \ref{fig:broadKLDivergence}.
 Convergence does occur, but the time taken for the mean to approach $0$ appears to increase exponentially as the initial mean moves away from the target.
 Two one-dimensional normal distributions whose means only differ by two and whose standard deviations are both one could still be considered to be quite close together, so the experiment was repeated with $\sigma=0.1$ for both distributions to better simulate disjoint distributions.
-
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{narrowKLDivergence}
@@ -44,14 +41,12 @@ Two one-dimensional normal distributions whose means only differ by two and whos
     \label{fig:narrowKLDivergence}
     \end{center}
 \end{figure}
-
 Figure \ref{fig:narrowKLDivergence} shows that the variables converge at approximately the same rate as when the standard deviation of the target distribution was $1$.
 Missing, however, are the trend lines for $\mu_0=1.0$, $\mu_0=2.0$; both $\mu$ and $\sigma$ went to \url{NaN} after the first epoch.
 This may well have been caused by an excessively large KL-divergence resulting in exploding gradients due to the limited precision of floating point numbers.
 
 Changing the computation graph to use \url{float64} values instead of \url{float32} lends further evidence to this hypothesis, as increasing the precision allowed the $\mu=1.0, 2.0$, $\sigma=0.1$ cases to be optimised without numerical errors (Figure \ref{fig:narrowKLDivergenceFloat64}).
 Similarly, using 16-bit floating point values always resulted in \url{NaN} errors occurring.
-
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{narrowKLDivergenceFloat64}
@@ -62,7 +57,6 @@ Similarly, using 16-bit floating point values always resulted in \url{NaN} error
     \label{fig:narrowKLDivergenceFloat64}
     \end{center}
 \end{figure}
-
 It was therefore concluded that minimising KL-divergence is too inconsistent for practical use, as real distributions $-$ which are frequently disjoint $-$ would very likely cause numerical issues due to lack of the required precision.
 
 \subsection{Precision proxy optimisation}
@@ -78,7 +72,6 @@ $$\sigma(x)=\frac{1}{1+e^{-x}}$$
 and there is only one possible constraint for the sake of simplicity ($n=0$).
 A graph of the constraint satisfaction function on $[-1, 1]$ is shown in Figure \ref{fig:sigmoidBumpFunction}.
 Numerically integrating $h$ between $c=-1$ and $c=1$ gives an area of $~0.3999$, so the probability density function is $\hat{V}(c)(s) \approx 2.5008 \; h(c,s)$.
-
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{sigmoidBumpFunction}
@@ -88,10 +81,8 @@ Numerically integrating $h$ between $c=-1$ and $c=1$ gives an area of $~0.3999$,
     \label{fig:sigmoidBumpFunction}
     \end{center}
 \end{figure}
-
 Optimising the generator against $h(c, s)$ for the precision proxy defined in \S 4.2.1 consistently yields a distribution of generated solutions displayed in Figure \ref{fig:sigmoidBumpHistogram}.
 Only considering precision and disregarding recall has clearly produced a mapping which is of no use: it always maps to the same point in spite of the fact that around $15\%$ of the solution space has a constraint satisfaction probability above $0.9$.
-
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{sigmoidBumpHistogram}
@@ -102,11 +93,9 @@ Only considering precision and disregarding recall has clearly produced a mappin
     \label{fig:sigmoidBumpHistogram}
     \end{center}
 \end{figure}
-
 This issue becomes even more pronounced when the constraint satisfaction function is altered to have two distinct modes (Figure \ref{fig:sigmoidBumpHistogramBimodal}).
 $$h(c,s) = \sigma(20c - 6) - \sigma(20c - 14) + \sigma(20c + 6) - \sigma(20c + 14)$$
 While a very high precision is obtained, with all generated solutions having a satisfaction probability of $~96\%$, optimising solely for precision fails entirely to encapsulate the bimodality of the constraint satisfaction function even in such a simple environment, confirming that optimisation must take recall into consideration for satisfactory results.
-
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{sigmoidBumpHistogramBimodal}
@@ -126,7 +115,6 @@ The generator's architecture remained the same as that used in \S 6.1.2, and the
 
 That the first assumption is true is confirmed trivially by taking samples from the generator before training (Figure \ref{fig:initialisedGenerator}).
 Glorot initialisation, a common method of initialising the weights of neural networks, was used to initialise the generator's network weights.
-
 \begin{figure}[H]
     \centering
     \begin{subfigure}[a]{1.\textwidth}
@@ -146,7 +134,6 @@ Glorot initialisation, a common method of initialising the weights of neural net
     }
 \label{fig:initialisedGenerator}
 \end{figure}
-
 Pretraining is performed in the same way as normal training, but instead of minimising the precision loss, one of the spread losses $q_\text{id}$ or $q_\text{sep}$ is minimised.
 Because the spread is a subjective quality which cannot obviously be objectively measured, the success of each spread metric will be judged on whether it enables the generator to learn both modes of the viable set simultaneously.
 That spread function will then be used in further experiments.
@@ -154,7 +141,6 @@ That spread function will then be used in further experiments.
 Below are examples of typical generated viable sets after pretraining with each spread metric.
 Identity spread (Figure \ref{fig:identitySpread}) was trained with a batch size of 4096, while separation spread (Figure \ref{fig:separationSpread}) was trained with a smaller batch size of 256 to prevent excessive computations.
 The target spread was set to $q_\text{target} = 1$, such that the desired mean distance between sampled solutions is equal to $1$.
-
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{identitySpread}
@@ -174,11 +160,9 @@ The target spread was set to $q_\text{target} = 1$, such that the desired mean d
     \label{fig:separationSpread}
     \end{center}
 \end{figure}
-
 Both spread metrics show signs of causing the generator to explore a far greater proportion of the solution space than immediately after initialisation, but also have a tendency to over-explore the boundaries.
 This effect is much more pronounced with $q_\text{sep}$.
 The true success of each metric, however, is determined by the generator's ability to find different nodes when precision is optimised after pretraining.
-
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{identityThenPrecision}
@@ -198,12 +182,29 @@ The true success of each metric, however, is determined by the generator's abili
     \label{fig:separationThenPrecision}
     \end{center}
 \end{figure}
-
 Comparing Figure \ref{fig:sigmoidBumpHistogramBimodal} to Figures \ref{fig:identityThenPrecision} and \ref{fig:separationThenPrecision} it is clear that the generator's ability to detect multiple modes is greatly enhanced by pretraining to maximise spread.
 This comes at a cost, however; while the generator pretrained on $q_\text{id}$ samples in roughly equal proportions from both modes, it also frequently samples solutions from between the modes which are unlikely to satisfy the constraint.
 Because both metrics have similar results but separation spread takes longer to train, the identity spread will be used in further experiments unless the latent space is required to have a different dimension to the solution space.
 
-\subsection{Recall proxy optimisation}
+\subsection{Maximising precision and spread}
+
+It was observed while training on precision after pretraining on spread that early stopping was required to prevent the generator from falling back into a unimodal distribution.
+One possibility is, after pretraining, to minimise a weighted sum of precision and spread loss, as if the spread loss were a proxy for the recall of the learned viable distribution.
+Using the identity spread, this is semantically valid: $q_\text{id}$ penalises the distance movement of probability mass between the latent and solution spaces, thereby providing an incentive to the generator to seek out areas of high satisfaction probability which are more local.
+
+Figure \ref{fig:identityAndPrecision} shows the learned viable distribution after pretraining on identity spread, then training to minimise the sum of precision and identity spread loss ($w=1$) until convergence.
+\begin{figure}[H]
+    \begin{center}
+    \includegraphics[width=\textwidth]{identityAndPrecision}
+    \caption{
+        Generator output distribution after pretraining as in Figure \ref{fig:identityThenPrecision}, followed by training to maximise the sum of precision and ideneity spread until convergence.
+    }
+    \label{fig:identityAndPrecision}
+    \end{center}
+\end{figure}
+This is clearly a result superior to any obtained previously, with the generator sampling both modes, and almost always in regions with a satisfaction probability above $0.8$.
+Solutions less likely to satisfy the constraint are almost never sampled.
+
 \subsection{Constraint embeddings}
 
 \section{Method properties}
