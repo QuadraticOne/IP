@@ -1,8 +1,11 @@
 from modules.parametric.generator import ParametricGenerator
-from modules.parametric.training import optimiser
+from modules.parametric.trainer import optimiser
 from wise.training.routines import fit
+from matplotlib import rc
+import matplotlib.pyplot as plt
 import modules.reusablenet as rnet
 import tensorflow as tf
+import numpy as np
 
 
 class Args:
@@ -10,7 +13,7 @@ class Args:
     pretraining_epochs = 10
     pretraining_steps_per_epoch = 20000
 
-    training_epochs = 50
+    training_epochs = 150
     training_steps_per_epoch = 20000
 
 
@@ -69,6 +72,62 @@ class ParametricGeneratorTest(ParametricGenerator):
             tf.sigmoid(after_offset + width) - tf.sigmoid(after_offset - width)
         )
 
+    def produce_graph(self, session, constraint, steps=64, examples=1024):
+        """
+        tf.Session -> [Float] -> Int? -> ()
+        Graph the constraint satisfaction function and an histogram of generated
+        solutions for a constraint.
+        """
+        # rc("font", **{"family": "serif", "serif": ["Computer Modern"]})
+        # rc("text", usetex=True)
+
+        # Setup
+        figure, histogram_axes = plt.subplots()
+
+        if len(constraint) != self.constraint_dimension:
+            raise ValueError(
+                "expected constraint of dimension {}".format(self.constraint_dimension)
+            )
+        constraint_input = tf.expand_dims(
+            tf.constant(constraint, dtype=tf.float32), axis=0
+        )
+        solution_input = tf.placeholder(dtype=tf.float32, shape=(steps,))
+        discriminator = self.build_discriminator(
+            tf.expand_dims(solution_input, axis=1),
+            tf.tile(constraint_input, [steps, 1]),
+        )
+        weights, biases = self.build_embedder(tf.tile(constraint_input, [examples, 1]))
+        generator = self.build_generator(
+            tf.random_uniform(
+                shape=(examples, self.latent_dimension), minval=0.0, maxval=1.0
+            ),
+            weights,
+            biases,
+        )
+
+        # Constraint satisfaction function
+        xs = np.linspace(-1, 1, steps)
+        fxs = [
+            fx[0]
+            for fx in session.run(
+                discriminator["output"], feed_dict={solution_input: xs}
+            )
+        ]
+        maximum_f = max(fxs)
+        fxs = [fx / maximum_f for fx in fxs]
+
+        csf_axes = histogram_axes.twinx()
+        csf_axes.plot(xs, fxs, "black")
+        csf_axes.set_ylabel("Satisfaction probability")
+
+        # Generated examples
+        values = sorted([v[0] for v in session.run(generator["output"])])
+        histogram_axes.hist(values, bins=steps, range=(-1, 1), color="black")
+        histogram_axes.set_xlabel("Solution value")
+        histogram_axes.set_ylabel("Generated frequency")
+
+        plt.show()
+
 
 def run():
     """
@@ -77,9 +136,9 @@ def run():
     of an objective function with a constraint argument.
     """
     r = "leaky-relu"
-    l = (10, "leaky-relu")
+    l = (32, r)
 
-    pgt = ParametricGeneratorTest(3, 10, 1.0)
+    pgt = ParametricGeneratorTest(2, 10, 0.7)
     pgt.set_embedder_architecture([l], r, [l], r)
     pgt.set_generator_architecture([l, l], r, "tanh")
 
@@ -119,4 +178,8 @@ def run():
         Args.training_steps_per_epoch,
         pgt.generator_training_batch_size,
         [("Recall", recall), ("Precision", precision)],
+    )
+
+    pgt.produce_graph(
+        session, np.random.uniform(size=(pgt.constraint_dimension,), low=-1.0, high=1.0)
     )
