@@ -141,7 +141,7 @@ class ParametricGenerator:
         Construct sample nodes for training the generator.
         """
         self.latent_sample = self.make_latent_sample_node()
-        self.constraint_sample = self.make_constraint_sample_node()
+        self.constraint_sample = self.make_repeated_constraint_sample_node()
 
     def make_latent_sample_node(self):
         """
@@ -166,6 +166,22 @@ class ParametricGenerator:
             minval=self.constraint_lower_bound,
             maxval=self.constraint_upper_bound,
             name=self.extend_name("constraint_sample"),
+        )
+
+    def make_repeated_constraint_sample_node(self):
+        """
+        () -> tf.Node
+        Create an instance of a node sampling one constraint from the constraint
+        space and then repeating it multiple times to make a batch.
+        """
+        return tf.tile(
+            tf.random.uniform(
+                [1, self.constraint_dimension],
+                minval=self.constraint_lower_bound,
+                maxval=self.constraint_upper_bound,
+                name=self.extend_name("constraint_sample"),
+            ),
+            [self.generator_training_batch_size, 1],
         )
 
     def build_embedder(self, constraint_input):

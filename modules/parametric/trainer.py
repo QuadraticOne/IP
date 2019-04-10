@@ -64,8 +64,11 @@ class Trainer(Experiment):
         self.epsilon = 1.0
         self.validation_proportion = 0.2
         self.pretraining_loss = "uniformity"
+        self.pretraining_loss_metadata = {}
         self.precision_proxy = "precision"
+        self.precision_proxy_metadata = {}
         self.recall_proxy = "uniformity"
+        self.recall_proxy_metadata = {}
 
         self.log = False
 
@@ -213,7 +216,9 @@ class Trainer(Experiment):
             self.parametric_generator.make_latent_sample_node(), weights, biases
         )
 
-        loss = self.metrics(generator=generator).get(self.pretraining_loss)
+        loss = self.metrics(generator=generator).get(
+            self.pretraining_loss, self.pretraining_loss_metadata
+        )
         optimiser, init = tu.default_adam_optimiser_with_initialiser(
             loss,
             "pretraining_optimiser",
@@ -259,8 +264,10 @@ class Trainer(Experiment):
 
         metrics = self.metrics(generator=generator, discriminator=discriminator)
 
-        precision_proxy = metrics.get(self.precision_proxy)
-        recall_proxy = metrics.get(self.recall_proxy)
+        precision_proxy = metrics.get(
+            self.precision_proxy, self.precision_proxy_metadata
+        )
+        recall_proxy = metrics.get(self.recall_proxy, self.recall_proxy_metadata)
         loss = precision_proxy + self.recall_weight * recall_proxy
 
         optimiser, init = tu.default_adam_optimiser_with_initialiser(
@@ -347,8 +354,11 @@ class Trainer(Experiment):
             ),
             "discriminatorValidationProportion": self.validation_proportion,
             "pretrainingLoss": self.pretraining_loss,
+            "pretrainingLossMetadata": self.pretraining_loss_metadata,
             "precisionProxy": self.precision_proxy,
+            "precisionProxyMetadata": self.precision_proxy_metadata,
             "recallProxy": self.recall_proxy,
+            "recallProxyMetadata": self.recall_proxy_metadata,
         }
 
         if self.evaluation_parameters is not None:
@@ -385,10 +395,13 @@ class Trainer(Experiment):
             trainer.validation_proportion = json["discriminatorValidationProportion"]
         if "pretrainingLoss" in json:
             trainer.pretraining_loss = json["pretrainingLoss"]
+            trainer.pretraining_loss_metadata = json["pretrainingLossMetadata"]
         if "precisionProxy" in json:
             trainer.precision_proxy = json["precisionProxy"]
+            trainer.precision_proxy_metadata = json["precisionProxyMetadata"]
         if "recallProxy" in json:
             trainer.recall_proxy = json["recallProxy"]
+            trainer.recall_proxy_metadata = json["recallProxyMetadata"]
         if "epsilon" in json:
             trainer.epsilon = json["epsilon"]
 

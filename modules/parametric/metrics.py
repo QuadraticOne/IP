@@ -13,14 +13,17 @@ class Metrics:
         self.embedder = embedder
         self.discriminator = discriminator
 
-        self.metrics = {"precision": self.precision, "uniformity": self.uniformity}
+        self.metrics = {
+            "precision": self.precision,
+            "uniformity": self.uniformity,
+            "separation": self.separation,
+        }
 
-    def get(self, metric_name):
+    def get(self, identifier, metadata={}):
         """
         String -> tf.Node
         Return a tensorflow node that evaluates the named metric, if it exists.
         """
-        identifier, args = head_and_tail(metric_name.split("-"))
         if identifier not in self.metrics:
             raise ValueError(
                 "metric identifier should be one of {} but is '{}'".format(
@@ -28,7 +31,7 @@ class Metrics:
                     identifier,
                 )
             )
-        return self.metrics[metric_name](args)
+        return self.metrics[identifier](metadata)
 
     def require(self, generator=False, embedder=False, discriminator=False):
         """
@@ -44,7 +47,7 @@ class Metrics:
 
     def precision(self, _):
         """
-        [String] -> tf.Node
+        Dict -> tf.Node
         Return a node that computes the precision of the samples taken from the
         generator.
         """
@@ -59,7 +62,7 @@ class Metrics:
 
     def uniformity(self, _):
         """
-        [String] -> tf.Node
+        Dict -> tf.Node
         Return a node that represents the distance of the generator from the identity
         function in the function space.
         """
@@ -83,16 +86,35 @@ class Metrics:
             name="uniformity",
         )
 
-    def satisfaction_probability(self, args):
+    def separation(self, metadata):
         """
-        [String] -> tf.Node
+        Dict -> tf.Node
+        Return a node that calculates the mean distance between two points in the
+        generator sample.
+        """
+        self.require(generator=True)
+        target = metadata["target"] if "target" in metadata else 1.0
+
+        samples = self.generator["output"]
+        shape = tf.shape(samples)
+        repeated = tf.tile(samples, [shape[0], 1])
+        grouped = tf.reshape(
+            tf.tile(samples, [1, shape[0]]), [shape[0] * shape[0], shape[1]]
+        )
+        squared_difference = tf.square(repeated - grouped)
+        mean_separation = tf.reduce_mean(squared_difference)
+        return tf.square(target - mean_separation)
+
+    def satisfaction_probability(self, metadata):
+        """
+        Dict -> tf.Node
         Return a node that calculates the probability that a sample from the latent
         space, when mapped to the solution space, will satisfy its constraints.  The
         first argument is the cutoff probability, below which the solution will not
         count as satisfying the constraints.
         """
         self.require(discriminator=True)
-        cutoff = 0.8 if len(args) == 0 else float(args[0])
+        cutoff = metadata["cutoff"] if "cutoff" in metadata else 0.8
         return tf.reduce_mean(
             tf.where(tf.less(self.discriminator["output"], cutoff), 0.0, 1.0)
         )

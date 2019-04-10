@@ -97,9 +97,7 @@ def tex_table(headers, rows):
         else:
             raise ValueError("undefined formatting type")
 
-    strings = [" & ".join(headers) + " \\\\"]
+    strings = ["&".join(headers) + "\\\\"]
     for row in rows:
-        strings.append(
-            " & ".join([format(row[header]) for header in headers]) + " \\\\"
-        )
-    return "\n".join(strings)
+        strings.append("&".join([format(row[header]) for header in headers]) + "\\\\")
+    return "".join(strings)

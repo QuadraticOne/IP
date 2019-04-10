@@ -54,9 +54,15 @@ def default_holes_trainer(dataset_size):
     )
 
 
-def generate_holes_data(dataset_size, recall_weight=None, log=None):
+def generate_holes_data(
+    dataset_size,
+    recall_weight=None,
+    log=None,
+    recall_proxy=None,
+    recall_proxy_metadata=None,
+):
     """
-    Int -> Float? -> Bool? -> ()
+    Int -> Float? -> Bool? -> String? -> Dict? -> ()
     Train five discriminator/generator pairs on the holes dataset of the given
     size and log the results under production/datasets/holes/results-<size>.
     """
@@ -65,6 +71,12 @@ def generate_holes_data(dataset_size, recall_weight=None, log=None):
         trainer.recall_weight = recall_weight
     if log is not None:
         trainer.log = log
+    if recall_proxy is not None:
+        trainer.pretraining_loss = recall_proxy
+        trainer.recall_proxy = recall_proxy
+    if recall_proxy_metadata is not None:
+        trainer.pretraining_loss_metadata = recall_proxy_metadata
+        trainer.recall_proxy_metadata = recall_proxy_metadata
 
     trainer.log_experiments(
         "results-{}".format(dataset_size), 5, reset=trainer.reset_training
