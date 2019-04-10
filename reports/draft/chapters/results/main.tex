@@ -346,6 +346,20 @@ That increasing $w$ did trade precision for spread does suggest, however, that i
     \caption{Generator precision and spread loss at different points throughout training for $\epsilon=1$.}
     \label{table:generatorTrainingProgression}
 \end{table}
+Using the separation spread loss as a recall proxy instead results in an even lower relative density, with the spread loss approaching effectively $0$ but the generator only sampling from a tiny subset of satisfactory solutions (Table \ref{table:separationTrainedGeneratorSamples}).
+\begin{table}[H]
+    \centering
+    \begin{tabular}{*3c}
+    \toprule
+    $s_1\;(x)$&$s_2\;(y)$&$s_3\;(r)$\\
+    \midrule
+    -0.775&-1.000&0.666\\-0.185&-0.927&0.739\\0.557&1.000&0.821\\0.937&1.000&0.877\\0.825&1.000&0.843\\0.502&1.000&0.783\\-0.767&-1.000&0.661\\-0.758&-1.000&0.656\\-0.718&-1.000&0.627\\-0.581&-1.000&0.662\\
+    \bottomrule
+    \end{tabular}
+    \caption{Example solutions for $c=[0.324,\;0.307,\;0.568]$ sampled from a generator trained using separation spread loss as a recall proxy with $w=1,\;q_\text{target}=1$.
+    Samples come from a very limited subset of $S$ which consists mostly of the fringes of the solution space.}
+    \label{table:separationTrainedGeneratorSamples}
+\end{table}
 
 \subsection{Equality constraints}
 

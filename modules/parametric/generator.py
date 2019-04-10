@@ -39,6 +39,8 @@ class ParametricGenerator:
         self.solution_lower_bound, self.solution_upper_bound = (-1.0, 1.0)
         self.constraint_lower_bound, self.constraint_upper_bound = (-1.0, 1.0)
 
+        self.repeat_constraints = False
+
     def set_generator_architecture(
         self, internal_layers, internal_activation, output_activation
     ):
@@ -141,7 +143,7 @@ class ParametricGenerator:
         Construct sample nodes for training the generator.
         """
         self.latent_sample = self.make_latent_sample_node()
-        self.constraint_sample = self.make_repeated_constraint_sample_node()
+        self.constraint_sample = self.make_constraint_sample_node()
 
     def make_latent_sample_node(self):
         """
@@ -161,12 +163,15 @@ class ParametricGenerator:
         Create an instance of a node sampling from the constraint space in
         a manner likely to create a realistic distribution.
         """
-        return tf.random.uniform(
-            [self.generator_training_batch_size, self.constraint_dimension],
-            minval=self.constraint_lower_bound,
-            maxval=self.constraint_upper_bound,
-            name=self.extend_name("constraint_sample"),
-        )
+        if self.repeat_constraints:
+            return self.make_repeated_constraint_sample_node()
+        else:
+            return tf.random.uniform(
+                [self.generator_training_batch_size, self.constraint_dimension],
+                minval=self.constraint_lower_bound,
+                maxval=self.constraint_upper_bound,
+                name=self.extend_name("constraint_sample"),
+            )
 
     def make_repeated_constraint_sample_node(self):
         """
@@ -350,6 +355,8 @@ class ParametricGenerator:
             generator.constraint_lower_bound = args["constraintSpace"]["lowerBound"]
             generator.constraint_upper_bound = args["constraintSpace"]["upperBound"]
 
+        generator.repeat_constraints = args["repeatConstraints"]
+
         return generator
 
     @staticmethod
@@ -421,6 +428,7 @@ class ParametricGenerator:
             "lowerBound": self.constraint_lower_bound,
             "upperBound": self.constraint_upper_bound,
         }
+        json["repeatConstraints"] = self.repeat_constraints
 
         return json
 

@@ -95,6 +95,12 @@ class Metrics:
         self.require(generator=True)
         target = metadata["target"] if "target" in metadata else 1.0
 
+        if (
+            self.trainer is not None
+            and not self.trainer.parametric_generator.repeat_constraints
+        ):
+            print("WARNING: trying to use separation loss without repeated constraints")
+
         samples = self.generator["output"]
         shape = tf.shape(samples)
         repeated = tf.tile(samples, [shape[0], 1])

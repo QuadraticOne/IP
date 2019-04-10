@@ -42,10 +42,10 @@ def plot_satisfaction_vs_density(constraints, thinning_factor=8):
     plt.show()
 
 
-def plot_training_progression(experiments):
+def training_progression_table(experiments):
     """
     [Dict] -> ()
-    Plot the progression of precision proxy loss and recall proxy loss from
+    Produce a table of precision proxy loss and recall proxy loss from
     initialisation, through pretraining, and after training.
     """
     rows = []
@@ -81,23 +81,46 @@ def plot_training_progression(experiments):
     )
 
 
+def example_solutions_table(constraint, n_solutions):
+    """
+    Dict -> Int -> String
+    Produce the body of a table listing a number of example solutions to the
+    given constraint.
+    """
+    relevant_solutions = [
+        solution["solution"]
+        for solution in constraint["solutions"]
+        if solution["type"] == "generated"
+    ][:n_solutions]
+    return "".join(
+        [
+            "&".join([format(s) for s in solution]) + "\\\\"
+            for solution in relevant_solutions
+        ]
+    )
+
+
 def tex_table(headers, rows):
     """
     [String] -> [Dict] -> [String]
     Construct a TeX table from a list of data.
     """
-
-    def format(value):
-        if isinstance(value, str):
-            return value
-        elif isinstance(value, int):
-            return str(value)
-        elif isinstance(value, float):
-            return "{0:.3f}".format(value)
-        else:
-            raise ValueError("undefined formatting type")
-
     strings = ["&".join(headers) + "\\\\"]
     for row in rows:
         strings.append("&".join([format(row[header]) for header in headers]) + "\\\\")
     return "".join(strings)
+
+
+def format(value):
+    """
+    a -> String
+    Return a string representation of a fundamental data type.
+    """
+    if isinstance(value, str):
+        return value
+    elif isinstance(value, int):
+        return str(value)
+    elif isinstance(value, float):
+        return "{0:.3f}".format(value)
+    else:
+        raise ValueError("undefined formatting type")
