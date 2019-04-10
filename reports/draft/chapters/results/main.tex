@@ -11,10 +11,10 @@ Some experiments were also carried out to visualise and explore the latent space
 
 \subsection{Distribution distance}
 
-Due to the potential issues with minimising KL-divergence discussed in \S 4.1.2, a highly simplified environment was devised in which the target distribution is known.
+Due to the potential issues with minimising KL-divergence discussed in \S4.1.2, a highly simplified environment was devised in which the target distribution is known.
 The target distribution was fixed as a standard normal distribution (constraints were not considered at this stage) and the generator's output distribution was modelled as a normal distribution whose mean and standard deviation were controllable parameters.
 
-Although KL-divergence is analytically tractable for two normal distributions, it was estimated through sampling of the generated distribution as described in \S 4.1.1.
+Although KL-divergence is analytically tractable for two normal distributions, it was estimated through sampling of the generated distribution as described in \S4.1.1.
 Trained variables were initialised such that the standard deviation started at $1$, while the initial mean was varied.
 \begin{figure}[H]
     \begin{center}
@@ -43,7 +43,7 @@ Figure \ref{fig:narrowKLDivergence} shows that the variables converge at approxi
 Missing, however, are the trend lines for $\mu_0=1.0$, $\mu_0=2.0$; both $\mu$ and $\sigma$ went to \url{NaN} after the first epoch.
 This may well have been caused by an excessively large KL-divergence resulting in exploding gradients due to the limited precision of floating point numbers.
 
-Changing the computation graph to use \url{float64} values instead of \url{float32} lends further evidence to this hypothesis, as increasing the precision allowed the $\mu=1.0, 2.0$, $\sigma=0.1$ cases to be optimised without numerical errors (Figure \ref{fig:narrowKLDivergenceFloat64}).
+Changing the computation graph to use \url{float64} values instead of \url{float32} lends further evidence to this hypothesis, as increasing the precision allowed the $\mu=1.0,2.0$, $\sigma=0.1$ cases to be optimised without numerical errors (Figure \ref{fig:narrowKLDivergenceFloat64}).
 Similarly, using 16-bit floating point values always resulted in \url{NaN} errors occurring.
 \begin{figure}[H]
     \begin{center}
@@ -59,17 +59,17 @@ It was therefore concluded that minimising KL-divergence is too inconsistent for
 
 \subsection{Precision proxy optimisation}
 
-Potential issues with directly estimating the recall of one distribution with respect to another were discussed in \S 4.3.
+Potential issues with directly estimating the recall of one distribution with respect to another were discussed in \S4.3.
 It was also hypothesised that optimising only for precision, $\hat{p}(g)$, would result in the generator sampling only a small subset of the viable solutions.
 
 A short experiment was devised to prove that this is the case and hence that some other approximation of the recall would be needed.
 A function modelling the probability of satisfaction for a solution in one dimension ($m=1$) was defined arbitrarily as:
-$$h(c,s) = \sigma(20c - 6) - \sigma(20c - 14)$$
+$$h(c,s)=\sigma(20c-6)-\sigma(20c-14)$$
 where
 $$\sigma(x)=\frac{1}{1+e^{-x}}$$
 and there is only one possible constraint for the sake of simplicity ($n=0$).
 A graph of the constraint satisfaction function on $[-1, 1]$ is shown in Figure \ref{fig:sigmoidBumpFunction}.
-Numerically integrating $h$ between $c=-1$ and $c=1$ gives an area of $~0.3999$, so the probability density function is $\hat{V}(c)(s) \approx 2.5008 \; h(c,s)$.
+Numerically integrating $h$ between $c=-1$ and $c=1$ gives an area of $~0.3999$, so the probability density function is $\hat{V}(c)(s)\approx2.5008\;h(c,s)$.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{sigmoidBumpFunction}
@@ -79,7 +79,7 @@ Numerically integrating $h$ between $c=-1$ and $c=1$ gives an area of $~0.3999$,
     \label{fig:sigmoidBumpFunction}
     \end{center}
 \end{figure}
-Optimising the generator against $h(c, s)$ for the precision proxy defined in \S 4.2.1 consistently yields a distribution of generated solutions displayed in Figure \ref{fig:sigmoidBumpHistogram}.
+Optimising the generator against $h(c,s)$ for the precision proxy defined in \S4.2.1 consistently yields a distribution of generated solutions displayed in Figure \ref{fig:sigmoidBumpHistogram}.
 Only considering precision and disregarding recall has clearly produced a mapping which is of no use: it always maps to the same point in spite of the fact that around $15\%$ of the solution space has a constraint satisfaction probability above $0.9$.
 \begin{figure}[H]
     \begin{center}
@@ -92,7 +92,7 @@ Only considering precision and disregarding recall has clearly produced a mappin
     \end{center}
 \end{figure}
 This issue becomes even more pronounced when the constraint satisfaction function is altered to have two distinct modes (Figure \ref{fig:sigmoidBumpHistogramBimodal}).
-$$h(c,s) = \sigma(20c - 6) - \sigma(20c - 14) + \sigma(20c + 6) - \sigma(20c + 14)$$
+$$h(c,s)=\sigma(20c-6)-\sigma(20c-14)+\sigma(20c+6)-\sigma(20c+14)$$
 While a very high precision is obtained, with all generated solutions having a satisfaction probability of $~96\%$, optimising solely for precision fails entirely to encapsulate the bimodality of the constraint satisfaction function even in such a simple environment, confirming that optimisation must take recall into consideration for satisfactory results.
 \begin{figure}[H]
     \begin{center}
@@ -109,7 +109,7 @@ While a very high precision is obtained, with all generated solutions having a s
 
 In the absence of a recall proxy, it was suggested that the generator be pretrained to ensure that its initial distribution covers as wide a range of the solution space as possible.
 This is based on two suppositions: that the generator initially only takes samples from an isolated region of the solution space; and that a more general distribution would explore multiple high-satisfaction regions of the solution space, thereby capturing a multimodal distribution even when optimising only for precision.
-The generator's architecture remained the same as that used in \S 6.1.2, and the bimodal constraint satisfaction function from the latter half of that section was also used.
+The generator's architecture remained the same as that used in \S6.1.2, and the bimodal constraint satisfaction function from the latter half of that section was also used.
 
 That the first assumption is true is confirmed trivially by taking samples from the generator before training (Figure \ref{fig:initialisedGenerator}).
 Glorot initialisation, a common method of initialising the weights of neural networks, was used to initialise the generator's network weights.
@@ -138,7 +138,7 @@ That spread function will then be used in further experiments.
 
 Below are examples of typical generated viable sets after pretraining with each spread metric.
 Identity spread (Figure \ref{fig:identitySpread}) was trained with a batch size of 4096, while separation spread (Figure \ref{fig:separationSpread}) was trained with a smaller batch size of 256 to prevent excessive computations.
-The target spread was set to $q_\text{target} = 1$, such that the desired mean distance between sampled solutions is equal to $1$.
+The target spread was set to $q_\text{target}=1$, such that the desired mean distance between sampled solutions is equal to $1$.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{identitySpread}
@@ -206,7 +206,7 @@ Solutions less likely to satisfy the constraint are almost never sampled.
 \subsection{Constraint embeddings}
 
 The only part of the proposed architecture that has yet to be verified is the insertion of constraints in an embedded form at the output layer of the generator.
-This is achieved using a generalised alteration of the constraint satisfaction function used in \S 6.1.3 such that the position of each peak is controlled by one dimension of the constraint.
+This is achieved using a generalised alteration of the constraint satisfaction function used in \S6.1.3 such that the position of each peak is controlled by one dimension of the constraint.
 Code used to construct this function inside a Tensorflow computation graph can be found in the appendix.
 % Tensorflow was used to map the dimensions of the constraint vector onto this function, simulating a constraint satisfaction function learned by the discriminator:
 % \begin{lstlisting}[language=Python]
@@ -299,7 +299,8 @@ The remainder of this chapter will examine that architecture's performance in mo
 \subsection{Expected satisfaction probability}
 
 One crucial requirement of the generator is that the solutions it produces should generally have a high satisfaction probability.
-The expected satisfaction probability will be used to measure the performance of the generator on various environments, and is calculated by taking the mean across the satisfaction probability, according to $h(c, s)$, of each solution in a sample.
+The expected satisfaction probability will be used to measure the performance of the generator on various environments, and is calculated by taking the mean across the satisfaction probability, according to $h(c,s)$, of each solution in a sample.
+Similarly, the median satisfaction probability is the median of the satisfaction probability of every solution in the sample.
 
 \subsection{Relative density of true solutions}
 
@@ -310,14 +311,33 @@ For the purposes of evaluating the generator, the relative density of true solut
 Calculating this value requires a sample of solutions from the true viable distribution: this is achieved by fixing the constraint vector, and then sampling from the discriminator using the Metropolis-Hastings algorithm.
 The sampled data should be distributed in approximately the same way as $V(c)$ for sufficiently long Markov chains.
 
-Finding the relative density of each of these solutions in the learned viable distribution requires creating an histogram from a large number of samples from the generator (for $m > 1$ an $n$-tree is used to adaptively reduce the number of bins needed).
+Finding the relative density of each of these solutions in the learned viable distribution requires creating an histogram from a large number of samples from the generator (for $m>1$ an $n$-tree is used to adaptively reduce the number of bins needed).
 For each true solution sampled from the Markov chain, the smallest bin within the $n$-tree containing that solution is found.
 The relative density of that solution is then defined as the ratio of proportion of generator-sampled points in that bin to the proportion of the volume of the solution space which is bounded by that bin.
 
 Intuitively, if a solution has a relative density greater than $1$ then it is being sampled more frequently than it would be if the generator simply output a uniform distribution; conversely, a relative density of less than $1$ suggests it is being sampled less frequently.
 For a generator with good recall it could therefore be expected that the mean relative density over a sample of points taken from the true viable distribution by a Markov chain Monte Carlo algorithm should be above $1$.
 
+\subsection{Data collection}
+
+All environments used in further experiments implemented a common interface that allowed the training of a generator upon them to output a large JSON file containing data about the experiment parameters and results.
+An exemplar JSON file is shown in the appendix, but the results were not reproduced here in full due to their excessive size.
+Unless otherwise stated: the generator consists of two hidden layers with 32 leaky-ReLU units and a single tanh output unit; the weight and bias constraint embedder have one hidden layer each with 32 leaky-ReLU units and 10 leaky-ReLU output units; pretraining is performed to minimise $q_\text{id}$ and then full training is performed to minimise a weighted sum of the precision proxy and $q_\text{id}$, both until convergence.
+
 \subsection{Effect of recall weight}
+
+A generator was trained on a more concrete engineering environment to examine the effect of tuning $w$ on the tradeoff between precision and recall.
+It is hypothesised that low $w$ causes high satisfaction probability but low relative density, whereas high $w$ causes the opposite.
+
+The engineering environment consists of a square plate with sides two units long whose origin is at its centre.
+Two holes are drilled into the plate, each described by the coordinates of their centre (which may be anywhere on the plate) and their radius (which may be in $[0,1]$).
+One of the hole's parameters are fixed; this hole is taken to be the constraint.
+The other hole's parameters are varied as the parameters of the solution.
+Satisfaction of the constraint occurs when the holes do not overlap.
+As such, $m=n=3$.
+
+Datasets of 64, 256, and 1024 $(s,c,h(c,s))$ tuples were created to train the discriminator, each balanced such that roughly half of the examples satisfied the constraint.
+
 \subsection{Equality constraints}
 
 \section{Latent space visualisation}
