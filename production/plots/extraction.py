@@ -27,6 +27,27 @@ def get_constraint_statistics(constraint):
     )
 
 
+def get_experiment_constraint_samples(experiment):
+    """
+    Dict -> [Dict]
+    Extract all constraint objects from a dictionary containing the results
+    of a single experiment.
+    """
+    return experiment["results"]["evaluation"]["constraintSamples"]
+
+
+def get_all_constraint_samples(experiment_repeats):
+    """
+    Dict -> [Dict]
+    Extract all constraint objects from a dictionary containing a number
+    of repeats of the same experiment.
+    """
+    constraints = []
+    for experiment in experiment_repeats["data"]:
+        constraints += get_experiment_constraint_samples(experiment)
+    return constraints
+
+
 def partition(predicate, values):
     """
     (a -> Bool) -> [a] -> ([a], [a])
