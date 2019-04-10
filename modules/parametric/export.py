@@ -61,6 +61,9 @@ class ExportedParametricGenerator:
                 feed_dict={constraint_input: constraint, sample_size: samples},
             )
 
+            if not isinstance(satisfaction_probabilities, list):
+                satisfaction_probabilities = [satisfaction_probabilities]
+
             zipped_samples = [
                 ExportedParametricGenerator.GeneratorSample(l, s, p)
                 for l, s, p in zip(

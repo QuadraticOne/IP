@@ -5,6 +5,7 @@ from wise.util.io import IO
 from wise.training.routines import fit
 from wise.training.experiments.experiment import Experiment
 from environments.environment import VectorEnvironment
+import environments.jsonutils as jutils
 import wise.util.training as tu
 import modules.sampling as sample
 import modules.parametric.evaluation as evaluation
@@ -28,13 +29,16 @@ class Trainer(Experiment):
         generator_pretraining_parameters,
         generator_training_parameters,
         evaluation_parameters=None,
+        experiment_log_folder=None,
     ):
         """
         ParametricGenerator -> Either String [([Float], [Float], Bool)]
             -> Float -> TrainingParameters -> TrainingParameters
-            -> TrainingParameters -> Trainer
+            -> TrainingParameters? -> String? -> Trainer
         Create a class for training parametric generators.
         """
+        super().__init__(experiment_log_folder, create_folder_if_missing=True)
+
         self.parametric_generator = parametric_generator
         self.dataset = dataset
         self.recall_weight = recall_weight
@@ -320,7 +324,7 @@ class Trainer(Experiment):
 
         if log is not None:
             self.log = old_log
-        return data
+        return jutils.clean(data)
 
     def to_json(self):
         """
@@ -440,7 +444,7 @@ class Trainer(Experiment):
                 json["evaluationSampleSize"],
             )
 
-        def fit(self, session, optimise_op, metrics=None, sampler=None):
+        def fit(self, session, optimise_op, metrics=[], sampler=None):
             """
             tf.Session -> tf.Op -> [(String, tf.Node)]? -> Sampler? -> ()
             Fit a model using the parameters defined within this data object.

@@ -13,11 +13,14 @@ def clean(json):
     elif isinstance(json, list):
         return [clean(v) for v in json]
     elif hasattr(json, "tolist"):
-        return json.tolist()
+        return clean(json.tolist())
     elif hasattr(json, "item"):
-        return json.item()
+        return clean(json.item())
     else:
-        return json
+        if any([isinstance(json, t) for t in [int, float, bool, str]]):
+            return json
+        else:
+            raise Exception("cannot clean JSON value of type {}".format(type(json)))
 
 
 def stringify(json, decimal_places=None):

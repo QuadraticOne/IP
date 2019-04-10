@@ -322,7 +322,7 @@ For a generator with good recall it could therefore be expected that the mean re
 
 All environments used in further experiments implemented a common interface that allowed the training of a generator upon them to output a large JSON file containing data about the experiment parameters and results.
 An exemplar JSON file is shown in the appendix, but the results were not reproduced here in full due to their excessive size.
-Unless otherwise stated: the generator consists of two hidden layers with 32 leaky-ReLU units and a single tanh output unit; the weight and bias constraint embedder have one hidden layer each with 32 leaky-ReLU units and 10 leaky-ReLU output units; pretraining is performed to minimise $q_\text{id}$ and then full training is performed to minimise a weighted sum of the precision proxy and $q_\text{id}$, both until convergence.
+Unless otherwise stated: the generator consists of two hidden layers with 4 leaky-ReLU units and a single tanh output unit; the weight and bias constraint embedder also have two hidden layers with 4 leaky-ReLU units and 2 leaky-ReLU output units; pretraining is performed to minimise $q_\text{id}$ and then full training is performed to minimise a weighted sum of the precision proxy and $q_\text{id}$, both until convergence.
 
 \subsection{Effect of recall weight}
 
@@ -337,6 +337,8 @@ Satisfaction of the constraint occurs when the holes do not overlap.
 As such, $m=n=3$.
 
 Datasets of 64, 256, and 1024 $(s,c,h(c,s))$ tuples were created to train the discriminator, each balanced such that roughly half of the examples satisfied the constraint.
+Samples were taken uniformly from $S$ and $C$, and the satisfaction probability was calculated for each pair.
+One hidden layer of four leaky-ReLU nodes was used for the discriminator.
 
 \subsection{Equality constraints}
 

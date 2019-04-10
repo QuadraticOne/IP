@@ -113,6 +113,9 @@ class EvaluationParameters:
         solutions = export.sample_for_constraint(
             constraint["constraint"], self.generated_solutions_per_constraint
         )
+        if self.generated_solutions_per_constraint == 1:
+            solutions = [solutions]
+
         for solution in solutions:
             constraint["solutions"].append(
                 {
