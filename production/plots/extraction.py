@@ -1,3 +1,6 @@
+from math import floor
+
+
 def get_solution_statistics(solution):
     """
     Dict -> (Float, Float, String)
@@ -22,8 +25,8 @@ def get_constraint_statistics(constraint):
         lambda s: s["type"] == "generated", constraint["solutions"]
     )
     return (
-        [s["satisfactionProbability"] for s in generated_solutions],
-        [s["relativeDensity"] for s in true_solutions],
+        sorted([s["satisfactionProbability"] for s in generated_solutions]),
+        sorted([s["relativeDensity"] for s in true_solutions]),
     )
 
 
@@ -61,3 +64,30 @@ def partition(predicate, values):
         else:
             falses.append(value)
     return trues, falses
+
+
+def percentile(p, data, presorted=False):
+    """
+    Float -> [Float] -> Bool -> Float
+    Return the value which would sit at the pth percentile of the data.
+    """
+    sorted_data = sorted(data) if not presorted else data
+    index = p * (len(data) - 1)
+    upper_weight = index - floor(index)
+    lower_weight = 1 - upper_weight
+    return (lower_weight * sorted_data[floor(index)] if lower_weight > 0.0 else 0.0) + (
+        upper_weight * sorted_data[floor(index + 1)] if upper_weight > 0.0 else 0.0
+    )
+
+
+def median_with_iqr(data):
+    """
+    [Float] -> (Float, Float, Float)
+    Return the lower quartile, median, and upper quartile of a set of data.
+    """
+    sorted_data = sorted(data)
+    return (
+        percentile(0.25, sorted_data, presorted=True),
+        percentile(0.50, sorted_data, presorted=True),
+        percentile(0.75, sorted_data, presorted=True),
+    )

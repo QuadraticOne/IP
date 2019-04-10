@@ -78,8 +78,8 @@ class ParametricGeneratorTest(ParametricGenerator):
         Graph the constraint satisfaction function and an histogram of generated
         solutions for a constraint.
         """
-        # rc("font", **{"family": "serif", "serif": ["Computer Modern"]})
-        # rc("text", usetex=True)
+        rc("font", **{"family": "serif", "serif": ["Computer Modern"]})
+        rc("text", usetex=True)
 
         # Setup
         figure, histogram_axes = plt.subplots()

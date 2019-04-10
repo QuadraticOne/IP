@@ -208,41 +208,6 @@ Solutions less likely to satisfy the constraint are almost never sampled.
 The only part of the proposed architecture that has yet to be verified is the insertion of constraints in an embedded form at the output layer of the generator.
 This is achieved using a generalised alteration of the constraint satisfaction function used in \S6.1.3 such that the position of each peak is controlled by one dimension of the constraint.
 Code used to construct this function inside a Tensorflow computation graph can be found in the appendix.
-% Tensorflow was used to map the dimensions of the constraint vector onto this function, simulating a constraint satisfaction function learned by the discriminator:
-% \begin{lstlisting}[language=Python]
-% import tensorflow as tf
-
-% constraint_dimension = 2
-
-% def constraint_satisfaction_function(
-%     solution_input, constraint_input
-% ):
-%     tiled_solution = tf.tile(
-%         solution_input, [1, constraint_dimension]
-%     )
-%     summed_output = tf.reduce_mean(
-%         sigmoid_peak(
-%             tiled_solution, constraint_input
-%         ), axis=1
-%     )
-%     return tf.reshape(
-%         summed_output, [tf.shape(summed_output)[0], 1]
-%     )
-
-% def sigmoid_peak(
-%     x,
-%     offset,
-%     width=5.0,
-%     thickness=0.05,
-%     height_scale=1.0
-% ):
-%     """Produces an individual peak centred on x."""
-%     after_offset = (x - offset) / thickness
-%     return height_scale * (
-%         tf.sigmoid(after_offset + width) - \
-%             tf.sigmoid(after_offset - width)
-%     )
-% \end{lstlisting}
 The generator was trained to minimise a weighted sum of precision and identity spread (as a recall proxy) for 150 epochs of 20,000 steps each; a recall proxy weight of $0.7$ was used for these figures.
 The generator had two hidden layers while both the weight and bias embedder had one hidden layer, with every hidden layer consisting of 32 leaky-ReLU units.
 Constraints were mapped into a $10$-dimensional embedding vector.
@@ -339,6 +304,67 @@ As such, $m=n=3$.
 Datasets of 64, 256, and 1024 $(s,c,h(c,s))$ tuples were created to train the discriminator, each balanced such that roughly half of the examples satisfied the constraint.
 Samples were taken uniformly from $S$ and $C$, and the satisfaction probability was calculated for each pair.
 One hidden layer of four leaky-ReLU nodes was used for the discriminator.
+\begin{figure}[H]
+    \begin{center}
+    \includegraphics[width=\textwidth]{solutionPropertiesEvenlyWeighted}
+    \caption{
+        The median and interquartile range of the satisfaction probability and relative density of 128 generated and 128 true solutions to a sample of constraints.
+        Generator trained with $w=1$.
+        Relative density is given as $\log_2(\rho+1)$ to space the data while conserving the important lines $\rho=0$ and $\rho=1$.
+    }
+    \label{fig:solutionPropertiesEvenlyWeighted}
+    \end{center}
+\end{figure}
+Immediately noticeable is the very high precision: only one of the constraints has a satisfaction probability of under $0.8$ for at least half of its generated solutions.
+Recall is generally quite poor, however.
+Only a small proportion of the true solutions were sampled more frequently by the generator than by a uniform distribution.
+It was hypothesised that increasing $w$ would shift the constraints to regions of higher relative density, at the cost of slightly decreasing the precision of the generator.
+\begin{figure}[H]
+    \begin{center}
+    \includegraphics[width=\textwidth]{solutionPropertiesW3}
+    \caption{
+        The median and interquartile range of the satisfaction probability and relative density of 128 generated and 128 true solutions to a sample of constraints.
+        Generator trained with $w=3$.
+    }
+    \label{fig:solutionPropertiesW3}
+    \end{center}
+\end{figure}
+Figure \ref{fig:solutionPropertiesW3} shows this to be partially incorrect, however; while a reduction in satisfaction probability is observed, increasing $w$ does not appear to have increased the relative density for the majority of constraints.
+But the spread loss does appear to be consistently reduced by increasing $w$ (Table \ref{table:generatorTrainingProgression}), suggesting that $q_\text{id}$ is not an accurate gauge of recall.
+That increasing $w$ did trade precision for spread does suggest, however, that if a feasible estimate for recall could be obtained, tuning $w$ would have the intuitive effect hypothesised previously.
+\begin{table}[H]
+    \centering
+    \begin{tabular}{*6c}
+    \toprule
+    {} & {} & \multicolumn{2}{c}{After pretraining} & \multicolumn{2}{c}{After training}\\
+    Experiment & $w$ & Spread loss & Precision loss & Spread loss & Precision loss\\
+    \midrule
+    1 & 0.500 & 0.116 & -0.452 & 0.213 & -0.650 \\
+    2 & 0.500 & 0.092 & -0.503 & 0.156 & -0.643 \\
+    3 & 0.500 & 0.098 & -0.466 & 0.225 & -0.647 \\
+    4 & 0.500 & 0.103 & -0.391 & 0.300 & -0.638 \\
+    5 & 0.500 & 0.119 & -0.410 & 0.229 & -0.637 \\
+    6 & 1.000 & 0.103 & -0.420 & 0.173 & -0.632 \\
+    7 & 1.000 & 0.093 & -0.324 & 0.181 & -0.659 \\
+    8 & 1.000 & 0.091 & -0.537 & 0.174 & -0.644 \\
+    9 & 1.000 & 0.136 & -0.457 & 0.136 & -0.631 \\
+    10 & 1.000 & 0.113 & -0.438 & 0.143 & -0.634 \\
+    11 & 2.000 & 0.121 & -0.452 & 0.113 & -0.549 \\
+    12 & 2.000 & 0.104 & -0.431 & 0.132 & -0.600 \\
+    13 & 2.000 & 0.085 & -0.435 & 0.105 & -0.515 \\
+    14 & 2.000 & 0.090 & -0.435 & 0.164 & -0.617 \\
+    15 & 2.000 & 0.110 & -0.429 & 0.124 & -0.591 \\
+    16 & 3.000 & 0.074 & -0.442 & 0.100 & -0.558 \\
+    17 & 3.000 & 0.088 & -0.443 & 0.121 & -0.544 \\
+    18 & 3.000 & 0.123 & -0.444 & 0.108 & -0.551 \\
+    19 & 3.000 & 0.100 & -0.423 & 0.099 & -0.511 \\
+    20 & 3.000 & 0.103 & -0.427 & 0.111 & -0.487 \\
+    \bottomrule
+    \end{tabular}
+    \caption{Generator precision and spread loss at different points throughout training for $\epsilon=1$.}
+    \label{table:generatorTrainingProgression}
+\end{table}
+
 
 \subsection{Equality constraints}
 
