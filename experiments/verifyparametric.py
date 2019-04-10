@@ -135,6 +135,9 @@ def run():
     Attempt to train a parametric generate to sample from the solution space
     of an objective function with a constraint argument.
     """
+    rc("font", **{"family": "serif", "serif": ["Computer Modern"]})
+    rc("text", usetex=True)
+
     r = "leaky-relu"
     l = (32, r)
 
