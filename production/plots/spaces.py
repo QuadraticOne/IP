@@ -1,4 +1,5 @@
 from matplotlib import rc
+from maths.mesh import Mesh
 import production.datagen.branin as branin
 import numpy as np
 import matplotlib.pyplot as plt
@@ -61,16 +62,23 @@ def plot_solutions(
             ),
             "red",
             0.2,
+            Mesh.unit,
         )
 
     if satisfaction_cutoffs is not None:
         discriminator = export.satisfaction_probability(np.array(constraint))
         smin, smax = satisfaction_cutoffs
         draw_truth_regions(
-            lambda p: smin <= discriminator(np.array([p[0], p[1]])) < smax, "cyan", 0.2
+            lambda p: smin <= discriminator(np.array([p[0], p[1]])) < smax,
+            "cyan",
+            0.2,
+            Mesh.unit,
         )
         draw_truth_regions(
-            lambda p: smax <= discriminator(np.array([p[0], p[1]])), "blue", 0.2
+            lambda p: smax <= discriminator(np.array([p[0], p[1]])),
+            "blue",
+            0.2,
+            Mesh.unit,
         )
 
     plt.plot(xs, ys, ".")
@@ -117,54 +125,30 @@ def plot_solutions(
     plt.show()
 
 
-def draw_truth_regions(
-    f,
-    colour,
-    alpha,
-    x_bins=100,
-    y_bins=100,
-    xlim=(0.0, 1.0),
-    ylim=(0.0, 1.0),
-    show=False,
-):
+def draw_truth_regions(f, colour, alpha, mesh, show=False):
     """
-    ((Float, Float) -> Bool) -> String -> Float -> Int? -> Int?
-        -> (Float, Float)? -> (Float, Float)? -> Bool? -> ()
+    ((Float, Float) -> Bool) -> String -> Float -> Mesh -> Bool? -> ()
     Get the truth regions for a function on a given domain and then fill
     them in on the current plot.  Optionally, show the plot afterwards.
     """
-    points = get_truth_regions(f, x_bins=x_bins, y_bins=y_bins, xlim=xlim, ylim=ylim)
-    draw_boxes(
-        points,
-        colour,
-        alpha,
-        ((xlim[1] - xlim[0]) / x_bins, (ylim[1] - ylim[0]) / y_bins),
-        show=show,
-    )
+    draw_boxes(get_truth_regions(f, mesh), colour, alpha, mesh, show=show)
 
 
-def get_truth_regions(f, x_bins=100, y_bins=100, xlim=(0.0, 1.0), ylim=(0.0, 1.0)):
+def get_truth_regions(f, mesh):
     """
-    ((Float, Float) -> Bool) -> Int? -> Int? -> (Float, Float)?
-        -> (Float, Float)? -> [(Float, Float)]
+    ((Float, Float) -> Bool) -> Mesh -> [(Float, Float)]
     Return a list of points for which the given function returns True.
     """
-    points = []
-    for x in np.linspace(xlim[0], xlim[1], x_bins):
-        for y in np.linspace(ylim[0], ylim[1], y_bins):
-            if f((x, y)):
-                points.append((x, y))
-    return points
+    return [point for point in mesh.all_points if f(point)]
 
 
-def draw_boxes(points, colour, alpha, bin_size, show=False):
+def draw_boxes(points, colour, alpha, mesh, show=False):
     """
-    [(Float, Float)] -> String -> Float -> (Float, Float) -> Bool? -> ()
+    [(Float, Float)] -> String -> Float -> Mesh -> Bool? -> ()
     Add shaded pixels to the current plot in squares of equal size centred
     on each of the given points.  Optionally also draws the plot afterwards.
     """
-    bin_x, bin_y = bin_size
-    dx, dy = 0.5 * bin_x, 0.5 * bin_y
+    dx, dy = mesh.half_bin_size
 
     for x, y in points:
         plt.fill(
