@@ -433,4 +433,54 @@ This presents promising evidence that, with further refinement of the discrimina
 
 \section{Latent space visualisation}
 
+To gain an intuitive understanding of how the generator maps the latent space to the solution space, a tool was written to plot invariants of each dimension of the latent space in the solution space.
+The viable space was overlayed onto these plots.
+Because both its solution and constraint spaces are two-dimensional, the Branin function environment was considered the most apt for visualisation purposes, and so the generator trained in that environment was used.
+\begin{figure}[H]
+    \begin{center}
+    \includegraphics[width=\textwidth]{latentPlot0803}
+    \caption{
+        Latent invariants in the solution space of the Branin environment for $c=[0.8,\;0.3]$.
+    }
+    \label{fig:latentPlot0803}
+    \end{center}
+\end{figure}
+Figure \ref{fig:latentPlot0803} shows a highly constrained case where two distinct, narrow bands of viable solutions exist.
+As expected given previous results, the latent space is highly compressed within these two regions, with an exceptionally sparse area in between them.
+\begin{figure}[H]
+    \begin{center}
+    \includegraphics[width=\textwidth]{latentPlot0407}
+    \caption{
+        Latent invariants in the solution space of the Branin environment for $c=[0.4,\;0.7]$.
+    }
+    \label{fig:latentPlot0407}
+    \end{center}
+\end{figure}
+The near-equality constraint is relaxed somewhat in Figure \ref{fig:latentPlot0407}, giving way to much larger areas of viable solutions.
+The latent space is, correctly, more spread out in this plot, but some parts of the solution space $-$ including some viable solutions $-$ exist completely outside the latent space.
+This might explain why, in \S6.2.4, so many true solutions were found to have no likelihood of occurring in the set of generated solutions.
+\begin{figure}[H]
+    \begin{center}
+    \includegraphics[width=\textwidth]{latentPlot0000}
+    \caption{
+        Latent invariants in the solution space of the Branin environment for $c=[0.0,\;0.0]$, a degenerate case with no solutions.
+    }
+    \label{fig:latentPlot0000}
+    \end{center}
+\end{figure}
+For the sake of completeness, Figure \ref{fig:latentPlot0000} shows the behaviour of the latent space in a degenerate case with no solutions.
+Far fewer sparse regions appear here than in the other examples, with the entirety of the latent space relatively compressed.
+It also appears to frequently overlap itself, a phenomena not frequently seen for other constraints.
+\begin{figure}[H]
+    \begin{center}
+    \includegraphics[width=\textwidth]{latentPlot0001}
+    \caption{
+        Latent invariants in the solution space of the Branin environment for $c=[0.0,\;0.1]$.
+    }
+    \label{fig:latentPlot0001}
+    \end{center}
+\end{figure}
+Finally, Figure \ref{fig:latentPlot0001} shows a fairly lenient case with a ride range of potential solutions.
+Here, the lack of recall is particularly evident, with relatively few of the potential solutions having latent equivalents in spite of the fact that most of the latent space maps to a viable solution.
+
 \end{document}
