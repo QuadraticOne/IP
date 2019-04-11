@@ -1,5 +1,6 @@
 import modules.reusablenet as rnet
 import tensorflow as tf
+import numpy as np
 
 
 class ExportedParametricGenerator:
@@ -12,6 +13,7 @@ class ExportedParametricGenerator:
         self.sample_for_constraint = self._make_sample_for_constraint(
             generator, session
         )
+        self.map_to_solution = self._make_map_to_solution(generator, session)
 
         self.constraint_optimiser = self._make_constraint_optimiser(generator, session)
         self.satisfaction_probability = self._make_satisfaction_probability(
@@ -70,6 +72,57 @@ class ExportedParametricGenerator:
             return zipped_samples
 
         return sample_for_constraint
+
+    def _make_map_to_solution(self, parametric_generator, session):
+        """
+        ParametricGenerator -> tf.Session -> (np.array -> (np.array -> np.array))
+        Generate a function that maps from the latent space to the solution space.
+        """
+        latent_placeholder = rnet.make_input_node(
+            [None, parametric_generator.latent_dimension]
+        )
+        constraint_placeholder = rnet.make_input_node(
+            [parametric_generator.constraint_dimension]
+        )
+        replicated_constraint = tf.tile(
+            tf.expand_dims(constraint_placeholder, axis=0),
+            [tf.shape(latent_placeholder)[0], 1],
+        )
+
+        weights, biases = parametric_generator.build_embedder(replicated_constraint)
+        generator = parametric_generator.build_generator(
+            latent_placeholder, weights, biases
+        )
+
+        def map_to_solution(constraint):
+            """
+            np.array -> (np.array -> np.array)
+            Given a constraint, return a function that maps a list of latent
+            coordinates into the solution space.
+            """
+            np_constraint = np.array(constraint)
+
+            def map_to_solution_inner(latent_points):
+                wrapped = False
+
+                np_latent_points = np.array(latent_points)
+                if len(np_latent_points.shape) == 1:
+                    np_latent_points = np.array([np_latent_points])
+                    wrapped = True
+
+                output = session.run(
+                    generator["output"],
+                    feed_dict={
+                        constraint_placeholder: np_constraint,
+                        latent_placeholder: np_latent_points,
+                    },
+                )
+
+                return output if not wrapped else output[0]
+
+            return map_to_solution_inner
+
+        return map_to_solution
 
     def _make_constraint_optimiser(self, parametric_generator, session):
         """
