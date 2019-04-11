@@ -3,6 +3,7 @@ from maths.mesh import Mesh
 import production.datagen.branin as branin
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patheffects as pe
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 
@@ -43,8 +44,8 @@ def plot_solutions(
     can be set to plot the learned viable set according to the discriminator
     when the satisfaction probability is predicted to be above some cutoff.
     """
-    rc("font", **{"family": "serif", "serif": ["Computer Modern"]})
-    rc("text", usetex=True)
+    set_latex_font()
+    mesh = Mesh.unit
 
     solutions = [
         s.solution
@@ -62,7 +63,7 @@ def plot_solutions(
             ),
             "red",
             0.2,
-            Mesh.unit,
+            mesh,
         )
 
     if satisfaction_cutoffs is not None:
@@ -72,13 +73,10 @@ def plot_solutions(
             lambda p: smin <= discriminator(np.array([p[0], p[1]])) < smax,
             "cyan",
             0.2,
-            Mesh.unit,
+            mesh,
         )
         draw_truth_regions(
-            lambda p: smax <= discriminator(np.array([p[0], p[1]])),
-            "blue",
-            0.2,
-            Mesh.unit,
+            lambda p: smax <= discriminator(np.array([p[0], p[1]])), "blue", 0.2, mesh
         )
 
     plt.plot(xs, ys, ".")
@@ -118,8 +116,7 @@ def plot_solutions(
 
     plt.legend(handles=legend)
 
-    plt.xlim(0, 1)
-    plt.ylim(0, 1)
+    mesh.bound_pyplot()
     plt.xlabel("$s_{}$".format(x + 1))
     plt.ylabel("$s_{}$".format(y + 1))
     plt.show()
@@ -160,3 +157,60 @@ def draw_boxes(points, colour, alpha, mesh, show=False):
 
     if show:
         plt.show()
+
+
+def plot_latent_contours(
+    export, constraint, mesh, dimensions=(0, 1), thinning_factor=5
+):
+    """
+    ExportedParametricGenerator -> [Float] -> Mesh -> (Int, Int)?
+        -> Int -> ()
+    Plot lines for which l_1 and l_2 are held constant in the
+    solution space.
+    """
+    x_contours = mesh.x_contours[::thinning_factor]
+    y_contours = mesh.y_contours[::thinning_factor]
+
+    mapper = export.map_to_solution(constraint)
+    x_contour_coords = [mapper(x_contour) for x_contour in x_contours]
+    y_contour_coords = [mapper(y_contour) for y_contour in y_contours]
+
+    set_latex_font()
+
+    for contour in x_contour_coords[1:] + y_contour_coords[1:]:
+        xs, ys = zip(*contour)
+        plt.plot(xs, ys, "blue", alpha=0.4)
+
+    left, right = x_contour_coords[0], x_contour_coords[-1]
+
+    def clip(a, b):
+        return lambda x: a if x < a else (b if x > b else x)
+
+    def plot_text(x, y, text):
+        text_border_x = 0.05
+        text_border_y = 0.02
+        plt.text(
+            clip(mesh.x_min + text_border_x, mesh.x_max - text_border_x)(x),
+            clip(mesh.y_min + text_border_y, mesh.y_max - text_border_y)(y),
+            text,
+            bbox={"facecolor": "white", "edgecolor": "none", "pad": 1, "alpha": 0.6},
+        )
+
+    plot_text(left[0][0], left[0][1], "$l=(0,0)$")
+    plot_text(left[-1][0], left[-1][1], "$l=(0,1)$")
+    plot_text(right[0][0], right[0][1], "$l=(1,0)$")
+    plot_text(right[-1][0], right[-1][1], "$l=(1,1)$")
+
+    mesh.bound_pyplot()
+    plt.xlabel("$s_1$")
+    plt.ylabel("$s_2$")
+    plt.show()
+
+
+def set_latex_font():
+    """
+    () -> ()
+    Inform pyplot to use LaTeX default font when drawing figures.
+    """
+    rc("font", **{"family": "serif", "serif": ["Computer Modern"]})
+    rc("text", usetex=True)
