@@ -374,7 +374,7 @@ $$c_1\cdot c_2\le\beta(x,y)\le c_2,\quad c_1,c_2\;\in\;[0,\;1]$$
 and so:
 $$h(c,s)=\left\{\begin{array}{ll}\text{satisfied}&\mbox{if }c_1\cdot c_2\le\beta(s_1,s_2)\le c_2\\\text{unsatisfied}&\mbox{otherwise}\end{array}\right.$$
 As with the environment in \S6.2.4, datasets of various sizes were created and a discriminator and generator were trained on the resulting data.
-The generator seemed to produce good solutions over a large range of the true viable space for most constraints, but was unable to find solutions to some constraints, as shown in Figure \ref{fig:braninPropertiesW1}.
+The generator seemed to produce good solutions over a large range of the true viable space for most constraints, but was unable to find solutions to some constraints, as shown in Figure \ref{fig:braninPropertiesW3}.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{braninPropertiesW1}
@@ -383,7 +383,51 @@ The generator seemed to produce good solutions over a large range of the true vi
         The discriminator was trained with one hidden layer, while the generator and constraint embedders each had two, all of which had 32 leaky-ReLU activated nodes.
         Identity spread loss was used as a substitute for recall with $w=1$.
     }
-    \label{fig:braninPropertiesW1}
+    \label{fig:braninPropertiesW3}
+    \end{center}
+\end{figure}
+After training, the constraint $c=[0.5,\;0.5]$ was chosen, corresponding to regions of the solution space for which the altered Branin function outputs values in $[0.25,\;0.5]$.
+Samples were then drawn from the learned viable distribution and plotted in the solution space, with overlays for the output of the discriminator and the true constraint satisfaction function, in Figure \ref{fig:equality05}.
+\begin{figure}[H]
+    \begin{center}
+    \includegraphics[width=\textwidth]{equality05}
+    \caption{
+        1024 sample solutions, high-likelihood regions of the discriminator, and the regions containing true solutions for a generator trained on the constrained Branin function environment.
+        $c=[0.5\;0.5]$.
+    }
+    \label{fig:equality05}
+    \end{center}
+\end{figure}
+It is immediately clear that the vast majority of sampled solutions lie within regions of $S$ which the discriminator predicts are likely to satisfy the constraint satisfaction function.
+Note also that the discriminator appears to have sharp edges (the cyan region in Figure \ref{fig:equality05} is thin compared to the blue region) and is generally accurate in its prediction of the boundaries of the viable space.
+While the points are spread out sufficiently to cover a wide range of the viable space and avoid coalescing into peaks, there are also regions near the periphery of the viable space which are undersampled, suggesting that some precision could be traded for an increase in recall.
+
+Increasing $c_1$ to $0.7$, constraining the viable space to those solutions for which $0.35\le\beta(s_1,s_2)\le0.5$, yields similar results (Figure \ref{fig:equality07}).
+\begin{figure}[H]
+    \begin{center}
+    \includegraphics[width=\textwidth]{equality07}
+    \caption{
+        1024 sample solutions, high-likelihood regions of the discriminator, and the regions containing true solutions for a generator trained on the constrained Branin function environment.
+        $c=[0.7,\;0.5]$.
+    }
+    \label{fig:equality07}
+    \end{center}
+\end{figure}
+The discriminator's predictions appear to be becoming less accurate as the bounded constraint approaches an equality constraint, failing to recognise that solutions near the origin do not satisfy the constraint.
+While the discriminator made similar misclassifications for $c=[0.5,\;0.5]$, the error is now affecting the learned viable distribution to the extent that a large number of samples are drawn from a region outside the true viable space.
+
+Finally, $c_1$ was increased to $0.9$, representing regions for which $0.45\le\beta(s_1,s_2)\le0.5$, effectively approaching an equality constraint (Figure \ref{fig:equality09}).
+Of the two modes in the true viable space, one is fairly consistently sampled by the learned viable distribution, while the other is missed almost entirely.
+It should be noted, however, that the generator has learned to sample high-likelihood regions of the discriminator, but that the discriminator misclassified the mode closer to the origin.
+This presents promising evidence that, with further refinement of the discriminator, this architecture could be used to accurately sample equality constraints.
+\begin{figure}[H]
+    \begin{center}
+    \includegraphics[width=\textwidth]{equality09}
+    \caption{
+        1024 sample solutions, high-likelihood regions of the discriminator, and the regions containing true solutions for a generator trained on the constrained Branin function environment.
+        $c=[0.9,\;0.5]$.
+    }
+    \label{fig:equality09}
     \end{center}
 \end{figure}
 
