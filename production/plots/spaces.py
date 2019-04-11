@@ -177,9 +177,23 @@ def plot_latent_contours(
 
     set_latex_font()
 
-    for contour in x_contour_coords[1:] + y_contour_coords[1:]:
+    legend_added = False
+    for contour in x_contour_coords[1:]:
         xs, ys = zip(*contour)
-        plt.plot(xs, ys, "blue", alpha=0.4)
+        if legend_added:
+            plt.plot(xs, ys, "blue", alpha=0.4)
+        else:
+            plt.plot(xs, ys, "blue", alpha=0.4, label="$l_1=\\mathrm{const}$")
+            legend_added = True
+
+    legend_added = False
+    for contour in y_contour_coords[1:]:
+        xs, ys = zip(*contour)
+        if legend_added:
+            plt.plot(xs, ys, "red", alpha=0.4)
+        else:
+            plt.plot(xs, ys, "red", alpha=0.4, label="$l_2=\\mathrm{const}$")
+            legend_added = True
 
     left, right = x_contour_coords[0], x_contour_coords[-1]
 
@@ -187,12 +201,13 @@ def plot_latent_contours(
         return lambda x: a if x < a else (b if x > b else x)
 
     def plot_text(x, y, text):
-        text_border_x = 0.05
-        text_border_y = 0.02
+        text_border_x = 0.1
+        text_border_y = 0.05
         plt.text(
             clip(mesh.x_min + text_border_x, mesh.x_max - text_border_x)(x),
             clip(mesh.y_min + text_border_y, mesh.y_max - text_border_y)(y),
             text,
+            ha="center",
             bbox={"facecolor": "white", "edgecolor": "none", "pad": 1, "alpha": 0.6},
         )
 
@@ -200,6 +215,8 @@ def plot_latent_contours(
     plot_text(left[-1][0], left[-1][1], "$l=(0,1)$")
     plot_text(right[0][0], right[0][1], "$l=(1,0)$")
     plot_text(right[-1][0], right[-1][1], "$l=(1,1)$")
+
+    plt.legend()
 
     mesh.bound_pyplot()
     plt.xlabel("$s_1$")
