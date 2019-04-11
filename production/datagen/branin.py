@@ -59,7 +59,7 @@ def default_branin_trainer(dataset_size):
     generator.build_input_nodes()
 
     layer = (32, "leaky-relu")
-    generator.set_discriminator_architecture([layer])
+    generator.set_discriminator_architecture([(64, "leaky-relu"), (64, "leaky-relu")])
     generator.set_embedder_architecture(
         [layer, layer], "leaky-relu", [layer, layer], "leaky-relu"
     )

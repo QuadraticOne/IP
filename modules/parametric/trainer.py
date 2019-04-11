@@ -309,6 +309,18 @@ class Trainer(Experiment):
 
         return data
 
+    def train(self, reset=True):
+        """
+        Bool? -> ()
+        Train the parametric generator.
+        """
+        if reset:
+            self.reset_training()
+
+        self.train_discriminator()
+        self.pretrain_generator()
+        self.train_generator()
+
     def run_experiment(self, log=None):
         """
         Bool? -> Dict
