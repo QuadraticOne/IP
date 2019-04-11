@@ -5,9 +5,21 @@
 \chapter{Conclusions}
 
 \section{Discussion}
+
+This project examined a generic engineering problem and postulated that such problems could be simplified by learning a latent mapping into the solution space.
+It was shown that in order for this mapping to be modelled by an artificial neural network it was necessary to view the space of viable solutions as a probability distribution over the space of valid solutions.
+A tradeoff between the precision and recall of the mapping was introduced and, while a method was devised for estimating the precision of a learned viable distribution, it was shown that estimating the recall of a distribution is intractable without further work.
+Two substitute metrics, referred to as spread metrics, were then introduced which, it was hypothesised, would encourage the mapping to exhibit similar features to if it had been trained on a direct estimation of the recall.
+
+Using a simple, abstract environment, experiments were conducted which suggested that optimising for precision produces a mapping capable of sampling viable solutions.
+It was also shown that maximising a weighted sum of precision and one of the spread metrics was a suitable proxy for optimising precision and recall.
+Experimentation on more concrete, complex environments proved the robustness of the precision metric, but saw the substitutes for recall fail to force a complete mapping of all viable solutions.
+The ability of the mapping to satisfy equality constraints was then examined, and visualisations of the learned latent space were explored to gain an intuitive understanding of the mapping.
+
 \section{Further work}
-\subsection{Utilising prior knowledge}
-\subsection{Composite constraints}
+\subsection{Other recall substitutes}
 \subsection{Simplex intersection}
+\subsection{Composite constraints}
+\subsection{Direct constraint embedding}
 
 \end{document}
