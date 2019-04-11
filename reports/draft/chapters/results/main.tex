@@ -363,6 +363,30 @@ Using the separation spread loss as a recall proxy instead results in an even lo
 
 \subsection{Equality constraints}
 
+A constraint found commonly in engineering problems is an equality constraint, specifying that some property must equal a particular value.
+Such a constraint can be created using the current architecture by parameterising the constraint such that it describes the upper and lower acceptable bounds on a property, and then setting these two bounds to be arbitrarily close together.
+
+The Branin function, $\beta(x,y)$, was chosen to test the ability of the generator to approximate equality constraints as it is a standard test function for which an equality constraint produces distinct contours.
+Having a solution dimension of $2$ also makes visualisation of the results possible.
+To make passing the function and its arguments into the discriminator possible, both inputs and the output were scaled to be in $[0,\;1]$.
+The constraint vector, in two dimensions, was then defined such that the constraint is considered satisfied when:
+$$c_1\cdot c_2\le\beta(x,y)\le c_2,\quad c_1,c_2\;\in\;[0,\;1]$$
+and so:
+$$h(c,s)=\left\{\begin{array}{ll}\text{satisfied}&\mbox{if }c_1\cdot c_2\le\beta(s_1,s_2)\le c_2\\\text{unsatisfied}&\mbox{otherwise}\end{array}\right.$$
+As with the environment in \S6.2.4, datasets of various sizes were created and a discriminator and generator were trained on the resulting data.
+The generator seemed to produce good solutions over a large range of the true viable space for most constraints, but was unable to find solutions to some constraints, as shown in Figure \ref{fig:braninPropertiesW1}.
+\begin{figure}[H]
+    \begin{center}
+    \includegraphics[width=\textwidth]{braninPropertiesW1}
+    \caption{
+        Solutions which produce values within certain bounds when passed through the Branin function, as sampled by $5$ instances of a generator.
+        The discriminator was trained with one hidden layer, while the generator and constraint embedders each had two, all of which had 32 leaky-ReLU activated nodes.
+        Identity spread loss was used as a substitute for recall with $w=1$.
+    }
+    \label{fig:braninPropertiesW1}
+    \end{center}
+\end{figure}
+
 \section{Latent space visualisation}
 
 \end{document}
