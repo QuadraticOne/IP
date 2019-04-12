@@ -2,9 +2,9 @@
 
 \begin{document}
 
-\chapter{Theoretical Formulation}
+\chapter{Theoretical Formulation} \label{chapter:theoreticalFormulation}
 
-\section{Solution and constraint spaces}
+\section{Solution and constraint spaces} \label{section:solutionAndConstraintSpaces}
 
 As stated in the introduction, the objective of this project is to find a way to learn a space of viable solutions parameterised by a constraint $V(c)$, and an efficient method of taking samples from it.
 Let $g'(l, c)$ be the learned generator function as opposed to the true generator function.
@@ -31,7 +31,7 @@ This tradeoff is parameterised by a hyperparameter $w$ describing the weight of 
 The value of this weight can be tuned to determine how confident the network should be that its suggestions will satisfy the constraint versus how confident it is that it is sampling from all the possible solutions.
 $$\mathcal{L}(g) = p(g) + w \cdot r(g)$$
 
-\section{Modelling spaces as distributions}
+\section{Modelling spaces as distributions} \label{section:modellingSpacesAsDistributions}
 
 One limitation of neural networks for this application is the fact that their output space is always unimodal (given that the input space is unimodal), while the viable space for a constraint will almost always be multimodal.
 This arises as a consequence of the differentiability of neural networks, which is a desirable quality for this application so that gradient-based optimisation algorithms can still be used in the latent space.
@@ -68,17 +68,17 @@ Proxy metrics can now be defined which are intuitively similar to the precision 
 It is also possible to consider a distance metric between two distributions $-$ which is much easier to define than a distance metric between two spaces $-$ and minimise this directly, to prompt $\hat{V'}(c)$ to match $\hat{V}(c)$.
 These avenues are both explored in the next chapter.
 
-\section{Adapting the GAN architecture}
+\section{Adapting the GAN architecture} \label{section:adaptingTheGANArchitecture}
 
 A probabilistic interpretation of vector spaces has been introduced which provides information on the density of points within a generated space, thereby working around the limitation of neural networks that prevents them from making discontinuous jumps from one mode to another.
 This will also later allow the definition of more tractable loss functions that can be used to train the learned generator function.
 The network architecture, however, is still not clear.
 $$\text{TODO: diagram of a typical GAN architecture}$$
-GANs, introduced in \S 2.4, are a family of neural network architectures which allow samples to be drawn from a distribution.
+GANs, introduced in \S\ref{section:adversarialAlgorithms}, are a family of neural network architectures which allow samples to be drawn from a distribution.
 A typical GAN architecture has a generator, taking samples from the latent space to the feature space, and a discriminator, which determines whether points in the feature space are true or generated.
 Their ability to sample from a distribution is already very close to the required functionality of the learned generator, so some adaptations to the traditional GAN will be proposed.
 
-\subsection{Pretrained discriminator}
+\subsection{Pretrained discriminator} \label{subsection:pretrainedDiscriminator}
 
 Traditional GAN training procedures update both the discriminator and generator iteratively.
 This forces the generator to learn a range of outputs $-$ effectively punishing low recall $-$ by having the discriminator adapt continuously to the changing output of the generator.
@@ -87,7 +87,7 @@ In an engineering problem, however, $h$ is fixed and does not change.
 Whether $h$ is known in advance or learned from data, it does not make sense for it to be updated alongside the generator since the constraint satisfaction function (discriminator) is immutable.
 This has already been accounted for by optimising for a combination of precision and recall, forcing the generator to not overspecialise.
 
-\subsection{Curried generator}
+\subsection{Curried generator} \label{subsection:curriedGenerator}
 
 Distributions learned by GANs are normally fixed.
 The distribution $\hat{V}(c)$ is parameterised by the constraint vector, however, and so any adapted GAN architecture needs to be capable of taking a constraint as input and adapting its output accordingly.
@@ -108,7 +108,7 @@ In other words, DQNs prove that it is possible to use neural networks as curried
 To adapt this to our use case, we need only realise that a constraint embedding can be produced as a function of the constraint vector, which could feasibly be approximated by another neural network.
 So information about the constraint can be passed into the generator network by estimating the weights of its output layer using a separate network, the embedder network, which takes only the constraint as input.
 
-\subsection{Data-free training}
+\subsection{Data-free training} \label{subsection:dataFreeTraining}
 
 If the discriminator has already been trained, or is known, no data are needed to train the generator because samples from it can be used as training examples.
 Exactly how this works will be discussed in the next chapter.

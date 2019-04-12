@@ -2,16 +2,16 @@
 
 \begin{document}
 
-\chapter{Results}
+\chapter{Results} \label{chapter:results}
 
 A number of experiments were conducted with two broad goals: verifying that at least some of the proposed options work on simplified abstract engineering environments, and proving that the proposed architecture has desirable qualities in more complex environments.
 Some experiments were also carried out to visualise and explore the latent space mappings in an intuitive way.
 
-\section{Approach verification}
+\section{Approach verification} \label{section:approachVerification}
 
-\subsection{Distribution distance}
+\subsection{Distribution distance} \label{subsection:distributionDistance}
 
-Due to the potential issues with minimising KL-divergence discussed in \S4.1.2, a highly simplified environment was devised in which the target distribution is known.
+Due to the potential issues with minimising KL-divergence discussed in \S\ref{subsection:potentialIssues}, a highly simplified environment was devised in which the target distribution is known.
 The target distribution was fixed as a standard normal distribution (constraints were not considered at this stage) and the generator's output distribution was modelled as a normal distribution whose mean and standard deviation were controllable parameters.
 
 Although KL-divergence is analytically tractable for two normal distributions, it was estimated through sampling of the generated distribution as described in \S4.1.1.
@@ -57,9 +57,9 @@ Similarly, using 16-bit floating point values always resulted in \url{NaN} error
 \end{figure}
 It was therefore concluded that minimising KL-divergence is too inconsistent for practical use, as real distributions $-$ which are frequently disjoint $-$ would very likely cause numerical issues due to lack of the required precision.
 
-\subsection{Precision proxy optimisation}
+\subsection{Precision proxy optimisation} \label{subsection:precisionProxyOptimisation}
 
-Potential issues with directly estimating the recall of one distribution with respect to another were discussed in \S4.3.
+Potential issues with directly estimating the recall of one distribution with respect to another were discussed in \S\ref{section:neuralNetworkInversion}.
 It was also hypothesised that optimising only for precision, $\hat{p}(g)$, would result in the generator sampling only a small subset of the viable solutions.
 
 A short experiment was devised to prove that this is the case and hence that some other approximation of the recall would be needed.
@@ -79,7 +79,7 @@ Numerically integrating $h$ between $c=-1$ and $c=1$ gives an area of $~0.3999$,
     \label{fig:sigmoidBumpFunction}
     \end{center}
 \end{figure}
-Optimising the generator against $h(c,s)$ for the precision proxy defined in \S4.2.1 consistently yields a distribution of generated solutions displayed in Figure \ref{fig:sigmoidBumpHistogram}.
+Optimising the generator against $h(c,s)$ for the precision proxy defined in \S\ref{subsection:precision} consistently yields a distribution of generated solutions displayed in Figure \ref{fig:sigmoidBumpHistogram}.
 Only considering precision and disregarding recall has clearly produced a mapping which is of no use: it always maps to the same point in spite of the fact that around $15\%$ of the solution space has a constraint satisfaction probability above $0.9$.
 \begin{figure}[H]
     \begin{center}
@@ -105,11 +105,11 @@ While a very high precision is obtained, with all generated solutions having a s
     \end{center}
 \end{figure}
 
-\subsection{Pretraining}
+\subsection{Pretraining} \label{subsection:pretrainingResults}
 
 In the absence of a recall proxy, it was suggested that the generator be pretrained to ensure that its initial distribution covers as wide a range of the solution space as possible.
 This is based on two suppositions: that the generator initially only takes samples from an isolated region of the solution space; and that a more general distribution would explore multiple high-satisfaction regions of the solution space, thereby capturing a multimodal distribution even when optimising only for precision.
-The generator's architecture remained the same as that used in \S6.1.2, and the bimodal constraint satisfaction function from the latter half of that section was also used.
+The generator's architecture remained the same as that used in \S\ref{subsection:precisionProxyOptimisation}, and the bimodal constraint satisfaction function from the latter half of that section was also used.
 
 That the first assumption is true is confirmed trivially by taking samples from the generator before training (Figure \ref{fig:initialisedGenerator}).
 Glorot initialisation, a common method of initialising the weights of neural networks, was used to initialise the generator's network weights.
@@ -184,7 +184,7 @@ Comparing Figure \ref{fig:sigmoidBumpHistogramBimodal} to Figures \ref{fig:ident
 This comes at a cost, however; while the generator pretrained on $q_\text{id}$ samples in roughly equal proportions from both modes, it also frequently samples solutions from between the modes which are unlikely to satisfy the constraint.
 Because both metrics have similar results but separation spread takes longer to train, the identity spread will be used in further experiments unless the latent space is required to have a different dimension to the solution space.
 
-\subsection{Maximising precision and spread}
+\subsection{Maximising precision and spread} \label{subsection:maximisingPrecisionAndSpread}
 
 It was observed while training on precision after pretraining on spread that early stopping was required to prevent the generator from falling back into a unimodal distribution.
 One possibility is, after pretraining, to minimise a weighted sum of precision and spread loss, as if the spread loss were a proxy for the recall of the learned viable distribution.
@@ -203,10 +203,10 @@ Figure \ref{fig:identityAndPrecision} shows the learned viable distribution afte
 This is clearly a result superior to any obtained previously, with the generator sampling both modes, and almost always in regions with a satisfaction probability above $0.8$.
 Solutions less likely to satisfy the constraint are almost never sampled.
 
-\subsection{Constraint embeddings}
+\subsection{Constraint embeddings} \label{subsection:constraintEmbeddings}
 
 The only part of the proposed architecture that has yet to be verified is the insertion of constraints in an embedded form at the output layer of the generator.
-This is achieved using a generalised alteration of the constraint satisfaction function used in \S6.1.3 such that the position of each peak is controlled by one dimension of the constraint.
+This is achieved using a generalised alteration of the constraint satisfaction function used in \S\ref{subsection:pretrainingResults} such that the position of each peak is controlled by one dimension of the constraint.
 Code used to construct this function inside a Tensorflow computation graph can be found in the appendix.
 The generator was trained to minimise a weighted sum of precision and identity spread (as a recall proxy) for 150 epochs of 20,000 steps each; a recall proxy weight of $0.7$ was used for these figures.
 The generator had two hidden layers while both the weight and bias embedder had one hidden layer, with every hidden layer consisting of 32 leaky-ReLU units.
@@ -256,18 +256,18 @@ It is hypothesised that these are artefacts of the cost of moving probability ma
     \end{center}
 \end{figure}
 
-\section{Method properties}
+\section{Method properties} \label{section:methodProperties}
 
 The first half of this chapter described experiments performed on abstract, simplified engineering problems to inform the design of the project's deliverable architecture.
 The remainder of this chapter will examine that architecture's performance in more depth and in more concrete engineering environments.
 
-\subsection{Expected satisfaction probability}
+\subsection{Expected satisfaction probability} \label{subsection:expectedSatisfactionProbability}
 
 One crucial requirement of the generator is that the solutions it produces should generally have a high satisfaction probability.
 The expected satisfaction probability will be used to measure the performance of the generator on various environments, and is calculated by taking the mean across the satisfaction probability, according to $h(c,s)$, of each solution in a sample.
 Similarly, the median satisfaction probability is the median of the satisfaction probability of every solution in the sample.
 
-\subsection{Relative density of true solutions}
+\subsection{Relative density of true solutions} \label{subsection:relativeDensityOfTrueSolutions}
 
 Another requirement of the generator is that it samples from the entire range of viable solutions.
 In all further experiments, identity spread is used as a subtitute for the recall due to its intractibility.
@@ -283,13 +283,13 @@ The relative density of that solution is then defined as the ratio of proportion
 Intuitively, if a solution has a relative density greater than $1$ then it is being sampled more frequently than it would be if the generator simply output a uniform distribution; conversely, a relative density of less than $1$ suggests it is being sampled less frequently.
 For a generator with good recall it could therefore be expected that the mean relative density over a sample of points taken from the true viable distribution by a Markov chain Monte Carlo algorithm should be above $1$.
 
-\subsection{Data collection}
+\subsection{Data collection} \label{subsection:dataCollection}
 
 All environments used in further experiments implemented a common interface that allowed the training of a generator upon them to output a large JSON file containing data about the experiment parameters and results.
 An exemplar JSON file is shown in the appendix, but the results were not reproduced here in full due to their excessive size.
 Unless otherwise stated: the generator consists of two hidden layers with 4 leaky-ReLU units and a single tanh output unit; the weight and bias constraint embedder also have two hidden layers with 4 leaky-ReLU units and 2 leaky-ReLU output units; pretraining is performed to minimise $q_\text{id}$ and then full training is performed to minimise a weighted sum of the precision proxy and $q_\text{id}$, both until convergence.
 
-\subsection{Effect of recall weight}
+\subsection{Effect of recall weight} \label{subsection:effectOfRecallWeight}
 
 A generator was trained on a more concrete engineering environment to examine the effect of tuning $w$ on the tradeoff between precision and recall.
 It is hypothesised that low $w$ causes high satisfaction probability but low relative density, whereas high $w$ causes the opposite.
@@ -361,7 +361,7 @@ Using the separation spread loss as a recall proxy instead results in an even lo
     \label{table:separationTrainedGeneratorSamples}
 \end{table}
 
-\subsection{Equality constraints}
+\subsection{Equality constraints} \label{subsection:equalityConstraints}
 
 A constraint found commonly in engineering problems is an equality constraint, specifying that some property must equal a particular value.
 Such a constraint can be created using the current architecture by parameterising the constraint such that it describes the upper and lower acceptable bounds on a property, and then setting these two bounds to be arbitrarily close together.
@@ -373,7 +373,7 @@ The constraint vector, in two dimensions, was then defined such that the constra
 $$c_1\cdot c_2\le\beta(x,y)\le c_2,\quad c_1,c_2\;\in\;[0,\;1]$$
 and so:
 $$h(c,s)=\left\{\begin{array}{ll}\text{satisfied}&\mbox{if }c_1\cdot c_2\le\beta(s_1,s_2)\le c_2\\\text{unsatisfied}&\mbox{otherwise}\end{array}\right.$$
-As with the environment in \S6.2.4, datasets of various sizes were created and a discriminator and generator were trained on the resulting data.
+As with the environment in \S\ref{subsection:effectOfRecallWeight}, datasets of various sizes were created and a discriminator and generator were trained on the resulting data.
 The generator seemed to produce good solutions over a large range of the true viable space for most constraints, but was unable to find solutions to some constraints, as shown in Figure \ref{fig:braninPropertiesW3}.
 \begin{figure}[H]
     \begin{center}
@@ -431,7 +431,7 @@ This presents promising evidence that, with further refinement of the discrimina
     \end{center}
 \end{figure}
 
-\section{Latent space visualisation}
+\section{Latent space visualisation} \label{section:latentSpaceVisualisation}
 
 To gain an intuitive understanding of how the generator maps the latent space to the solution space, a tool was written to plot invariants of each dimension of the latent space in the solution space.
 The viable space was overlayed onto these plots.
@@ -458,7 +458,7 @@ As expected given previous results, the latent space is highly compressed within
 \end{figure}
 The near-equality constraint is relaxed somewhat in Figure \ref{fig:latentPlot0407}, giving way to much larger areas of viable solutions.
 The latent space is, correctly, more spread out in this plot, but some parts of the solution space $-$ including some viable solutions $-$ exist completely outside the latent space.
-This might explain why, in \S6.2.4, so many true solutions were found to have no likelihood of occurring in the set of generated solutions.
+This might explain why, in \S\ref{subsection:effectOfRecallWeight}, so many true solutions were found to have no likelihood of occurring in the set of generated solutions.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{latentPlot0000}

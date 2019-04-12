@@ -2,9 +2,34 @@
 
 \begin{document}
 
-\chapter{Conclusions}
+\chapter{Overview} \label{chapter:overview}
 
-\section{Discussion}
+\section{Further work} \label{section:furtherWork}
+
+\subsection{Other recall substitutes} \label{subsection:otherRecallSubstitutes}
+
+Many of the limitations of the method were found to be related to the inability to optimise for recall directly.
+Though two metrics were discussed which provided sufficient results when taken to measure recall, they were not designed for this purpose and it is proposed that better results could be obtained by creating a range of metrics specifically tailed for alleviating the effects of low recall.
+
+\subsection{Simplex intersection} \label{subsection:simplexIntersection}
+
+The intractability of estimating the generator's recall was found to be related to a lack of a viable simplex intersection algorithm in an arbitrary number of dimensions.
+While research did not find such an algorithm, it also did find any theses concluding that doing so is impossible.
+Further work into a simplex intersection algorithm could therefore allow direct optimisation of recall, eliminating a major flaw of the currently proposed method.
+
+\subsection{Composite constraints} \label{subsection:compositeConstraints}
+
+Currently, only one constraint can be fed into the generator at once.
+It is suggested that it might be possible to train a recusrive neural network to combine constraint vectors in ways resembling set operations applied to the viable set.
+This could allow multiple constraints to be combined, thereby making accessible the solutions to more complex, composite constraints.
+
+\subsection{Direct constraint embedding} \label{subsection:directConstraintEmbedding}
+
+Constraint vectors are mapped into an embedding which represents the weights and biases of the output layer of the generator in the current architecture.
+It was not investigated whether the generator would be able to learn effective mappings if the constraint vector were used directly as the weights of the final layer, without embedding.
+If this were the case, training times could be shortened by the resulting reduction in the number of parameters required for the generator.
+
+\section{Conclusion} \label{section:conclusion}
 
 This project examined a generic engineering problem and postulated that such problems could be simplified by learning a latent mapping into the solution space.
 It was shown that in order for this mapping to be modelled by an artificial neural network it was necessary to view the space of viable solutions as a probability distribution over the space of valid solutions.
@@ -20,29 +45,5 @@ Some nuanced solutions to equality constraints were missed, however.
 
 Visualisations of the learned latent space were explored to gain an intuitive understanding of the generator.
 Observations were made which provided plausible explanations for the shortcomings of the method discovered in earlier experiments.
-
-\section{Further work}
-\subsection{Other recall substitutes}
-
-Many of the limitations of the method were found to be related to the inability to optimise for recall directly.
-Though two metrics were discussed which provided sufficient results when taken to measure recall, they were not designed for this purpose and it is proposed that better results could be obtained by creating a range of metrics specifically tailed for alleviating the effects of low recall.
-
-\subsection{Simplex intersection}
-
-The intractability of estimating the generator's recall was found to be related to a lack of a viable simplex intersection algorithm in an arbitrary number of dimensions.
-While research did not find such an algorithm, it also did find any theses concluding that doing so is impossible.
-Further work into a simplex intersection algorithm could therefore allow direct optimisation of recall, eliminating a major flaw of the currently proposed method.
-
-\subsection{Composite constraints}
-
-Currently, only one constraint can be fed into the generator at once.
-It is suggested that it might be possible to train a recusrive neural network to combine constraint vectors in ways resembling set operations applied to the viable set.
-This could allow multiple constraints to be combined, thereby making accessible the solutions to more complex, composite constraints.
-
-\subsection{Direct constraint embedding}
-
-Constraint vectors are mapped into an embedding which represents the weights and biases of the output layer of the generator in the current architecture.
-It was not investigated whether the generator would be able to learn effective mappings if the constraint vector were used directly as the weights of the final layer, without embedding.
-If this were the case, training times could be shortened by the resulting reduction in the number of parameters required for the generator.
 
 \end{document}

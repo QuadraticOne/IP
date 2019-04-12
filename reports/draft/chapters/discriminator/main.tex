@@ -2,12 +2,12 @@
 
 \begin{document}
 
-\chapter{Discriminator}
+\chapter{Discriminator} \label{chapter:discriminator}
 
 Previous chapters have assumed that a discriminator has already been trained and is readily available.
 This chapter details the exact task of the discriminator and some rules of thumb for training the discriminator from data.
 
-\section{Formal definition}
+\section{Formal definition} \label{section:formalDefinition}
 
 The discriminator, denoted by $h'$, is a differentiable approximation of the constraint satisfaction function $h(c, s)$.
 While in some environments the constraint satisfaction function may be known, it is assumed that most environments will be too complex for an analytical satisfaction function and so it will be learned from data by a neural network.
@@ -16,7 +16,7 @@ Differentiability is required of the discriminator because gradients will pass t
 Because the constraint satisfaction function gives binary output, gradients will always be zero, so the discriminator is trained to output a probability that the solution satisfies the constraint to smooth the gradients.
 It is for this reason that even when an analytical form of the constraint satisfaction function is available, a neural network should be used to accelerate generator training by limiting the discriminator's capacity so that gradients are non-zero.
 
-\section{Training procedure}
+\section{Training procedure} \label{section:discriminatorTrainingProcedure}
 
 Data are provided in the form of (constraint, solution, satisfaction) tuples where the first two vectors are network inputs and the third is the label, denoting whether or not the solution satisfies the constraint.
 The discriminator will normally take the form of a standard feedforward multi-layer perceptron, taking its two arguments as a concatenated vector and outputting a single scalar probability.
@@ -28,17 +28,17 @@ The Adam optimiser is used here unless otherwise stated.
 
 It is also strongly recommended that a proportion of the data (nominally, 20\%) is set aside for the purposes of validating the learned discriminator after training.
 
-\section{Overfitting}
+\section{Overfitting} \label{section:overfitting}
 
 Because the generator is trained off the discriminator and not from data, ensuring that the discriminator does not overfit is essential.
 A number of standard techniques should be emploted, including dropout and L2 regularisation.
 The size of the dataset should be considered when choosing the network depth and width, and training should be stopped before validation error begins to rise (a sign that the network is overfitting).
 
-\section{Practical considerations}
+\section{Practical considerations} \label{section:practicalConsiderations}
 
 A number of different considerations should be taken into account on a case-by-case basis when training the discriminator.
 
-\subsection{Incorporating environment knowledge}
+\subsection{Incorporating environment knowledge} \label{subsection:incorporatingEnvironmentKnowledge}
 
 Many engineering environments are understood quite well from an analytical level, and this knowledge can sometimes be leveraged to augment the training data.
 A frequently valid assumption is that data points which are nearby in the feature space will produce similar outputs.
@@ -51,7 +51,7 @@ Negative samples could then be produced by taking the solution from one datum an
 
 Sparse environments may also be amenable to performing dimensionality reduction on the constraints, solutions, or both, by means of an autoencoder or VAE.
 
-\subsection{Limiting network capacity}
+\subsection{Limiting network capacity} \label{subsection:limitingNetworkCapacity}
 
 Training a perfect discriminator is not always desirable, as such a discriminator will have near-zero gradients by virtue of the fact that it is trying to approximate a binary function.
 Deliberately forcing the discriminator to cope with greater uncertainty can reduce the chance of the discriminator's output saturating, thereby giving clearer indications to the generator by backpropagating gradients of a greater magnitude.

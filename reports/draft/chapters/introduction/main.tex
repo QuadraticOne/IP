@@ -2,9 +2,9 @@
 
 \begin{document}
 
-\chapter{Introduction}
+\chapter{Introduction} \label{chapter:introduction}
 
-\section{Motivation}
+\section{Motivation} \label{section:motivation}
 
 Many engineering challenges can be expressed as optimisation problems, in which the objective is to search a space of possibilities for a value which maximises some objective function.
 In real world problems, the objective function is typically complicated enough that its maximum cannot be found analytically; in these cases, it is necessary to explore the solution space in order to find the optimal solution.
@@ -14,7 +14,7 @@ This will often be the case when trying to optimise continuous constraints, such
 Machine learning excels in exploiting underlying patterns in data to make predictions in the face of uncertainty.
 This project explores the use of machine learning algorithms in constructing a differentiable mapping between an arbitrary latent space and the space of solutions to a particular set of problems such that any point in the latent space, when mapped to the solution space, will satisfy some set of binary constraints.
 
-\section{Engineering problems}
+\section{Engineering problems} \label{section:engineeringProblems}
 
 For the purposes of this project, an engineering problem is defined as an optimisation problem in which we must find a solution $s$ which maximises an arbitrary objective function $f(s)$, while also satisfying a given constraint $c$.
 Constraint satisfaction is determined by some function $h(c, s)$ which maps a constraint and solution to one of two values, $\{\text{satisfied}, \text{unsatisfied}\}$.
@@ -31,7 +31,7 @@ where $a$ and $b$ are the arbitrary upper and lower bounds of the hypercube in e
 Since both $S$ and $C$ are hypercubes, it is trivial to take samples from them.
 As such, solving an engineering problem as defined here can be broken down into two steps: finding a solution vector $s$ for which $f(s)$ is suitably large; and ensuring that $h(c, s) = \text{satisfied}$ for the given constraint $c$.
 
-\section{Learned latent mapping}
+\section{Learned latent mapping} \label{section:learnedLatentMapping}
 
 Considering the two parts to solving the engineering problem, it is clear that the first part can already be achieved with conventional optimisation algorithms which have no knowledge of the objective surface.
 When certain regions of the solution space do not satisfy the constraint, however, optimisation algorithms which work by exploring the solution space are not able to work efficiently since there is no natural way of reconciling a binary constraint with a scalar-valued objective function other than evaluating the constraint satisfaction function at every sampled point.

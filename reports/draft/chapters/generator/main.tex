@@ -2,11 +2,11 @@
 
 \begin{document}
 
-\chapter{Generator Training}
+\chapter{Generator Training} \label{chapter:generatorTraining}
 
-\section{Distribution matching}
+\section{Distribution matching} \label{section:distributionMatching}
 
-\subsection{KL-divergence}
+\subsection{KL-divergence} \label{subsection:klDivergence}
 
 Because the use of neural networks requires a space similarity problem to be framed as a distribution similarity problem, distribution distance metrics can be used.
 If the generator is modelled by a network whose p.d.f. can quickly be found, the KL-divergence between $\hat{V}'(c)$ and $\hat{V}(c)$ can be estimated by drawing samples from $\hat{V'}(c)$.
@@ -31,7 +31,7 @@ The term before the logarithm disappears in the summation equation because each 
 Since all operations in this equation are differentiable, the partial derivative of the KL-divergence with respect to the weights of the generator can be found by a library with automatic differentiation such a Tensorflow.
 Then the generator training is simply a matter of minimising the KL-divergence.
 
-\subsection{Potential issues}
+\subsection{Potential issues} \label{subsection:potentialIssues}
 
 While this approach is theoretically very simple, there are several practical problems that could arise during training.
 \begin{itemize}
@@ -45,12 +45,12 @@ While this approach is theoretically very simple, there are several practical pr
     Methods of solving this problem, such as minimising the Wasserstein distance instead of KL-divergence, were considered, but judged to be beyond the scope of this project.
   \end{itemize}
 
-\section{Metric proxies}
+\section{Metric proxies} \label{section:metricProxies}
 
 As previously discussed, modelling spaces as distributions invalidates the equations for precision and proxy that were discussed in the last chapter.
 Proxy metrics will now be defined for precision and spread, which are intuitively similar to the concepts described for spaces but applicable to distributions.
 
-\subsection{Precision}
+\subsection{Precision} \label{subsection:precision}
 
 Optimising precision is intended to ensure that as many elements from the learned viable space as possible are also in the true viable space.
 When these are viewed instead as distributions, the learned viable distribution will likey cover almost the full solution space.
@@ -70,7 +70,7 @@ Intuitively, this is equivalent to taking a batch of points from the latent spac
 Samples for which $\hat{V}(c)(s) \ll \hat{V'}(c)(s)$ will occur frequently (because the density of these points in $\hat{V'}(c)$ is high) but be severely penalised (because $h(c, s)$ is small and so $\text{log}(1 - h(c, s))$ will translate to a large penalty).
 The result of this is that the generator function will set its weights so as to avoid that situation as much as possible.
 
-\subsection{Recall}
+\subsection{Recall} \label{subsection:recall}
 
 In many ways, recall is analogous to the opposite of the precision.
 Solutions which are highly likely to satisfy the constraint, but which occur very infrequently in the learned viable distribution, will be penalised.
@@ -84,7 +84,7 @@ The inefficiency of sampling from this chain is not a major issue, especially gi
 
 Like direct minimisation of the KL-divergence, this recall proxy assumes that $g'^{-1}$ is tractable.
 
-\subsection{Spread}
+\subsection{Spread} \label{subsection:spread}
 
 Optimisation for the precision proxy defined above is dependent on high-density regions of $\hat{V}(c)$ being sampled at least occasionally by $\hat{V'}(c)$, and so it stands to reason that convergence will occur slowly if $\hat{V'}(c)(s) \approx 0$ for most $s$.
 
@@ -107,7 +107,7 @@ Some metrics are defined below which, when minimised, discourage the generator f
 As well as being used in pretraining for efficient generator initialisation, these spread metrics could be used as a weak substitute for $\hat{r}(g)$ in the event that evaluating $\hat{V'}(c)$ is intractable.
 While not strictly measuring the recall, they prevent the generator from only choosing a single point repetitively.
 
-\section{Neural network inversion}
+\section{Neural network inversion} \label{section:neuralNetworkInversion}
 
 Some of the proposed training metrics depend on evaluating $\hat{V'}(c)$, the probability density of the learned viable distribution, at a particular point in the solution space.
 If the generator function is modelled by a neural network, this is not an obviously tractable problem; this section will explore methods of solving it.
@@ -120,13 +120,13 @@ $$y = \sigma(Wx + b)$$
 where $y$ is the layer output, $x$ is the layer input, $\sigma$ is the activation function, $W$ is the weight matrix, and $b$ is the bias vector.
 Depending on the number of rows in $W$, the layer will expand, reduce, or maintain the dimension of the input; these three distinct cases will be examined separately.
 
-\subsection{Bias addition}
+\subsection{Bias addition} \label{subsection:biasAddition}
 
 The input which will produce a specific output after the addition of a bias can be found trivially by subtracting the bias vector from the desired output.
 $$y = x + b \implies x = y - b$$
 As such, the space of relevant inputs is equivalent to the space of relevant outputs translated by $-b$.
 
-\subsection{Square weight multiplication}
+\subsection{Square weight multiplication} \label{subsection:squareWeightMultiplication}
 
 A layer in which $W$ is a square matrix maintains the dimension of the output, so it is equal to the dimension of the input.
 There exists exactly one input which produces the output assuming that the output is not a null vector and the determinant of the weight matrix is not zero; both these are generally valid assumptions as both conditions are highly unlikely to occur.
@@ -143,7 +143,7 @@ $$W = e^{\ell(W') - \ell(W')^T}$$
 where $\ell$ is an operation that computer the lower triangle of a matrix and $W'$ is a base weight matrix from which the layer weights are calculated.
 Backpropagating a space of relevant outputs is then simply a matter of rotating the space by $W^T = W^{-1}$.
 
-\subsection{Expansive weight multiplication}
+\subsection{Expansive weight multiplication} \label{subsection:expansiveWeightMultiplication}
 
 When a weight multiplication increases the number of dimensions of the input, the input is overdefined by the output.
 Hence not every output will have an input which creates it.
@@ -154,7 +154,7 @@ The weight matrix is therefore constrained such that it is constructed by concat
 To invert a single point, it is rotated by the transpose of the orthogonal matrix.
 To invert a space of relevant points, any constraints on the latter $n_o - n_i$ dimensions can be ignored, while any remaining constraints are rotated by the transpose of the orthogonal matrix.
 
-\subsection{Compressive weight multiplication}
+\subsection{Compressive weight multiplication} \label{subsection:compressiveWeightMultiplication}
 
 A compressive layer cuts the dimension of the input, meaning that the output underdefines the input.
 Generally, there are an infinite number of inputs which could produce any particular output, and this is why finding the probability density of a distribution transformed by a neural network requires that each step be able to handle backpropagating spaces as well as single points.
@@ -177,7 +177,7 @@ Note that the infinite dimensions can be approximated by a finite polytope which
 Therefore the relevant region can be described by a set of simplices, also known as a simplicial complex, since any polytope can be constructed from a finite number of simplices.
 Being able to propagate these simplices backwards through the various transforms described in this section is therefore sufficient to be able to propagate the whole relevant space backwards, and thereby find its probability mass.
 
-\subsection{Activation}
+\subsection{Activation} \label{subsection:activation}
 
 Several activation functions are commonly used in neural networks, but here only the ReLU activation function will be considered.
 It consists of two linear segments and is applied elementwise to a vector at the end of each layer.
@@ -192,7 +192,7 @@ The following rules can be applied to each dimension:
     Again, simplices extending suitably far from the origin can be used to approximate an extension to infinity.
 \end{enumerate}
 
-\subsection{Obstacles}
+\subsection{Obstacles} \label{subsection:obstacles}
 
 While theoretically sound, propagating a relevant space backwards through a neural network in order to compute its p.d.f. is not practical using this method.
 
@@ -210,14 +210,14 @@ Other activation functions which do not consist of linear segments will suffer e
 
 For this reason, methods which require the evaluation of the p.d.f. of a neural network will not be pursued further in this project.
 
-\section{Training procedure}
+\section{Training procedure} \label{section:generatorTrainingProcedure}
 
 This section assumes that the discriminator is either known analytically or has already been approximated by a neural network.
 That process is explored in greater depth in the next chapter.
 
 Training broadly consists of two steps: pretraining, which involves initialising the generator to explore a reasonable subset of the solution space; and training, in which the generator is trained to balance proxies for precision and recall.
 
-\subsection{Pretraining}
+\subsection{Pretraining} \label{subsection:pretraining}
 
 A batch of samples are taken from the latent distribution and passed through the generator into the solution space.
 Unless otherwise required by the specifics of the engineering environment, constraints can also be sampled uniformly from the constraint space.
@@ -228,7 +228,7 @@ Gradients are applied using a gradient descent algorithm such as Adam or RMSProp
 
 This process is repeated until either the generator weights converge or the spread loss is sufficiently low.
 
-\subsection{Training}
+\subsection{Training} \label{subsection:training}
 
 In the main training phase, latent points are sampled uniformly and constraints are sampled as in the pretraining phase.
 They are matched into arbitrary pairs, each one comprising a data point.

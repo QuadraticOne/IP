@@ -2,9 +2,9 @@
 
 \begin{document}
 
-\chapter{Literature}
+\chapter{Previous Research} \label{chapter:previousResearch}
 
-\section{Na\"{i}ve optimisation techniques}
+\section{Na\"{i}ve optimisation techniques} \label{section:naiveOptimisationTechniques}
 
 A number of algorithms exist for finding the maximum of a scalar or vector function.
 Many of these are gradient ascent algorithms \cite{ruder17} which use information about the local gradient of the objective function to iteratively maximise an objective.
@@ -17,7 +17,7 @@ But the expected runtime of such algorithms drops off exponentially as the dimen
 These algorithms are typically suitable for finding the maximum of an objective function given that any input is valid, and can therefore be used to solve the first part of the generic engineering problem described in the introduction.
 Crucially, though, they do not utilise learned information about the environment, and as such can be considered to be na\"{i}ve algorithms.
 
-\section{Artificial neural networks}
+\section{Artificial neural networks} \label{section:artificialNeuralNetworks}
 
 A function mapping from a latent space to the viable subset of a solution space for a particular constraint can be viewed as a function which takes two arguments: the constraint to be satisfied, and a point in the latent space.
 This function is a property of the engineering environment, and individual engineering problems within that environment can be considered to be instances or parameterisations of this function obtained by varying the latent coordinate while fixing the constraint.
@@ -37,7 +37,7 @@ Adding noise to the network's input vector \cite{zur09} has also been shown to d
 The effect of adding noise to the input vector is to simulate a much greater number of data points, but this method does assume that data points which are nearby in the state space will produce similar outputs.
 The level of noise is another hyperparameter which must be optimised: too little noise will have no effect on overfitting, while too much noise will make it impossible for the network to distinguish between noise and genuine information, causing a drop in accuracy.
 
-\section{Function inversion}
+\section{Function inversion} \label{section:functionInversion}
 
 As well as approximating functions mapping between two sets, ANNs are capable of learning the inversion of an existing function.
 Promising results have been obtained using standard ANNs to invert sometimes intractable functions in image processing, for uses such as image deblurring \cite{nah18} and colourisation \cite{nguyen16}.
@@ -54,7 +54,7 @@ A common problem faced by traditional autoencoders is that not every point in th
 A regularisation term is imposed on a VAE in the $\beta$-VAE architecture \cite{higgins16} that encourages a higher standard deviation in the probability distribution over the latent space.
 The effect of this is that input data may be mapped to a greater variety of regions in the latent space, and therefore a greater proportion of the latent space will have a meaningful inverse mapping.
 
-\section{Adversarial algorithms}
+\section{Adversarial algorithms} \label{section:adversarialAlgorithms}
 
 More recently, algorithms have been designed to train generative models using two competing networks in a minimax game.
 The most common adversarial networks, generative adversarial networks (GANs), can be trained to sample from an arbitrary distribution \cite{goodfellow14, horger18}.
@@ -64,7 +64,7 @@ Such applications could be useful in using GANs to sample from the viable space,
 Some research has also been done into the use of GANs to invert functions \cite{anirudh18}; while autoencoders can also accomplish this task and are generally considered to be easier to train \cite{bang18}, the generative nature of GANs is appealing considering that the viable space will invariably contain more than one point.
 Sampling from it is therefore a necessity.
 
-\section{Representation learning}
+\section{Representation learning} \label{section:representationLearning}
 
 All of the neural network architectures discussed so far require the input data to be presented in the form of a fixed-size vector of real values.
 While many practical data structures can be meaningfully encoded in this form, many engineering problems can have solutions which are discrete, unbounded, or otherwise not easily represented by a vector of real values.
