@@ -9,7 +9,9 @@
 As stated in the introduction, the objective of this project is to find a way to learn a space of viable solutions parameterised by a constraint $V(c)$, and an efficient method of taking samples from it.
 Let $g'(l,c)$ be the learned generator function as opposed to the true generator function.
 Then let $V'(c)$ be the learned viable space: the space of all solutions which can be obtained by passing a coordinate in the latent space through the generator:
-$$V'(c)=\{s\;|\;g'^{-1}(s,c)\in L\}$$
+\begin{equation}
+	V'(c)=\{s\;|\;g'^{-1}(s,c)\in L\}
+\end{equation}
 If we assume that $g$ is modelled by an artificial neural network then the condition that samples from $V(c)$ can be drawn efficiently is satisfied when $V(c)\approx V'(c)$, simply by sampling a point from $L$ and passing it through $g$.
 
 It is therefore necessary to define a distance metric for two spaces, which the neural network can be trained to minimise.
@@ -18,9 +20,13 @@ Defining such a metric for two general vector space is not obvious, especially c
 The performance of the generator function will therefore be measured in two dimensions, each describing a desired trait of the learned viable space:
 \begin{itemize}
     \item[] \textbf{Precision}: the proportion of samples from the learned generator function which are actually members of the true viable space.
-    $$p(g)=\int_{C}\int_{L}\;1_{g(l, c)\;\in\;V(c)}\;\mathrm{d}l\;\mathrm{d}c$$ 
+	\begin{equation}
+		p(g)=\int_{C}\int_{L}\;1_{g(l, c)\;\in\;V(c)}\;\mathrm{d}l\;\mathrm{d}c
+	\end{equation}
     \item[] \textbf{Recall}: the proportion of solutions which actually satisfy the constraint which are members of the learned viable space.
-    $$r(g)=\int_{C}\int_{V(c)}1_{g'^{-1}(s,c)\;\in\;L}\;\mathrm{d}s\;\mathrm{d}c$$ 
+	\begin{equation}
+		r(g)=\int_{C}\int_{V(c)}1_{g'^{-1}(s,c)\;\in\;L}\;\mathrm{d}s\;\mathrm{d}c
+	\end{equation}
 \end{itemize}
 Methods for estimating these quantities will be discussed in Chapter 4.
 
@@ -29,7 +35,9 @@ Too heavily weighting precision will result in a generator function which picks 
 
 This tradeoff is parameterised by a hyperparameter $w$ describing the weight of the recall in the loss function $\mathcal{L}$ that the neural network is trained to minimise.
 The value of this weight can be tuned to determine how confident the network should be that its suggestions will satisfy the constraint versus how confident it is that it is sampling from all the possible solutions.
-$$\mathcal{L}(g)=p(g)+w\cdot r(g)$$
+\begin{equation}
+	\mathcal{L}(g)=p(g)+w\cdot r(g)
+\end{equation}
 
 \section{Modelling spaces as distributions} \label{section:modellingSpacesAsDistributions}
 
@@ -43,15 +51,23 @@ If the density at point $A$ is much greater than the density at point $B$, we ca
 The probability distribution function representing a space $X$ is denoted by $\hat{X}$.
 
 Arbitrarily, the latent space is defined to be a uniform distribution within its bounds, which are set to 0 and 1 for the sake of simplicity.
-$$\hat{L}(l)=\left\{\begin{array}{ll}1&\mbox{if }0\le l_i\le1\;\forall\;\{i\;|\;1\le i\le k\}\\0&\mbox{otherwise}\end{array}\right.$$
+\begin{equation}
+	\hat{L}(l)=\left\{\begin{array}{ll}1&\mbox{if }0\le l_i\le1\;\forall\;\{i\;|\;1\le i\le k\}\\0&\mbox{otherwise}\end{array}\right.
+\end{equation}
 Since the learned viable space is formed by passing the latent space through the learned generator, its p.d.f. can be defined as the integral of the latent space p.d.f. over all points in the latent space which map to that solution:
-$$\hat{V'}(c)(s)=\int_{\{l\;|\;g(l,c)=s\}}\hat{L}(l)\;\mathrm{d}l$$
+\begin{equation}
+	\hat{V'}(c)(s)=\int_{\{l\;|\;g(l,c)=s\}}\hat{L}(l)\;\mathrm{d}l
+\end{equation}
 Finally, the true viable space's p.d.f. is defined for any solution, and is $0$ if the solution does not satisfy the constraint, and $\gamma$ if it does.
 The value of $\gamma$ is chosen such that the total mass of the p.d.f. is unity.
-$$\hat{V}(c)(s)=\left\{\begin{array}{ll}\gamma&\mbox{if }h(c,s)=\text{satisfied}\\0&\mbox{otherwise}\end{array}\right.$$
+\begin{equation}
+	\hat{V}(c)(s)=\left\{\begin{array}{ll}\gamma&\mbox{if }h(c,s)=\text{satisfied}\\0&\mbox{otherwise}\end{array}\right.
+\end{equation}
 The continuity of neural networks should therefore not pose an issue to the feasibility of this approach to solving the problem at hand, because while regions of the solution space which are not part of the viable space may be sampled occasionally, if the generator is trained well then these regions could be much less dense than regions that are highly likely to satisfy the constraint.
 Intuitively, this can be thought of as the mapping pulling together the distinct modes of the viable space, reducing the distance between them and thereby making it easier for optimisation algorithms to find a global maximum by exploration.
-$$\text{TODO: add graphic displaying this process}$$
+\begin{equation}
+	\text{TODO: add graphic displaying this process}
+\end{equation}
 Proxy metrics can now be defined which are intuitively similar to the precision and recall but are functions of a p.d.f. rather than of the generator function itself.
 It is also possible to consider a distance metric between two distributions $-$ which is much easier to define than a distance metric between two spaces $-$ and minimise this directly, to prompt $\hat{V'}(c)$ to match $\hat{V}(c)$.
 These avenues are both explored in the next chapter.
@@ -61,7 +77,9 @@ These avenues are both explored in the next chapter.
 A probabilistic interpretation of vector spaces has been introduced which provides information on the density of points within a generated space, thereby working around the limitation of neural networks that prevents them from making discontinuous jumps from one mode to another.
 This will also later allow the definition of more tractable loss functions that can be used to train the learned generator function.
 The network architecture, however, is still not clear.
-$$\text{TODO: diagram of a typical GAN architecture}$$
+\begin{equation}
+	\text{TODO: diagram of a typical GAN architecture}
+\end{equation}
 GANs, introduced in \S\ref{section:adversarialAlgorithms}, are a family of neural network architectures which allow samples to be drawn from a distribution.
 A typical GAN architecture has a generator, taking samples from the latent space to the feature space, and a discriminator, which determines whether points in the feature space are true or generated.
 Their ability to sample from a distribution is already very close to the required functionality of the learned generator, so some adaptations to the traditional GAN will be proposed.

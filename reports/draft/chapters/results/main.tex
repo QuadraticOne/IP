@@ -64,9 +64,13 @@ It was also hypothesised that optimising only for precision, $\hat{p}(g)$, would
 
 A short experiment was devised to prove that this is the case and hence that some other approximation of the recall would be needed.
 A function modelling the probability of satisfaction for a solution in one dimension ($m=1$) was defined arbitrarily as:
-$$h(c,s)=\sigma(20c-6)-\sigma(20c-14)$$
+\begin{equation}
+    h(c,s)=\sigma(20c-6)-\sigma(20c-14)
+\end{equation}
 where
-$$\sigma(x)=\frac{1}{1+e^{-x}}$$
+\begin{equation}
+    \sigma(x)=\frac{1}{1+e^{-x}}
+\end{equation}
 and there is only one possible constraint for the sake of simplicity ($n=0$).
 A graph of the constraint satisfaction function on $[-1, 1]$ is shown in Figure \ref{fig:sigmoidBumpFunction}.
 Numerically integrating $h$ between $c=-1$ and $c=1$ gives an area of $~0.3999$, so the probability density function is $\hat{V}(c)(s)\approx2.5008\;h(c,s)$.
@@ -92,7 +96,9 @@ Only considering precision and disregarding recall has clearly produced a mappin
     \end{center}
 \end{figure}
 This issue becomes even more pronounced when the constraint satisfaction function is altered to have two distinct modes (Figure \ref{fig:sigmoidBumpHistogramBimodal}).
-$$h(c,s)=\sigma(20c-6)-\sigma(20c-14)+\sigma(20c+6)-\sigma(20c+14)$$
+\begin{equation}
+    h(c,s)=\sigma(20c-6)-\sigma(20c-14)+\sigma(20c+6)-\sigma(20c+14)
+\end{equation}
 While a very high precision is obtained, with all generated solutions having a satisfaction probability of $~96\%$, optimising solely for precision fails entirely to encapsulate the bimodality of the constraint satisfaction function even in such a simple environment, confirming that optimisation must take recall into consideration for satisfactory results.
 \begin{figure}[H]
     \begin{center}
@@ -370,9 +376,13 @@ The Branin function, $\beta(x,y)$, was chosen to test the ability of the generat
 Having a solution dimension of $2$ also makes visualisation of the results possible.
 To make passing the function and its arguments into the discriminator possible, both inputs and the output were scaled to be in $[0,\;1]$.
 The constraint vector, in two dimensions, was then defined such that the constraint is considered satisfied when:
-$$c_1\cdot c_2\le\beta(x,y)\le c_2,\quad c_1,c_2\;\in\;[0,\;1]$$
+\begin{equation}
+    c_1\cdot c_2\le\beta(x,y)\le c_2,\quad c_1,c_2\;\in\;[0,\;1]
+\end{equation}
 and so:
-$$h(c,s)=\left\{\begin{array}{ll}\text{satisfied}&\mbox{if }c_1\cdot c_2\le\beta(s_1,s_2)\le c_2\\\text{unsatisfied}&\mbox{otherwise}\end{array}\right.$$
+\begin{equation}
+    h(c,s)=\left\{\begin{array}{ll}\text{satisfied}&\mbox{if }c_1\cdot c_2\le\beta(s_1,s_2)\le c_2\\\text{unsatisfied}&\mbox{otherwise}\end{array}\right.
+\end{equation}
 As with the environment in \S\ref{subsection:effectOfRecallWeight}, datasets of various sizes were created and a discriminator and generator were trained on the resulting data.
 The generator seemed to produce good solutions over a large range of the true viable space for most constraints, but was unable to find solutions to some constraints, as shown in Figure \ref{fig:braninPropertiesW3}.
 \begin{figure}[H]
