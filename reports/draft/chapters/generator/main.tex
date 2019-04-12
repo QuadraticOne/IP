@@ -13,19 +13,11 @@ If the generator is modelled by a network whose p.d.f. can quickly be found, the
 The p.d.f. of a neural network can be found by inverting it or using a constrained architecture such as a radial basis function.
 Whether or not inverting a network is plausible is discussed later in this chapter.
 The integral form of the KL-divergence is:
-$$D_{\text{KL}}(\hat{V'}(c) \; || \; \hat{V}(c)) = 
-\int_L \hat{V'}(c)(g'(l, c)) \; \text{log} \bigg(\frac
-{\hat{V'}(c)(g'(l, c))}{\hat{V}(c)(g'(l, c))}
-\bigg) \; dl $$
+$$D_{\text{KL}}(\hat{V'}(c)\;||\;\hat{V}(c))=\int_L\hat{V'}(c)(g'(l,c))\;\text{log}\bigg(\frac{\hat{V'}(c)(g'(l,c))}{\hat{V}(c)(g'(l,c))}\bigg)\;\mathrm{d}l$$
 Since integration over the entirety of the latent space is unlikely to be tractable, this equation can be adapted such that the divergence is written as an expectation across a batch of samples, each weighted by their probability of occurring.
-Let $\{l_1, l_2, ..., l_{j-1}, l_j\}$ be a batch of samples drawn from the latent space.
+Let $\{l_1,l_2,...,l_{j-1},l_j\}$ be a batch of samples drawn from the latent space.
 An estimation of the KL-divergence can then be calculated as:
-$$\textbf{E}\big[D_{\text{KL}}(\hat{V'}(c) \; || \; \hat{V}(c))\big] =
-\frac{1}{j}\sum_{i=1}^{j}
-\text{log} \bigg(\frac
-{\hat{V'}(c)(g'(l_i, c))}{\hat{V}(c)(g'(l_i, c))}
-\bigg)
-$$
+$$\textbf{E}\big[D_{\text{KL}}(\hat{V'}(c)\;||\;\hat{V}(c))\big]=\frac{1}{j}\sum_{i=1}^{j}\text{log}\bigg(\frac{\hat{V'}(c)(g'(l_i,c))}{\hat{V}(c)(g'(l_i,c))}\bigg)$$
 The term before the logarithm disappears in the summation equation because each sample is weighted by the inverse of its probability density under $\hat{V'}(c)$.
 
 Since all operations in this equation are differentiable, the partial derivative of the KL-divergence with respect to the weights of the generator can be found by a library with automatic differentiation such a Tensorflow.
@@ -59,25 +51,21 @@ This does not provide the whole picture, however, as some regions of this distri
 An adequate precision proxy might therefore be defined as one which causes a heavy penalty when samples are drawn from $\hat{V'}(c)$ which are in low-density regions of $\hat{V}(c)$.
 Infrequently drawn samples from the learned viable distribution may have very high penalties, but these will not have a large impact on the overall precision proxy because they will be significantly outnumbered by large quantities of more probable (and therefore more relevant) samples.
 
-Letting $\{l_1, l_2, ..., l_{j-1}, l_j\}$ be a batch of samples drawn from the latent space, the precision proxy can be defined as:
-$$\textbf{E}\big[\hat{p}(g)\big] = -\frac{1}{j}\sum_{i=1}^{j}
-\text{log} \big( 1 - h(c,g'(l, c)) + \epsilon \big)
-$$
+Letting $\{l_1,l_2,...,l_{j-1},l_j\}$ be a batch of samples drawn from the latent space, the precision proxy can be defined as:
+$$\textbf{E}\big[\hat{p}(g)\big]=-\frac{1}{j}\sum_{i=1}^{j}\text{log}\big(1-h(c,g'(l,c))+\epsilon\big)$$
 where $\epsilon$ is a small positive value added to prevent logarithms of zero.
-Note that $h(c, s)$ is proportional to $\hat{V}(c)$ but is a probability instead of a probability density and so will always be between 0 and 1.
+Note that $h(c,s)$ is proportional to $\hat{V}(c)$ but is a probability instead of a probability density and so will always be between 0 and 1.
 
 Intuitively, this is equivalent to taking a batch of points from the latent space, passing them into the solution space, calculating the satisfaction of each point, and taking the mean of the negative logarithm of each of these values.
-Samples for which $\hat{V}(c)(s) \ll \hat{V'}(c)(s)$ will occur frequently (because the density of these points in $\hat{V'}(c)$ is high) but be severely penalised (because $h(c, s)$ is small and so $\text{log}(1 - h(c, s))$ will translate to a large penalty).
+Samples for which $\hat{V}(c)(s)\ll\hat{V'}(c)(s)$ will occur frequently (because the density of these points in $\hat{V'}(c)$ is high) but be severely penalised (because $h(c,s)$ is small and so $\text{log}(1-h(c,s))$ will translate to a large penalty).
 The result of this is that the generator function will set its weights so as to avoid that situation as much as possible.
 
 \subsection{Recall} \label{subsection:recall}
 
 In many ways, recall is analogous to the opposite of the precision.
 Solutions which are highly likely to satisfy the constraint, but which occur very infrequently in the learned viable distribution, will be penalised.
-$$\textbf{E}\big[\hat{r}(g)\big] = -\frac{1}{j}\sum_{i=1}^{j}
-\text{log} \big( 1 - g'^{-1}(s, c) + \epsilon \big)
-$$
-where $\{s_1, s_2, ..., s_{j-1}, s_j\}$ is a batch of solutions drawn from $\hat{V}(c)$.
+$$\textbf{E}\big[\hat{r}(g)\big]=-\frac{1}{j}\sum_{i=1}^{j}\text{log}\big(1-g'^{-1}(s,c)+\epsilon\big)$$
+where $\{s_1,s_2,...,s_{j-1},s_j\}$ is a batch of solutions drawn from $\hat{V}(c)$.
 Such a batch can be produced using a Markov chain Monte Carlo method such as the Metropolis-Hastings algorithm.
 While this is inefficient, it is powerful in that it samples from the true viable distribution exactly without requiring a valid mapping to that distribution from some latent distribution.
 The inefficiency of sampling from this chain is not a major issue, especially given that the samples will generally be i.i.d. over a sufficiently long chain, and so can be densely sampled and then randomly reordered.
@@ -86,22 +74,21 @@ Like direct minimisation of the KL-divergence, this recall proxy assumes that $g
 
 \subsection{Spread} \label{subsection:spread}
 
-Optimisation for the precision proxy defined above is dependent on high-density regions of $\hat{V}(c)$ being sampled at least occasionally by $\hat{V'}(c)$, and so it stands to reason that convergence will occur slowly if $\hat{V'}(c)(s) \approx 0$ for most $s$.
+Optimisation for the precision proxy defined above is dependent on high-density regions of $\hat{V}(c)$ being sampled at least occasionally by $\hat{V'}(c)$, and so it stands to reason that convergence will occur slowly if $\hat{V'}(c)(s)\approx 0$ for most $s$.
 
 Training might therefore be accelerated if the generator function can be pretrained such that it samples from a wide range of the solution space at least sometimes, allowing the highest density regions of the true viable distribution to be quickly identified.
 Some metrics are defined below which, when minimised, discourage the generator from sampling only a small subset of the solution space.
 \begin{itemize}
     \item[] \textbf{Similarity to identity}: penalises according to the squared distance between a point in the latent space and its accompanying point in the solution space, when both spaces are linearly scaled such that they are unit hypercubes.
     This effectively forces the generator to model the identity function after its initialisation.
-    $$q_\text{id}(g, l, c) = \bigg|\frac{l - a_L}{b_L - a_L} -
-    \frac{g(l, c) - a_S}{b_S - a_S}\bigg|^2$$
+    $$q_\text{id}(g,l,c)=\bigg|\frac{l-a_L}{b_L-a_L}-\frac{g(l,c)-a_S}{b_S-a_S}\bigg|^2$$
     Since any point in the latent space can be sampled, if the generator closely approximates the identity function then all points in the solution space will be capable of being sampled and roughly equally likely to be sampled.
     One clear drawback, however, is that this spread metric requires $m = k$, which may not be desirable in high-dimensional solution spaces which are presumed to have a low intrinsic dimension.
     \item[] \textbf{Separation}: a more weakly defined spread metric for use when the dimensions of the latent and solution spaces are different.
     $q_\text{sep}$ is calculated by sampling a batch of points from $L$ and passing them through $g'$ into $S$.
     For every pair of points in the batch, the squared difference is calculated and the mean of these squared differences is taken.
     Because minimisation of $q_\text{sep}$ results in convergence to a single point, and maximisation of $q_\text{sep}$ results in a distribution over an infinite domain, a target mean separation is set as a variable hyperparameter.
-    Then $|q_\text{sep} - q_\text{target}|^2$ is minimised.
+    Then $|q_\text{sep}-q_\text{target}|^2$ is minimised.
     This spread metric will typically be quite slow because its calculation is of the order $\text{O}(b^2)$ as opposed to the $\text{O}(b)$ for $q_\text{id}$, where $b$ is the batch size.
   \end{itemize}
 As well as being used in pretraining for efficient generator initialisation, these spread metrics could be used as a weak substitute for $\hat{r}(g)$ in the event that evaluating $\hat{V'}(c)$ is intractable.
@@ -116,14 +103,14 @@ By viewing the generator as a series of transforms applied to a known distributi
 Integrating over this region in the latent space then dividing its volume by the volume of the latent space as a whole will yield the probability density of that particular output.
 
 A neural network is made up of a series of layers, each of which applies three transformations to its input:
-$$y = \sigma(Wx + b)$$
+$$y=\sigma(Wx+b)$$
 where $y$ is the layer output, $x$ is the layer input, $\sigma$ is the activation function, $W$ is the weight matrix, and $b$ is the bias vector.
 Depending on the number of rows in $W$, the layer will expand, reduce, or maintain the dimension of the input; these three distinct cases will be examined separately.
 
 \subsection{Bias addition} \label{subsection:biasAddition}
 
 The input which will produce a specific output after the addition of a bias can be found trivially by subtracting the bias vector from the desired output.
-$$y = x + b \implies x = y - b$$
+$$y=x+b\implies x=y-b$$
 As such, the space of relevant inputs is equivalent to the space of relevant outputs translated by $-b$.
 
 \subsection{Square weight multiplication} \label{subsection:squareWeightMultiplication}
@@ -136,40 +123,40 @@ In general, finding the inverse of a matrix is excessively computationally expen
 One special case in which this is not true is when the inverse is equal to the transpose, which is much more efficient to calculate, and occurs when the matrix is orthogonal, corresponding to a pure rotation.
 
 Ensuring that the weight matrix is orthogonal requires the use of another property of matrices, which is that the matrix exponential of any skew-symmetric matrix is orthogonal.
-Similarly, a matrix can be constructed which is guaranteed to be skew-symmetric by taking the lower triangle $Q$ of any matrix, then computing $Q - Q^T$.
+Similarly, a matrix can be constructed which is guaranteed to be skew-symmetric by taking the lower triangle $Q$ of any matrix, then computing $Q-Q^T$.
 
 In conclusion, inverting multiplication of a square weight matrix is practical as long as the weight matrix is orthogonal, which is achieved by defining the weight matrix as:
-$$W = e^{\ell(W') - \ell(W')^T}$$
+$$W=e^{\ell(W')-\ell(W')^T}$$
 where $\ell$ is an operation that computer the lower triangle of a matrix and $W'$ is a base weight matrix from which the layer weights are calculated.
-Backpropagating a space of relevant outputs is then simply a matter of rotating the space by $W^T = W^{-1}$.
+Backpropagating a space of relevant outputs is then simply a matter of rotating the space by $W^T=W^{-1}$.
 
 \subsection{Expansive weight multiplication} \label{subsection:expansiveWeightMultiplication}
 
 When a weight multiplication increases the number of dimensions of the input, the input is overdefined by the output.
 Hence not every output will have an input which creates it.
-An alternate way of looking at this is that, if the input has $n_i$ dimensions and the output has $n_o$ dimensions where $n_o > n_i$, the input is fully defined by the first $n_i$ dimensions of the output.
-The latter $n_o - n_i$ dimensions of the output are therefore redundant when it comes to inverting the transformation.
+An alternate way of looking at this is that, if the input has $n_i$ dimensions and the output has $n_o$ dimensions where $n_o>n_i$, the input is fully defined by the first $n_i$ dimensions of the output.
+The latter $n_o-n_i$ dimensions of the output are therefore redundant when it comes to inverting the transformation.
 
-The weight matrix is therefore constrained such that it is constructed by concatenating a $n_i \times n_i$ orthogonal matrix with a $n_o - n_i \times n_i$ matrix whose elements can vary freely.
+The weight matrix is therefore constrained such that it is constructed by concatenating a $n_i\times n_i$ orthogonal matrix with a $n_o-n_i\times n_i$ matrix whose elements can vary freely.
 To invert a single point, it is rotated by the transpose of the orthogonal matrix.
-To invert a space of relevant points, any constraints on the latter $n_o - n_i$ dimensions can be ignored, while any remaining constraints are rotated by the transpose of the orthogonal matrix.
+To invert a space of relevant points, any constraints on the latter $n_o-n_i$ dimensions can be ignored, while any remaining constraints are rotated by the transpose of the orthogonal matrix.
 
 \subsection{Compressive weight multiplication} \label{subsection:compressiveWeightMultiplication}
 
 A compressive layer cuts the dimension of the input, meaning that the output underdefines the input.
 Generally, there are an infinite number of inputs which could produce any particular output, and this is why finding the probability density of a distribution transformed by a neural network requires that each step be able to handle backpropagating spaces as well as single points.
 
-Normally, the size of the weight matrix would be $n_o \times n_i$, where $n_i > n_o$.
+Normally, the size of the weight matrix would be $n_o\times n_i$, where $n_i>n_o$.
 In this case, however, the weight matrix will be an orthogonal matrix of size $n_i$.
 The output vector is obtained by multiplying the weight matrix by the input, and then retaining only the first $n_o$ components of the vector.
 This allows a space of values to be calculated which would produce a single output when passed through the transform forwards.
 
 Consider the intermediate step, after multiplying $W$ by the input but before cutting the vector.
 The space of vectors which produce $y$ when retaining only the first $n_o$ components is constrained such that:
-$$x'_j = y_j \; \forall \; 1 \le j \le n_o$$
+$$x'_j=y_j\;\forall\;1\le j\le n_o$$
 where
-$$x' = Wx$$
-while the latter $n_i - n_o$ dimensions can assume any value.
+$$x'=Wx$$
+while the latter $n_i-n_o$ dimensions can assume any value.
 This creates a space which is infinite in some dimensions, but constrained to a single point in others.
 The input space can then be obtained by rotating this intermediate space by $W^T$.
 

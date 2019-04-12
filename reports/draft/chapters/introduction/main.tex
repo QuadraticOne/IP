@@ -17,19 +17,19 @@ This project explores the use of machine learning algorithms in constructing a d
 \section{Engineering problems} \label{section:engineeringProblems}
 
 For the purposes of this project, an engineering problem is defined as an optimisation problem in which we must find a solution $s$ which maximises an arbitrary objective function $f(s)$, while also satisfying a given constraint $c$.
-Constraint satisfaction is determined by some function $h(c, s)$ which maps a constraint and solution to one of two values, $\{\text{satisfied}, \text{unsatisfied}\}$.
+Constraint satisfaction is determined by some function $h(c,s)$ which maps a constraint and solution to one of two values, $\{\text{satisfied},\text{unsatisfied}\}$.
 
 The functions $f$ and $h$ are deterministic and belong to an engineering environment, which can be thought of as an idealised mathematical model of a particular real-life problem.
 While each environment has a unique constraint satisfaction function $h$, which is parameterised by a constraint, an environment may define a number of different continuous objective functions for which we may like to optimise.
 
 It is also assumed that both the solution and constraint are parameterised by a vector that is bounded by an hypercube in $m$ or $n$ dimensions respectively.
 The space of valid solutions is referred to as $S$, and the space of valid constraints is referred to as $C$.
-$$S = \{(s_1, ..., s_m) \; | \; s_i \in \{a_S, b_S\}, 1 \le i \le m\}$$
-$$C = \{(c_1, ..., c_n) \; | \; c_i \in \{a_C, b_C\}, 1 \le i \le n\}$$
+$$S=\{(s_1,...,s_m)\;|\;s_i\in\{a_S,b_S\},1\le i\le m\}$$
+$$C=\{(c_1,...,c_n)\;|\;c_i\in\{a_C,b_C\},1\le i\le n\}$$
 where $a$ and $b$ are the arbitrary upper and lower bounds of the hypercube in each dimension.
 
 Since both $S$ and $C$ are hypercubes, it is trivial to take samples from them.
-As such, solving an engineering problem as defined here can be broken down into two steps: finding a solution vector $s$ for which $f(s)$ is suitably large; and ensuring that $h(c, s) = \text{satisfied}$ for the given constraint $c$.
+As such, solving an engineering problem as defined here can be broken down into two steps: finding a solution vector $s$ for which $f(s)$ is suitably large; and ensuring that $h(c,s)=\text{satisfied}$ for the given constraint $c$.
 
 \section{Learned latent mapping} \label{section:learnedLatentMapping}
 
@@ -39,12 +39,12 @@ If the regions satisfying the constraint are especially sparse, it may be a cons
 
 One way around this dilemna is to leverage the property that $h$ is constant within an environment to learn its underlying patterns using data from previous constraints that were optimised in that environment.
 This knowledge can be used to create a set of viable solutions $V$, specific to the constraint, such that any solution vector which is contained within $V$ satisfies the constraint by definition:
-$$V(c) = \{s \; | \; s \in S, \; h(c, s) = \text{satisfied}\}$$
+$$V(c)=\{s\;|\;s\in S,\;h(c,s)=\text{satisfied}\}$$
 While envisaging such a set is trivial, sampling from it is not.
 Again, one could learn a generator function $g(c)$ which maps from an arbitrary latent space $L$ (from which samples can be easily drawn) to somewhere in $V(c)$:
-$$g(l, c) \; : \; L, C \mapsto V(c)$$
-$$L = \{(l_1, ..., l_k) \; | \; l_i \in \{a_L, b_L\}, 1 \le i \le k\}$$
-Once $V$ and $g$ have been learned, solving the engineering problem for any particular constraint is simply a matter of performing optimisation by varying values $l \in L$ of $(f \circ g) \; (l, c)$ using any exploratory optimisation algorithm.
+$$g(l,c)\;:\;L,C\mapsto V(c)$$
+$$L=\{(l_1,...,l_k)\;|\;l_i\in\{a_L,b_L\},1\le i\le k\}$$
+Once $V$ and $g$ have been learned, solving the engineering problem for any particular constraint is simply a matter of performing optimisation by varying values $l\in L$ of $(f\circ g)\;(l,c)$ using any exploratory optimisation algorithm.
 As such, finding a way of modelling the viable set and generator function for any given environment is the subject of this project.
 
 \end{document}

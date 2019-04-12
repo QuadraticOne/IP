@@ -7,10 +7,10 @@
 \section{Solution and constraint spaces} \label{section:solutionAndConstraintSpaces}
 
 As stated in the introduction, the objective of this project is to find a way to learn a space of viable solutions parameterised by a constraint $V(c)$, and an efficient method of taking samples from it.
-Let $g'(l, c)$ be the learned generator function as opposed to the true generator function.
+Let $g'(l,c)$ be the learned generator function as opposed to the true generator function.
 Then let $V'(c)$ be the learned viable space: the space of all solutions which can be obtained by passing a coordinate in the latent space through the generator:
-$$V'(c) = \{s \; | \; g'^{-1}(s, c) \in L\}$$
-If we assume that $g$ is modelled by an artificial neural network then the condition that samples from $V(c)$ can be drawn efficiently is satisfied when $V(c) \approx V'(c)$, simply by sampling a point from $L$ and passing it through $g$.
+$$V'(c)=\{s\;|\;g'^{-1}(s,c)\in L\}$$
+If we assume that $g$ is modelled by an artificial neural network then the condition that samples from $V(c)$ can be drawn efficiently is satisfied when $V(c)\approx V'(c)$, simply by sampling a point from $L$ and passing it through $g$.
 
 It is therefore necessary to define a distance metric for two spaces, which the neural network can be trained to minimise.
 Defining such a metric for two general vector space is not obvious, especially considering that the capacity of the neural network is limited in practice (even if not in theory) and so the two spaces will never be exactly equal.
@@ -18,9 +18,9 @@ Defining such a metric for two general vector space is not obvious, especially c
 The performance of the generator function will therefore be measured in two dimensions, each describing a desired trait of the learned viable space:
 \begin{itemize}
     \item[] \textbf{Precision}: the proportion of samples from the learned generator function which are actually members of the true viable space.
-    $$p(g) = \int_{C}\int_{L} \; 1_{g(l, c) \; \in \; V(c)} \; dl \; dc$$ 
+    $$p(g)=\int_{C}\int_{L}\;1_{g(l, c)\;\in\;V(c)}\;\mathrm{d}l\;\mathrm{d}c$$ 
     \item[] \textbf{Recall}: the proportion of solutions which actually satisfy the constraint which are members of the learned viable space.
-    $$r(g) = \int_{C}\int_{V(c)} 1_{g'^{-1}(s, c) \; \in \; L} \; ds \; dc$$ 
+    $$r(g)=\int_{C}\int_{V(c)}1_{g'^{-1}(s,c)\;\in\;L}\;\mathrm{d}s\;\mathrm{d}c$$ 
 \end{itemize}
 Methods for estimating these quantities will be discussed in Chapter 4.
 
@@ -29,7 +29,7 @@ Too heavily weighting precision will result in a generator function which picks 
 
 This tradeoff is parameterised by a hyperparameter $w$ describing the weight of the recall in the loss function $\mathcal{L}$ that the neural network is trained to minimise.
 The value of this weight can be tuned to determine how confident the network should be that its suggestions will satisfy the constraint versus how confident it is that it is sampling from all the possible solutions.
-$$\mathcal{L}(g) = p(g) + w \cdot r(g)$$
+$$\mathcal{L}(g)=p(g)+w\cdot r(g)$$
 
 \section{Modelling spaces as distributions} \label{section:modellingSpacesAsDistributions}
 
@@ -43,24 +43,12 @@ If the density at point $A$ is much greater than the density at point $B$, we ca
 The probability distribution function representing a space $X$ is denoted by $\hat{X}$.
 
 Arbitrarily, the latent space is defined to be a uniform distribution within its bounds, which are set to 0 and 1 for the sake of simplicity.
-$$\hat{L}(l) =
-\left\{
-	\begin{array}{ll}
-		1 & \mbox{if } 0 \le l_i \le 1 \; \forall \; \{i \; | \; 1 \le i \le k\} \\
-		0 & \mbox{otherwise}
-	\end{array}
-\right.$$
+$$\hat{L}(l)=\left\{\begin{array}{ll}1&\mbox{if }0\le l_i\le1\;\forall\;\{i\;|\;1\le i\le k\}\\0&\mbox{otherwise}\end{array}\right.$$
 Since the learned viable space is formed by passing the latent space through the learned generator, its p.d.f. can be defined as the integral of the latent space p.d.f. over all points in the latent space which map to that solution:
-$$\hat{V'}(c)(s) = \int_{\{l \; | \; g(l,c) = s\}} \hat{L}(l) \; dl$$
+$$\hat{V'}(c)(s)=\int_{\{l\;|\;g(l,c)=s\}}\hat{L}(l)\;\mathrm{d}l$$
 Finally, the true viable space's p.d.f. is defined for any solution, and is $0$ if the solution does not satisfy the constraint, and $\gamma$ if it does.
 The value of $\gamma$ is chosen such that the total mass of the p.d.f. is unity.
-$$\hat{V}(c)(s) =
-\left\{
-	\begin{array}{ll}
-		\gamma & \mbox{if } h(c,s) = \text{satisfied} \\
-		0 & \mbox{otherwise}
-	\end{array}
-\right.$$
+$$\hat{V}(c)(s)=\left\{\begin{array}{ll}\gamma&\mbox{if }h(c,s)=\text{satisfied}\\0&\mbox{otherwise}\end{array}\right.$$
 The continuity of neural networks should therefore not pose an issue to the feasibility of this approach to solving the problem at hand, because while regions of the solution space which are not part of the viable space may be sampled occasionally, if the generator is trained well then these regions could be much less dense than regions that are highly likely to satisfy the constraint.
 Intuitively, this can be thought of as the mapping pulling together the distinct modes of the viable space, reducing the distance between them and thereby making it easier for optimisation algorithms to find a global maximum by exploration.
 $$\text{TODO: add graphic displaying this process}$$
