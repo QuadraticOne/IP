@@ -9,52 +9,54 @@
 Many engineering challenges can be expressed as optimisation problems, in which the objective is to search a space of possibilities for a value which maximises some objective function.
 In real world problems, the objective function is typically complicated enough that its maximum cannot be found analytically; in these cases, it is necessary to explore the solution space in order to find the optimal solution.
 A number of algorithms exist to search this space efficiently, but often converge slowly when the error surface of the objective function changes abruptly.
-This will often be the case when trying to optimise continuous constraints, such as maximising the thrust of an engine, while simultaneously adhering to binary constraints, such as avoiding degenerate geometries.
+This will often be the case when trying to optimise continuous properties, such as minimising the mass of a design, while simultaneously adhering to binary constraints, such as avoiding degenerate geometries.
 
 Machine learning excels in exploiting underlying patterns in data to make predictions in the face of uncertainty.
-This project explores the use of machine learning algorithms in constructing a differentiable mapping between an arbitrary latent space and the space of solutions to a particular set of problems such that any point in the latent space, when mapped to the solution space, will satisfy some set of binary constraints.
+This project explores the use of machine learning in constructing a differentiable mapping, parameterised by a binary constraint, between an arbitrary latent space and the space of solutions to a problem such that any point in the latent space, when mapped to the solution space, satisfies the constraint.
 
 \section{Engineering problems} \label{section:engineeringProblems}
 
-For the purposes of this project, an engineering problem is defined as an optimisation problem in which we must find a solution $s$ which maximises an arbitrary objective function $f(s)$, while also satisfying a given constraint $c$.
-Constraint satisfaction is determined by some function $h(c,s)$ which maps a constraint and solution to one of two values, $\{\text{satisfied},\text{unsatisfied}\}$.
+For the purposes of this project, an engineering problem is defined as an optimisation problem in which a solution $s$ is sought which maximises an arbitrary objective function $f(s)$, while also satisfying a constraint $c$.
+Constraint satisfaction is determined by some function $h(c,s)$ which maps a constraint and solution to $\{\text{satisfied},\text{unsatisfied}\}$.
+A solution which satisfies $h$ is referred to as viable.
 
-The functions $f$ and $h$ are deterministic and belong to an engineering environment, which can be thought of as an idealised mathematical model of a particular real-life problem.
-While each environment has a unique constraint satisfaction function $h$, which is parameterised by a constraint, an environment may define a number of different continuous objective functions for which we may like to optimise.
+The functions $f$ and $h$ are deterministic and belong to an engineering environment, which is thought of as an idealised mathematical model of a particular real-world problem.
+While each environment has a unique constraint satisfaction function $h$, they may define a number of different continuous objective functions.
 
-It is also assumed that both the solution and constraint are parameterised by a vector that is bounded by an hypercube in $m$ or $n$ dimensions respectively.
-The space of valid solutions is referred to as $S$, and the space of valid constraints is referred to as $C$.
+It is also assumed that both the solution and constraint are parameterised by a vector bounded by an hypercube in $m$ or $n$ dimensions respectively, denoted $S$ and $C$.
+If a solution or constraint is within $S$ or $C$ then it is referred to as valid.
 \begin{equation}
     S=\{(s_1,...,s_m)\;|\;s_i\in\{a_S,b_S\},1\le i\le m\}
 \end{equation}
 \begin{equation}
     C=\{(c_1,...,c_n)\;|\;c_i\in\{a_C,b_C\},1\le i\le n\}
 \end{equation}
-where $a$ and $b$ are the arbitrary upper and lower bounds of the hypercube in each dimension.
+where $a,\;b$ are the arbitrary bounds of the hypercube in each dimension.
 
-Since both $S$ and $C$ are hypercubes, it is trivial to take samples from them.
-As such, solving an engineering problem as defined here can be broken down into two steps: finding a solution vector $s$ for which $f(s)$ is suitably large; and ensuring that $h(c,s)=\text{satisfied}$ for the given constraint $c$.
+Since both $S$ and $C$ are hypercubes, it is trivial sample them uniformly.
+As such, solving an engineering problem as defined here for a given constraint $c$ can be broken down into two steps: finding a solution $s$ for which $f(s)$ is suitably large; and ensuring that $s$ is viable.
 
 \section{Learned latent mapping} \label{section:learnedLatentMapping}
 
-Considering the two parts to solving the engineering problem, it is clear that the first part can already be achieved with conventional optimisation algorithms which have no knowledge of the objective surface.
-When certain regions of the solution space do not satisfy the constraint, however, optimisation algorithms which work by exploring the solution space are not able to work efficiently since there is no natural way of reconciling a binary constraint with a scalar-valued objective function other than evaluating the constraint satisfaction function at every sampled point.
-If the regions satisfying the constraint are especially sparse, it may be a considerable amount of time before even a single viable solution is found, before then having to optimise its value according to the objective function.
+The first step can already be achieved with conventional optimisation algorithms which have no knowledge of the objective surface.
+When certain regions of the solution space do not satisfy the constraint, however, optimisation algorithms which work by exploring the solution space are unable to work efficiently since there is no natural way of reconciling a binary constraint with a continuous objective function other than evaluating $h$ for every candidate solution.
+If the regions satisfying the constraint are sparse, it may be a considerable amount of time before even a single viable solution is found, before then having to optimise its value according to the objective function.
 
-One way around this dilemna is to leverage the property that $h$ is constant within an environment to learn its underlying patterns using data from previous constraints that were optimised in that environment.
-This knowledge can be used to create a set of viable solutions $V$, specific to the constraint, such that any solution vector which is contained within $V$ satisfies the constraint by definition:
+One way around this dilemna is to utilise the fact that $h$ is constant within an environment to learn its underlying patterns using data from previous experiments.
+This knowledge can be used to create a set of viable solutions $V_c$, specific to the constraint, such that any solution vector which is contained within $V_c$ satisfies the constraint by definition.
 \begin{equation}
-    V(c)=\{s\;|\;s\in S,\;h(c,s)=\text{satisfied}\}
+    V_c=\{s\;|\;s\in S,\;h(c,s)=\text{satisfied}\}
 \end{equation}
 While envisaging such a set is trivial, sampling from it is not.
-Again, one could learn a generator function $g(c)$ which maps from an arbitrary latent space $L$ (from which samples can be easily drawn) to somewhere in $V(c)$:
+One could learn a generator function $g(c)$ which maps from an arbitrary latent space $L$ (from which samples can be easily drawn) to somewhere in $V_c$:
 \begin{equation}
-    g(l,c)\;:\;L,C\mapsto V(c)
+    g(l,c)\;:\;L,C\mapsto V_c
 \end{equation}
 \begin{equation}
     L=\{(l_1,...,l_k)\;|\;l_i\in\{a_L,b_L\},1\le i\le k\}
 \end{equation}
-Once $V$ and $g$ have been learned, solving the engineering problem for any particular constraint is simply a matter of performing optimisation by varying values $l\in L$ of $(f\circ g)\;(l,c)$ using any exploratory optimisation algorithm.
-As such, finding a way of modelling the viable set and generator function for any given environment is the subject of this project.
+$g$ can therefore be viewed as the inverse of $h$.
+Once $V$ and $g$ have been learned, solving the engineering problem for a constraint is a matter of performing optimisation over $l\in L$ of $(f\circ g)\;(l,c)$ using any exploratory optimisation algorithm.
+As such, finding a way of modelling $V_c$ and $g$ for any environment is the subject of this project.
 
 \end{document}

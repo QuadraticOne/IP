@@ -6,81 +6,72 @@
 
 \section{Na\"{i}ve optimisation techniques} \label{section:naiveOptimisationTechniques}
 
-A number of algorithms exist for finding the maximum of a scalar or vector function.
-Many of these are gradient ascent algorithms \cite{ruder17} which use information about the local gradient of the objective function to iteratively maximise an objective.
-Because the gradient is used to update the current guess, these algorithms often fail to converge quickly on problems where the objective surface is flat.
-Algorithms such as RMSProp \cite{hinton17} and Adam \cite{kingma17} have been developed to overcome this, but still fail to converge if the objective function is discretised.
+A number of algorithms exist for finding the maximum of a function.
+Many of these are gradient ascent algorithms \cite{ruder17} which use information about the local gradient of the function to iteratively maximise it.
+Because the gradient is used to update the current guess, these algorithms often fail to converge quickly on function whose surface is flat.
+Algorithms such as RMSProp \cite{hinton17} and Adam \cite{kingma17} have been developed to overcome this, but still fail to converge if the function is discretised.
 
-Gradient-free, stochastic optimisation algorithms such as particle swarm optimisation \cite{kennedy12} and genetic algorithms \cite{carr14} solve this problem for environments of small dimensionality by rapidly exploring the state space, then focusing on areas which give good results.
-But the expected runtime of such algorithms drops off exponentially as the dimensionality of the state space increases.
+Gradient-free, stochastic optimisation algorithms such as particle swarm optimisation \cite{kennedy12} and genetic algorithms \cite{carr14} solve this problem for functions of small dimensionality by rapidly exploring the input space, then focusing on areas which give good results.
+But the expected runtime of such algorithms drops off exponentially as the dimensionality of the function increases.
 
-These algorithms are typically suitable for finding the maximum of an objective function given that any input is valid, and can therefore be used to solve the first part of the generic engineering problem described in the introduction.
-Crucially, though, they do not utilise learned information about the environment, and as such can be considered to be na\"{i}ve algorithms.
+These algorithms are typically suitable for finding the maximum of a function given that any input is viable, and can therefore be used to solve the first part of the generic engineering problem described in \S\ref{section:engineeringProblems}.
+Crucially, they do not utilise information learned about the function, and as such are considered to be na\"{i}ve.
 
 \section{Artificial neural networks} \label{section:artificialNeuralNetworks}
 
-A function mapping from a latent space to the viable subset of a solution space for a particular constraint can be viewed as a function which takes two arguments: the constraint to be satisfied, and a point in the latent space.
-This function is a property of the engineering environment, and individual engineering problems within that environment can be considered to be instances or parameterisations of this function obtained by varying the latent coordinate while fixing the constraint.
-It might therefore be expected that a universal function approximator is capable of learning the generator function.
+A function $g$ mapping from $L$ to $V_c$ takes two arguments: the constraint to be satisfied, and a point in the latent space.
+This function is a property of the engineering environment, and individual engineering problems within that environment can be considered instances or parameterisations of this function for which the constraint is fixed.
+It is therefore expected that a universal function approximator will be capable of learning $g$.
 
-ANNs are known to be universal function approximators \cite{hornik91}.
-In particular, deep neural networks (DNNs) \cite{liang17} are capable of approximating highly intractable functions to within a reasonable degree of accuracy.
-One limiting factor of the performance of ANNs and DNNs is the quantity of data available.
-While larger networks with more capacity are able to learn more complex mappings, they also run a higher risk of overfitting \cite{caruana01},
-a problem which is exacerbated in situations where the amount of training data may be limited.
+Artificial neural networks (ANNs) are known to be universal function approximators \cite{hornik91}; in particular, deep neural networks (DNNs) \cite{liang17} are capable of approximating highly intractable functions.
+The performance of ANNs and DNNs is limited by the quantity of data available \cite{raudys91}.
+While larger networks with more capacity are able to learn more complex mappings, they also run a higher risk of overfitting \cite{caruana01}, a problem exacerbated when the quantity of training data is limited.
 
 Regularisation techniques have been developed \cite{goodfellow16, srivastava14, ioffe15, li18} to prevent the overfitting of neural networks.
-These techniques generally rely on reducing the reliance of the network on singular large weights:
-this makes it more difficult for the network to detect and memorise individual data points, thereby forcing it to learn a more generic mapping.
+These techniques generally rely on reducing the reliance of the network on singular large weights, making it more difficult for the network to memorise individual data points, thereby encouraging a more general mapping.
 
-Adding noise to the network's input vector \cite{zur09} has also been shown to decrease overfitting and increase the generality of the network's estimates, especially for applications where the available data are sparsely spread throughout the state space.
-The effect of adding noise to the input vector is to simulate a much greater number of data points, but this method does assume that data points which are nearby in the state space will produce similar outputs.
-The level of noise is another hyperparameter which must be optimised: too little noise will have no effect on overfitting, while too much noise will make it impossible for the network to distinguish between noise and genuine information, causing a drop in accuracy.
+Adding noise to the network's input \cite{zur09} has also been shown to decrease overfitting and increase the generality of the network's estimates, especially when the available data are sparsely spread throughout the feature space.
+The effect of adding noise to the input is to simulate a greater quantity of data, but assumes that inputs which are nearby in the feature space will produce similar outputs.
+The level of noise is another hyperparameter to be optimised: too little noise will have no effect on overfitting, while too much noise will make it impossible for the network to distinguish between noise and genuine information, causing a drop in accuracy.
 
 \section{Function inversion} \label{section:functionInversion}
 
-As well as approximating functions mapping between two sets, ANNs are capable of learning the inversion of an existing function.
-Promising results have been obtained using standard ANNs to invert sometimes intractable functions in image processing, for uses such as image deblurring \cite{nah18} and colourisation \cite{nguyen16}.
+As well as approximating maps between sets, ANNs are capable of learning the inverse of an existing function.
+Promising results have been obtained using ANNs to invert intractable functions in image processing, for uses such as deblurring \cite{nah18} and colourisation \cite{nguyen16}.
 
-Autoencoders are an unsupervised learning method often used to pretrain layers of neural networks that will later be used for supervised learning \cite{rumelhart86}, in doing so training an encoder $f(x)$ and a decoder $f^{-1}(x)$.
-This can be used to extract the more important latent features of the input space, or remove noise from corrupted data \cite{vincent08}.
-When used for pretraining, the decoder is normally thrown away; but if the encoding function $f(x)$ is already known, the autoencoder architecture can be used to approximate its inverse.
+Autoencoders are an unsupervised learning method used to pretrain layers of neural networks that will later be applied for supervised learning \cite{rumelhart86}, in doing so training an encoder $f(x)$ and a decoder $f^{-1}(x)$.
+This can be used to extract the more important latent features of the feature space, or remove noise from corrupted data \cite{vincent08}.
+When used for pretraining, the decoder is normally discarded; but if the encoding function $f(x)$ is already known, the autoencoder architecture can be used to learn its inverse.
 
-Other architectures have been proposed which perform the same task as a traditional autoencoder, but train a generative model to do so.
-Variational autoencoders (VAEs) are models which allow sampling from the latent space by parameterising a probability distribution over the latent space \cite{kingma14}, indicating which latent variables are most likely to explain the visible data.
-The most common use for this is in learning a more robust latent mapping for a dataset, but the method could be adapted to create a generative model that inverts a many-to-one function.
+Other architectures have been proposed which perform the same task as a traditional autoencoder, using a generative model.
+Variational autoencoders (VAEs) allow sampling from the latent space by parameterising a probability distribution over the it \cite{kingma14}, predicting the latent variables most likely to explain the visible data.
+The most common use for this is learning a robust latent mapping for a dataset, but the method could be adapted to create a generative model that inverts a many-to-one function such as $h$.
 
-A common problem faced by traditional autoencoders is that not every point in the latent space has a meaningful equivalent in the state space.
-A regularisation term is imposed on a VAE in the $\beta$-VAE architecture \cite{higgins16} that encourages a higher standard deviation in the probability distribution over the latent space.
-The effect of this is that input data may be mapped to a greater variety of regions in the latent space, and therefore a greater proportion of the latent space will have a meaningful inverse mapping.
+A common problem faced by traditional autoencoders is that not every point in the latent space has a meaningful equivalent in the feature space.
+A regularisation term is imposed on a VAE in the $\beta$-VAE architecture \cite{higgins16} that encourages a higher standard deviation of the latent distribution.
+The result is that inputs are mapped to a greater variety of the latent space, and therefore a greater proportion of the latent space will have a meaningful inverse mapping.
 
 \section{Adversarial algorithms} \label{section:adversarialAlgorithms}
 
 More recently, algorithms have been designed to train generative models using two competing networks in a minimax game.
 The most common adversarial networks, generative adversarial networks (GANs), can be trained to sample from an arbitrary distribution \cite{goodfellow14, horger18}.
-These have been successfully applied to a range of problems, including image resolution upscaling \cite{ledig17} and creating cross-domain transfer functions \cite{zhu18}.
-Such applications could be useful in using GANs to sample from the viable space, if a parameterisation of the space with respect to the relevant constraint can be learned.
+These have been applied to a range of problems, including image resolution upscaling \cite{ledig17} and creating cross-domain transfer functions \cite{zhu18}.
+GANs may therefore be adapted to sample from a distribution modelling $V_c$, if a parameterisation of the distribution with respect to the relevant constraint can be learned.
 
-Some research has also been done into the use of GANs to invert functions \cite{anirudh18}; while autoencoders can also accomplish this task and are generally considered to be easier to train \cite{bang18}, the generative nature of GANs is appealing considering that the viable space will invariably contain more than one point.
+Some research has been done into the using GANs to invert functions \cite{anirudh18}; while autoencoders can also accomplish this task and are generally considered to be easier to train \cite{bang18}, the generative nature of GANs is appealing considering that $V_c$ contains more than one point.
 Sampling from it is therefore a necessity.
 
 \section{Representation learning} \label{section:representationLearning}
 
-All of the neural network architectures discussed so far require the input data to be presented in the form of a fixed-size vector of real values.
-While many practical data structures can be meaningfully encoded in this form, many engineering problems can have solutions which are discrete, unbounded, or otherwise not easily represented by a vector of real values.
-
-Long short-term memory networks (LSTMs) \cite{hochreiter97} are stateful networks which collate information over a linear series of vectors into a fixed-size memory vector.
-At each time step, another item from the series is viewed by the network, and it decides which information to keep, and which to forget.
-If trained properly, the memory vector at the end is a fixed-size representation of the important features of the list.
+All ANNs discussed previously require the input data to be input as a fixed-size vector of real values.
+While many practical data structures can be meaningfully encoded in this form (images, coordinates), many others cannot (words, time series).
 
 Recursive neural networks merge information about pairs of objects, allowing the construction of representations of tree-like data structures \cite{socher11}.
-As such, they are frequently used to parse sentences in natural language processing, though this technique can be applied to other trees as well.
-Like with LSTMs, because the information capacity of the final state vector is finite, the network is forced to either generalise, or forget unimportant information.
+Because the information capacity of the final state vector is finite by virtue of its fixed size, the network is forced to either generalise or forget unimportant information.
 
 Some data structures, known as tokens, cannot be represented by real values and do not consist of sub-elements that can.
-The prime example of these data structures are words; each word carries meaning but the meaning of each word is encoded in the understanding of the people using them.
-Vector space models represent tokens as points in a vector space, and some methods have been developed for embedding tokens in this vector space.
-One method commonly used is \emph{word2vec} \cite{mikolov13}, which embeds words into a dense vector space, though the same principle
-has been adapted for use on tokens other than words \cite{le14}.
+The prime example of these data structures are words: each word carries meaning which is not encoded by its letters.
+Vector space models represent tokens as points in a vector space, and methods have been developed for learning these embeddings.
+One method commonly used is \emph{word2vec} \cite{mikolov13}, which embeds words into a dense vector space, though the same principle has been adapted for use on other tokens \cite{le14}.
 
 \end{document}
