@@ -4,6 +4,8 @@
 
 \chapter*{Nomenclature}
 
+\section*{Symbols}
+
 \begin{tabular}{ l l }
     $f(s)$ & Objective function \\ 
     $h(c, s)$ & Constraint satisfaction function \\  
@@ -22,12 +24,23 @@
     $V'_c$ & Learned viable space of a constraint \\
     $g'(l, c)$ & Learned generator function \\
     $g'^{-1}(s, c)$ & Inverse of the learned generator function \\
-    $p(g)$ & Precision of a generator function \\
-    $r(g)$ & Recall of a generator function \\
+    $h'(c,s)$ & Discriminator \\
+    $p(g')$ & Precision of a generator function \\
+    $r(g')$ & Recall of a generator function \\
     $w$ & Recall weight \\
-    $\mathcal{L}(g)$ & Generator loss function \\
+    $\mathcal{L}(g')$ & Generator loss function \\
     $\hat{X}$ & Probability distribution function for a space \\
     $\gamma$ & Probability density of valid solutions to a constraint \\
+\end{tabular}
+
+\section*{Abbreviations}
+
+\begin{tabular}{ l l }
+    ANN & Artificial neural network \\
+    DNN & Deep neural network \\
+    GAN & Generative adversarial network \\
+    p.d.f. & Probability density function \\
+    DQN & Deep $Q$-Network \\
 \end{tabular}
 
 \end{document}
