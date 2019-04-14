@@ -4,34 +4,31 @@
 
 \chapter{Discriminator} \label{chapter:discriminator}
 
-Previous chapters have assumed that a discriminator has already been trained and is readily available.
-This chapter details the exact task of the discriminator and some rules of thumb for training the discriminator from data.
+Previous chapters have assumed that a discriminator, $h'$, has already been trained and is readily available.
+This chapter details the exact task of $h'$ and some rules of thumb for training it from data.
 
 \section{Formal definition} \label{section:formalDefinition}
 
-The discriminator, denoted by $h'$, is a differentiable approximation of the constraint satisfaction function $h(c,s)$.
-While in some environments the constraint satisfaction function may be known, it is assumed that most environments will be too complex for an analytical satisfaction function and so it will be learned from data by a neural network.
+$h'(c,s)$ is a differentiable approximation of the constraint satisfaction function $h(c,s)$.
+While in some environments $h$ may be known, it is assumed that most environments will be too complex for an analytical form and so it will be learned from data by an ANN.
 
-Differentiability is required of the discriminator because gradients will pass through the discriminator during the training of the generator.
-Because the constraint satisfaction function gives binary output, gradients will always be zero, so the discriminator is trained to output a probability that the solution satisfies the constraint to smooth the gradients.
-It is for this reason that even when an analytical form of the constraint satisfaction function is available, a neural network should be used to accelerate generator training by limiting the discriminator's capacity so that gradients are non-zero.
+Differentiability is required of $h'$ because gradients will pass through it during training of $g'$.
+Because $h$ gives binary output, gradients will always be zero, so $h'$ is trained to output a probability that the solution satisfies the constraint, smoothing the gradients.
+It is for this reason that even $h$ is known analytically, an ANN should be used to accelerate training of $g'$ by ensuring that gradients are non-zero.
 
 \section{Training procedure} \label{section:discriminatorTrainingProcedure}
 
-Data are provided in the form of (constraint, solution, satisfaction) tuples where the first two vectors are network inputs and the third is the label, denoting whether or not the solution satisfies the constraint.
-The discriminator will normally take the form of a standard feedforward multi-layer perceptron, taking its two arguments as a concatenated vector and outputting a single scalar probability.
-As such, the output layer should be the sigmoid function, but the internal activations are not constrained (leaky-ReLU activations are used here unless otherwise specified).
+Data are provided in the form of $(c,\;s,\;h(c,s))$ tuples where the first two vectors are network inputs and the third is the label.
+The discriminator will normally take the form of a standard multi-layer perceptron, taking its arguments as a concatenated vector and outputting a single scalar probability.
+As such, the output layer should be sigmoid activated, but the internal activations are not constrained (leaky-ReLU activations are used here unless otherwise specified).
 
-Training is performed in the usual way for a neural network, where batches are taken from the training data and fed forwards through the network.
-Once the predicted satisfaction probability has been found, a loss is calculated and gradients are backpropagated through the network and used to train the network weights.
-The Adam optimiser is used here unless otherwise stated.
-
-It is also strongly recommended that a proportion of the data (nominally, 20\%) is set aside for the purposes of validating the learned discriminator after training.
+Training is accomplished by backpropagation \cite{rumelhart86}.
+It is also strongly recommended that a proportion of the data (nominally, 20\%) is set aside for the purposes of validating $h'$ after training.
 
 \section{Overfitting} \label{section:overfitting}
 
-Because the generator is trained off the discriminator and not from data, ensuring that the discriminator does not overfit is essential.
-A number of standard techniques should be emploted, including dropout and L2 regularisation.
+Because $g'$ is trained off $h'$ and not from data, ensuring that $h'$ does not overfit is essential.
+A number of standard techniques should be emploted, including dropout \cite{srivastava14} and L2 regularisation \cite{krogh92}.
 The size of the dataset should be considered when choosing the network depth and width, and training should be stopped before validation error begins to rise (a sign that the network is overfitting).
 
 \section{Practical considerations} \label{section:practicalConsiderations}
