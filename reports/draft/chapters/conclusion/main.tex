@@ -8,33 +8,33 @@
 
 \subsection{Other recall substitutes} \label{subsection:otherRecallSubstitutes}
 
-Many of the limitations of the method were found to be related to the inability to optimise for recall directly.
-Though two metrics were discussed which provided sufficient results when taken to measure recall, they were not designed for this purpose and it is proposed that better results could be obtained by creating a range of metrics specifically tailed for alleviating the effects of low recall.
+Many of the limitations of the proposed architecture were found to be related to the inability to calculate $\hat{r}$.
+Though two metrics were introduced which provided acceptable results when used as a subtitute for $\hat{r}$, they were not designed for this purpose and it is hypothesised that better results could be obtained by creating a range of metrics specifically tailored for alleviating the effects of low recall.
 
 \subsection{Simplex intersection} \label{subsection:simplexIntersection}
 
-The intractability of estimating the generator's recall was found to be related to a lack of a viable simplex intersection algorithm in an arbitrary number of dimensions.
-While research did not find such an algorithm, it also did find any theses concluding that doing so is impossible.
-Further work into a simplex intersection algorithm could therefore allow direct optimisation of recall, eliminating a major flaw of the currently proposed method.
+The intractability of estimating the generator's recall was found to be related to a lack of a simplex intersection algorithm in an arbitrary number of dimensions.
+While research did not find such an algorithm, it also did not find any theses concluding that such an algorithm cannot exist.
+Further work into a simplex intersection algorithm could therefore allow direct optimisation of $\hat{r}$, eliminating a major flaw in the proposed architecture.
 
 \subsection{Composite constraints} \label{subsection:compositeConstraints}
 
-Currently, only one constraint can be fed into the generator at once.
-It is suggested that it might be possible to train a recusrive neural network to combine constraint vectors in ways resembling set operations applied to the viable set.
+Currently, only one constraint can be fed into $g'$ at once.
+It might be possible to train an RNN to combine constraint vectors in ways resembling set operations applied to $V_c$.
 This could allow multiple constraints to be combined, thereby making accessible the solutions to more complex, composite constraints.
 
 \subsection{Direct constraint embedding} \label{subsection:directConstraintEmbedding}
 
-Constraint vectors are mapped into an embedding which represents the weights and biases of the output layer of the generator in the current architecture.
-It was not investigated whether the generator would be able to learn effective mappings if the constraint vector were used directly as the weights of the final layer, without embedding.
-If this were the case, training times could be shortened by the resulting reduction in the number of parameters required for the generator.
+The weights and biases of the output layer of $g'$ are directly estimated by a function of $c$ in the current architecture.
+It was not investigated whether $g'$ would be capable of learning effective mappings if the $c$ were used directly as the weights of the final layer, without embedding.
+If this were the case, training times could be shortened by reducing the number of parameters used by the generator.
 
 \section{Conclusion} \label{section:conclusion}
 
-This project examined a generic engineering problem and postulated that such problems could be simplified by learning a latent mapping into the solution space.
+This project defined a generic engineering problem and postulated that such problems could be simplified by learning a latent mapping into the solution space.
 It was shown that in order for this mapping to be modelled by an artificial neural network it was necessary to view the space of viable solutions as a probability distribution over the space of valid solutions.
-A tradeoff between the precision and recall of the mapping was introduced and, while a method was devised for estimating the precision of a learned viable distribution, it was shown that estimating the recall of a distribution is intractable without further work.
-Two substitute metrics, referred to as spread metrics, were then introduced which, it was hypothesised, would encourage the mapping to exhibit similar features to if it had been trained on a direct estimation of the recall.
+A tradeoff between the precision and recall of the mapping was introduced and, while a method was derived for estimating the precision of a learned viable distribution, it was shown that estimating the recall of a distribution is intractable without further work.
+Two substitute metrics, referred to as spread metrics, were then introduced which, it was hypothesised, would encourage the mapping to exhibit features similar to if it had been trained on a direct estimation of the recall.
 
 Using a simple, abstract environment, experiments were conducted which suggested that optimising for precision produces a mapping capable of sampling viable solutions.
 It was also shown that maximising a weighted sum of precision and one of the spread metrics was a suitable proxy for optimising precision and recall.
@@ -44,6 +44,6 @@ The ability of the mapping to satisfy equality constraints was then examined, an
 Some nuanced solutions to equality constraints were missed, however.
 
 Visualisations of the learned latent space were explored to gain an intuitive understanding of the generator.
-Observations were made which provided plausible explanations for the shortcomings of the method discovered in earlier experiments.
+Observations were made which provided plausible explanations for the shortcomings of the proposed architecture discovered in earlier experiments, and areas of further research were proposed which could overcome them.
 
 \end{document}
