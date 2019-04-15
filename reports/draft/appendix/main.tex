@@ -1,0 +1,20 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+
+\chapter*{Appendices} \label{chapter:appendices}
+
+\addcontentsline{toc}{chapter}{Appendices}
+\renewcommand{\thesection}{\Alph{section}}
+\setcounter{section}{0}
+\renewcommand*{\theHsection}{chX.\the\value{section}}
+
+\section{First} \label{appendix:first}
+
+Text for first appendix.
+
+\section{Second} \label{appendix:second}
+
+Text for second appendix.
+
+\end{document}
