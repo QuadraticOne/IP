@@ -395,11 +395,11 @@ For the purposes of this project, a rescaled version is used, such that:
 Finally, the Branin environment imposes a constraint upon the upper and lower bounds of $\beta'$, limiting them to $c_1\cdot c_2$ and $c_2$ respectively.
 As such, a constraint in the Branin environment begins to approximate an equality constraint as $c_1\to1$.
 
-\section{Training parameters for constrained Branin function} \label{appendix:braninTrainingParameters}
+\section{Training parameters for bounded Branin function} \label{appendix:braninTrainingParameters}
 
 An extract from the configuration file for the instance of the proposed architecture trained on the Branin environment is included below.
 
-\begin{lstlisting}[language=json,firstnumber=1,caption={Experimental parameters for training a generator on the constrained Branin function environment.},captionpos=b]
+\begin{lstlisting}[language=json,firstnumber=1,caption={Experimental parameters for training a generator on the bounded Branin function environment.},captionpos=b]
 {  
     "epsilon": 1.0,
     "recallProxyMetadata": {
