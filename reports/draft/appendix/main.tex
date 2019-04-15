@@ -37,8 +37,213 @@ So it is concluded that as long as $W$ is a square matrix,
 \end{equation}
 is orthogonal.
 
-\section{Second} \label{appendix:second}
+\section{KL-divergence training parameters} \label{appendix:klTrainingParameters}
 
-Text for second appendix.
+The parameters used while performing the KL-divergence minimisation experiment in \S\ref{subsection:distributionDistance} are reproduced below.
+
+\begin{lstlisting}[language=json,firstnumber=1,caption={Experimental parameters for minimising the KL-divergence of two distributions.},captionpos=b]
+{
+    "values": {
+        "type": "float",
+        "precision": 32
+    },
+    "epsilon": 0.001,
+    "batchSize": 64,
+    "epochs": 2084,
+    "startingParameters": {
+        "means": [0.1, 0.2, 0.5, 1.0, 2.0],
+        "stddevs": {
+            "similar": 1.0,
+            "dissimilar": 0.1
+        }
+    },
+    "evaluationFrequency": 16,
+    "optimiser": {
+        "type": "adam",
+        "learningRate": 0.001,
+        "betaOne": 0.9,
+        "betaTwo": 0.999,
+        "epsilon": 10^-8
+    }
+}
+\end{lstlisting}
+
+\section{Unimodal constraint satisfaction function} \label{appendix:unimodalCSF}
+
+A unimodal constraint satisfaction was defined for a solution dimensionality of $1$ and a constraint dimensionality of $0$, meaning that the function does not take into consideration any constraint parameters.
+\begin{equation}
+    h(c,s)=\sigma(20s-6)-\sigma(20s-14)
+\end{equation}
+where
+\begin{equation}
+    \sigma(x)=\frac{1}{1+e^{-x}}
+\end{equation}
+Numerically integrating $h$ between $s=-1$ and $s=1$ gives an area of $~0.3999$, so the probability density function is $\hat{V_c}(s)\approx2.5008\;h(c,s)$.
+
+\section{Precision optimisation training parameters} \label{appendix:precisionOptimisationTrainingParameters}
+
+The parameters used to train a generator to match an arbitrarily defined constraint satifaction function are reproduced below.
+Because $h$ is not parameterised by constraints, no constraint embedder networks were used, and the last layer of the generator was trained normally.
+
+\begin{lstlisting}[language=json,firstnumber=1,caption={Experimental parameters for training a generator to match an arbitrary constraint satisfaction function with no constraint inputs.},captionpos=b]
+{
+    "histogramSamples": 256,
+    "generator": {
+        "layers": [
+            {
+                "nodes": 8,
+                "activation": "leakyRelu"
+            },
+            {
+                "nodes": 8,
+                "activation": "leakyRelu"
+            },
+            {
+                "nodes": 1,
+                "activation": "tanh"
+            }
+        ],
+        "initialisation": "glorot"
+    },
+    "batchSize": {
+        "default": 4096,
+        "identitySpread": 4096,
+        "separationSpread": 256
+    },
+    "epochs": {
+        "precisionOnly": 1024,
+        "pretraining": 1024,
+        "combinedTraining": 8192
+    },
+    "recallWeight": 1.0,
+    "qTarget": 1.0,
+    "optimiser": {
+        "type": "adam",
+        "learningRate": 0.001,
+        "betaOne": 0.9,
+        "betaTwo": 0.999,
+        "epsilon": 10^-8
+    }
+}
+\end{lstlisting}
+
+\section{Bimodal constraint satisfaction function} \label{appendix:bimodalCSF}
+
+A bimodal constraint satisfaction was defined for a solution dimensionality of $1$ and a constraint dimensionality of $0$, meaning that the function does not take into consideration any constraint parameters.
+\begin{equation}
+    h(c,s)=\sigma(20s-6)-\sigma(20s-14)+\sigma(20s+6)-\sigma(20s+14)
+\end{equation}
+where
+\begin{equation}
+    \sigma(x)=\frac{1}{1+e^{-x}}
+\end{equation}
+
+\section{Parameterised constraint satisfaction function} \label{appendix:tensorflowCSF}
+
+An adaptation of the previously introduced $h$ was defined within a Tensorflow computation graph, whose peak locations are controlled by each component of the constraint vector.
+The below Python code produces this function for any $n$.
+\begin{lstlisting}[language=python,firstnumber=1,caption={Python code to produce a constraint satisfaction function parameterised by a constraint vector within a Tensorflow computation graph.},captionpos=b]
+import tensorflow as tf
+
+constraint_dimension = 3
+
+def parameterised_csf(solution_node, constraint_node):
+    tiled_solution = tf.tile(solution_node, [1, constraint_dimension])
+    summed_output = tf.reduce_mean(
+        sigmoid_peak(tiled_solution, constraint_node), axis=1
+    )
+    return tf.reshape(
+        summed_output,
+        [tf.shape(summed_output)[0], 1]
+    )
+
+def sigmoid_peak(x, offset, width=5.0, thickness=0.05, height_scale=1.0):
+    """Produces a single peak from two sigmoid functions."""
+    after_offset = (x - offset) / thickness
+    return height_scale * (
+        tf.sigmoid(after_offset + width) - tf.sigmoid(after_offset - width)
+    )
+\end{lstlisting}
+
+\section{Embedder verification parameters} \label{appendix:embedderVerificationParameters}
+
+The parameters used to train a generator to match an arbitrarily defined constraint satifaction function are reproduced below.
+Two neural networks, the weight embedder and bias embedder, produce the weights for the final layer of the generator.
+
+\begin{lstlisting}[language=json,firstnumber=1,caption={Experimental parameters for training a generator to match an arbitrary constraint satisfaction function parameterised by a constraint vector.},captionpos=b]
+{
+    "batchSize": 64,
+    "pretraining": {
+        "epochs": 10,
+        "stepsPerEpoch": 20000
+    },
+    "training": {
+        "epochs": 150,
+        "stepsPerEpoch": 20000
+    },
+    "generator": {
+        "layers": [
+            {
+                "nodes": 32,
+                "activation": "leaky-relu"
+            },
+            {
+                "nodes": 32,
+                "activation": "leaky-relu"
+            },
+            {
+                "nodes": 1,
+                "activation": "tanh"
+            }
+        ],
+        "initialisation": "glorot"
+    },
+    "weightsEmbedder": {
+        "layers": [
+            {
+                "nodes": 32,
+                "activation": "leaky-relu"
+            },
+            {
+                "nodes": 32,
+                "activation": "leaky-relu"
+            },
+            {
+                "nodes": 32,
+                "activation": "leaky-relu"
+            }
+        ],
+        "initialisation": "glorot"
+    },
+    "biasesEmbedder": {
+        "layers": [
+            {
+                "nodes": 32,
+                "activation": "leaky-relu"
+            },
+            {
+                "nodes": 32,
+                "activation": "leaky-relu"
+            },
+            {
+                "nodes": 32,
+                "activation": "leaky-relu"
+            }
+        ],
+        "initialisation": "glorot"
+    }
+    "optimiser": {
+        "type": "adam",
+        "learningRate": 0.001,
+        "betaOne": 0.9,
+        "betaTwo": 0.999,
+        "epsilon": 10^-8
+    },
+    "recallSubstitute": "identitySpread",
+    "recallWeight": 0.7,
+    "constraintDimension": 2,
+    "embeddingDimension": 10
+}
+\end{lstlisting}
 
 \end{document}

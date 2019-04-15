@@ -4,53 +4,53 @@
 
 \chapter{Results} \label{chapter:results}
 
-A number of experiments were conducted with two broad goals: verifying that at least some of the proposed options work on simplified abstract engineering environments, and proving that the proposed architecture has desirable qualities in more complex environments.
+A number of experiments were conducted with two broad goals: verifying that at least some of the proposed architecture works on simplified abstract engineering environments, and proving that it has desirable qualities in more complex environments.
 Some experiments were also carried out to visualise and explore the latent space mappings in an intuitive way.
 
 \section{Approach verification} \label{section:approachVerification}
 
 \subsection{Distribution distance} \label{subsection:distributionDistance}
 
-Due to the potential issues with minimising KL-divergence discussed in \S\ref{subsection:potentialIssues}, a highly simplified environment was devised in which the target distribution is known.
-The target distribution was fixed as a standard normal distribution (constraints were not considered at this stage) and the generator's output distribution was modelled as a normal distribution whose mean and standard deviation were controllable parameters.
+Due to the potential issues with minimising KL-divergence discussed in \S\ref{subsection:potentialIssues}, a simplified environment was devised in which the target distribution $\hat{V_c}$ is known.
+$\hat{V_c}$ was fixed as a standard normal distribution (constraints were not considered at this stage) and $\hat{V'_c}$ was modelled as a normal distribution whose mean and standard deviation were learned parameters.
 
-Although KL-divergence is analytically tractable for two normal distributions, it was estimated through sampling of the generated distribution as described in \S4.1.1.
-Trained variables were initialised such that the standard deviation started at $1$, while the initial mean was varied.
+Although KL-divergence is analytically tractable for two normal distributions, it was estimated through sampling of $\hat{V'_c}$ as described in \S\ref{subsection:klDivergence}.
+Initial standard deviation $\sigma_0$ was always set to $1$, while initial mean $\mu_0$ was varied.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{broadKLDivergence}
     \caption{
-        Change in $\mu$ and $\sigma$ over time when training arbitrary normal distributions with different starting means to match the standard normal distribution. 
-        Parameters were updated using the Adam optimisation algorithm to minimise KL-divergence, as estimated by taking samples from the varying distribution in batches of 64.
+        Change in $\mu$ and $\sigma$ over time when training arbitrary normal distributions with different starting means to match the standard normal distribution.
+        Training parameters are reproduced in Appendix \ref{appendix:klTrainingParameters}.
     }
     \label{fig:broadKLDivergence}
     \end{center}
 \end{figure}
 The mean $\mu$ and standard deviation $\sigma$ after each batch are shown in Figure \ref{fig:broadKLDivergence}.
 Convergence does occur, but the time taken for the mean to approach $0$ appears to increase exponentially as the initial mean moves away from the target.
-Two one-dimensional normal distributions whose means only differ by two and whose standard deviations are both one could still be considered to be quite close together, so the experiment was repeated with $\sigma=0.1$ for both distributions to better simulate disjoint distributions.
+Two one-dimensional normal distributions whose means only differ by two and whose standard deviations are both one could still be considered to be quite similar, so the experiment was repeated with $\sigma_0=0.1$ for both distributions to better simulate disjoint distributions.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{narrowKLDivergence}
     \caption{
         Change in $\mu$ and $\sigma$ over time when training arbitrary normal distributions with different starting means to match a normal distribution with $\mu=0$ and $\sigma=0.1$. 
-        Parameters were updated using the Adam optimisation algorithm to minimise KL-divergence, as estimated by taking samples from the varying distribution in batches of 64.
+        Training parameters are reproduced in Appendix \ref{appendix:klTrainingParameters}.
     }
     \label{fig:narrowKLDivergence}
     \end{center}
 \end{figure}
-Figure \ref{fig:narrowKLDivergence} shows that the variables converge at approximately the same rate as when the standard deviation of the target distribution was $1$.
-Missing, however, are the trend lines for $\mu_0=1.0$, $\mu_0=2.0$; both $\mu$ and $\sigma$ went to \url{NaN} after the first epoch.
+Figure \ref{fig:narrowKLDivergence} shows that the variables converge at approximately the same rate as when $\sigma_0=1$.
+Both $\mu$ and $\sigma$ went to \url{NaN} after the first epoch and so are not shown.
 This may well have been caused by an excessively large KL-divergence resulting in exploding gradients due to the limited precision of floating point numbers.
 
-Changing the computation graph to use \url{float64} values instead of \url{float32} lends further evidence to this hypothesis, as increasing the precision allowed the $\mu=1.0,2.0$, $\sigma=0.1$ cases to be optimised without numerical errors (Figure \ref{fig:narrowKLDivergenceFloat64}).
-Similarly, using 16-bit floating point values always resulted in \url{NaN} errors occurring.
+Changing to 64- instead of 32-bit values lends further evidence to this hypothesis, as increasing the precision allowed the $\mu=1.0,2.0$, $\sigma=0.1$ cases to be optimised without numerical errors (Figure \ref{fig:narrowKLDivergenceFloat64}).
+Similarly, using 16-bit precision always resulted in \url{NaN} errors occurring.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{narrowKLDivergenceFloat64}
     \caption{
         Change in $\mu$ and $\sigma$ over time when training arbitrary normal distributions with different starting means to match a normal distribution with $\mu=0$ and $\sigma=0.1$. 
-        Experimental parameters are the same as in Figure \ref{fig:narrowKLDivergence}, but with 64-bit floating point numbers as opposed to 32-bit.
+        Training parameters are those in Appendix \ref{appendix:klTrainingParameters}, but with 64-bit precision.
     }
     \label{fig:narrowKLDivergenceFloat64}
     \end{center}
@@ -59,53 +59,40 @@ It was therefore concluded that minimising KL-divergence is too inconsistent for
 
 \subsection{Precision proxy optimisation} \label{subsection:precisionProxyOptimisation}
 
-Potential issues with directly estimating the recall of one distribution with respect to another were discussed in \S\ref{section:neuralNetworkInversion}.
-It was also hypothesised that optimising only for precision, $\hat{p}(g)$, would result in the generator sampling only a small subset of the viable solutions.
+All experiments in this section used the parameters in Appendix \ref{appendix:precisionOptimisationTrainingParameters}.
 
-A short experiment was devised to prove that this is the case and hence that some other approximation of the recall would be needed.
-A function modelling the probability of satisfaction for a solution in one dimension ($m=1$) was defined arbitrarily as:
-\begin{equation}
-    h(c,s)=\sigma(20c-6)-\sigma(20c-14)
-\end{equation}
-where
-\begin{equation}
-    \sigma(x)=\frac{1}{1+e^{-x}}
-\end{equation}
-and there is only one possible constraint for the sake of simplicity ($n=0$).
-A graph of the constraint satisfaction function on $[-1, 1]$ is shown in Figure \ref{fig:sigmoidBumpFunction}.
-Numerically integrating $h$ between $c=-1$ and $c=1$ gives an area of $~0.3999$, so the probability density function is $\hat{V}(c)(s)\approx2.5008\;h(c,s)$.
+Potential issues with directly estimating $\hat{r}$ were discussed in \S\ref{section:neuralNetworkInversion}.
+It was also hypothesised that optimising only $\hat{p}$ would result in $g'$ sampling only a small subset of $V_c$.
+A short experiment was devised to prove that this is the case and so a substitute for $\hat{r}$ would be needed.
+$h$ was defined arbitrarily for $m=1,\;n=0$, described in detail in Appendix \ref{appendix:unimodalCSF}.
+A graph of the constraint satisfaction function on $s\in[-1,\;1]$ is shown in Figure \ref{fig:sigmoidBumpFunction}.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{sigmoidBumpFunction}
     \caption{
-        A test function estimating the probability that a solution $s$ satisfies a singular constraint $c$.
+        A test function estimating the probability that a solution satisfies a singular constraint.
     }
     \label{fig:sigmoidBumpFunction}
     \end{center}
 \end{figure}
-Optimising the generator against $h(c,s)$ for the precision proxy defined in \S\ref{subsection:precision} consistently yields a distribution of generated solutions displayed in Figure \ref{fig:sigmoidBumpHistogram}.
-Only considering precision and disregarding recall has clearly produced a mapping which is of no use: it always maps to the same point in spite of the fact that around $15\%$ of the solution space has a constraint satisfaction probability above $0.9$.
+Optimising $g'$ against $h(c,s)$ for $\hat{p}$ consistently yields a distribution of generated solutions displayed in Figure \ref{fig:sigmoidBumpHistogram}.
+Only considering precision and disregarding recall produces a mapping which is of no use: it always maps to a singular point in spite of the fact that around $15\%$ of the solution space has a constraint satisfaction probability above $0.9$.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{sigmoidBumpHistogram}
     \caption{
-        Distribution of generated solutions compared to the constraint satisfaction function against which the generator was trained, in the form of a histogram consisting of 256 samples.
-        The generator had two hidden layers, each with 8 leaky-ReLU activated units, and a single $\tanh$ output unit.
+        Histogram of samples from $\hat{V'_c}$ compared to $h$ after optimising only $\hat{p}$.
     }
     \label{fig:sigmoidBumpHistogram}
     \end{center}
 \end{figure}
-This issue becomes even more pronounced when the constraint satisfaction function is altered to have two distinct modes (Figure \ref{fig:sigmoidBumpHistogramBimodal}).
-\begin{equation}
-    h(c,s)=\sigma(20c-6)-\sigma(20c-14)+\sigma(20c+6)-\sigma(20c+14)
-\end{equation}
-While a very high precision is obtained, with all generated solutions having a satisfaction probability of $~96\%$, optimising solely for precision fails entirely to encapsulate the bimodality of the constraint satisfaction function even in such a simple environment, confirming that optimisation must take recall into consideration for satisfactory results.
+This issue becomes more pronounced when $h$ has two distinct modes (Figure \ref{fig:sigmoidBumpHistogramBimodal}, Appendix \ref{appendix:bimodalCSF}).
+While a very high precision is obtained, optimising solely for precision fails to capture the bimodality of $h$ even in a simple environment, confirming that optimisation must take recall into consideration for satisfactory results.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{sigmoidBumpHistogramBimodal}
     \caption{
-        Distribution of generated solutions compared to a bimodal constraint satisfaction function against which the generator was trained, in the form of a histogram consisting of 256 samples.
-        The generator architecture is the same as that used in Figure \ref{fig:sigmoidBumpHistogram}.
+        Histogram of samples from $\hat{V'_c}$ compared to $h$ after optimising only $\hat{p}$.
     }
     \label{fig:sigmoidBumpHistogramBimodal}
     \end{center}
@@ -113,12 +100,12 @@ While a very high precision is obtained, with all generated solutions having a s
 
 \subsection{Pretraining} \label{subsection:pretrainingResults}
 
-In the absence of a recall proxy, it was suggested that the generator be pretrained to ensure that its initial distribution covers as wide a range of the solution space as possible.
-This is based on two suppositions: that the generator initially only takes samples from an isolated region of the solution space; and that a more general distribution would explore multiple high-satisfaction regions of the solution space, thereby capturing a multimodal distribution even when optimising only for precision.
-The generator's architecture remained the same as that used in \S\ref{subsection:precisionProxyOptimisation}, and the bimodal constraint satisfaction function from the latter half of that section was also used.
+All experiments in this section used the parameters in Appendix \ref{appendix:precisionOptimisationTrainingParameters} unless otherwise specified.
 
-That the first assumption is true is confirmed trivially by taking samples from the generator before training (Figure \ref{fig:initialisedGenerator}).
-Glorot initialisation, a common method of initialising the weights of neural networks, was used to initialise the generator's network weights.
+Without $\hat{r}$ being tractable, it was suggested that $g'$ be pretrained to ensure that its initial mapping covers as wide a range of $S$ as possible.
+This is based on two suppositions: that $g'$ initially only takes samples from an isolated region of $S$; and that a spread-out distribution would explore multiple high-satisfaction regions of $S$, thereby capturing a multimodal $\hat{V'_c}$ even when optimising only for precision.
+
+That the first assumption holds is confirmed trivially by samples from $\hat{V'_c}$ before training (Figure \ref{fig:initialisedGenerator}).
 \begin{figure}[H]
     \centering
     \begin{subfigure}[a]{1.\textwidth}
@@ -134,22 +121,21 @@ Glorot initialisation, a common method of initialising the weights of neural net
         \includegraphics[width=0.6\textwidth]{initialisedGenerator3}
     \end{subfigure}
     \caption{
-        Generated distribution immediately after network initialisation for three different seeds using a larger batch size of 4096.
+        $\hat{V'_c}$ immediately after initialisation for three different seeds.
+        4096 histogram samples were taken instead of 256.
     }
 \label{fig:initialisedGenerator}
 \end{figure}
-Pretraining is performed in the same way as normal training, but instead of minimising the precision loss, one of the spread losses $q_\text{id}$ or $q_\text{sep}$ is minimised.
-Because the spread is a subjective quality which cannot obviously be objectively measured, the success of each spread metric will be judged on whether it enables the generator to learn both modes of the viable set simultaneously.
-That spread function will then be used in further experiments.
+Pretraining is performed in the same way as normal training, but one of the spread losses $q_\text{id}$ or $q_\text{sep}$ is minimised instead of $\hat{p}$.
+Because the spread is a subjective quality which cannot be objectively measured, the success of each spread metric will be judged on whether it enables $g'$ to learn both modes of $\hat{V_c}$ simultaneously.
 
-Below are examples of typical generated viable sets after pretraining with each spread metric.
-Identity spread (Figure \ref{fig:identitySpread}) was trained with a batch size of 4096, while separation spread (Figure \ref{fig:separationSpread}) was trained with a smaller batch size of 256 to prevent excessive computations.
-The target spread was set to $q_\text{target}=1$, such that the desired mean distance between sampled solutions is equal to $1$.
+Below are examples of typical $\hat{V'_c}$ after pretraining with each spread metric.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{identitySpread}
     \caption{
-        Generator output distribution after pretraining until convergence using the identity spread loss $q_\text{id}$ and a batch size of 4096.
+        $\hat{V'_c}$ after pretraining until convergence using $q_\text{id}$.
+        4096 histogram samples were taken instead of 256.
     }
     \label{fig:identitySpread}
     \end{center}
@@ -159,19 +145,19 @@ The target spread was set to $q_\text{target}=1$, such that the desired mean dis
     \begin{center}
     \includegraphics[width=\textwidth]{separationSpread}
     \caption{
-        Generator output distribution after pretraining until convergence using the separation spread loss $q_\text{sep}$ with a target spread of $q_\text{target}=1$ on batches of size 256.
+        $\hat{V'_c}$ after pretraining until convergence using $q_\text{sep}$.
     }
     \label{fig:separationSpread}
     \end{center}
 \end{figure}
-Both spread metrics show signs of causing the generator to explore a far greater proportion of the solution space than immediately after initialisation, but also have a tendency to over-explore the boundaries.
+Both metrics show signs of causing $g'$ to explore a far greater proportion of $S$ than immediately after initialisation, but also have a tendency to over-explore the boundaries.
 This effect is much more pronounced with $q_\text{sep}$.
-The true success of each metric, however, is determined by the generator's ability to find different nodes when precision is optimised after pretraining.
+The true success of each metric, however, is determined by the generator's ability to find different modes when precision is optimised after pretraining.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{identityThenPrecision}
     \caption{
-        Generator output distribution after pretraining until convergence using the identity spread loss $q_\text{id}$ and a batch size of 4096, then trained to maximise precision for a further 8096 batches.
+        $\hat{V'_c}$ after pretraining until convergence using $q_\text{id}$, then trained to maximise $\hat{p}$ until convergence.
     }
     \label{fig:identityThenPrecision}
     \end{center}
@@ -181,45 +167,41 @@ The true success of each metric, however, is determined by the generator's abili
     \begin{center}
     \includegraphics[width=\textwidth]{separationThenPrecision}
     \caption{
-        Generator output distribution after pretraining until convergence using the separation spread loss $q_\text{sep}$ with a target spread of $q_\text{target}=1$ on batches of size 256, followed by training to maximise precision on another 512 batches.
+        $\hat{V'_c}$ after pretraining until convergence using $q_\text{sep}$, then trained to maximise $\hat{p}$ until convergence.
     }
     \label{fig:separationThenPrecision}
     \end{center}
 \end{figure}
-Comparing Figure \ref{fig:sigmoidBumpHistogramBimodal} to Figures \ref{fig:identityThenPrecision} and \ref{fig:separationThenPrecision} it is clear that the generator's ability to detect multiple modes is greatly enhanced by pretraining to maximise spread.
-This comes at a cost, however; while the generator pretrained on $q_\text{id}$ samples in roughly equal proportions from both modes, it also frequently samples solutions from between the modes which are unlikely to satisfy the constraint.
-Because both metrics have similar results but separation spread takes longer to train, the identity spread will be used in further experiments unless the latent space is required to have a different dimension to the solution space.
+Comparing Figure \ref{fig:sigmoidBumpHistogramBimodal} to Figures \ref{fig:identityThenPrecision} and \ref{fig:separationThenPrecision} it is clear that pretraining greatly enhances the generator's ability to sample multiple modes.
+This comes at a cost, however; while the generator pretrained on $q_\text{id}$ samples approximately equally from both modes, it also frequently samples solutions from between the modes which are unlikely to satisfy $h$.
 
 \subsection{Maximising precision and spread} \label{subsection:maximisingPrecisionAndSpread}
 
-It was observed while training on precision after pretraining on spread that early stopping was required to prevent the generator from falling back into a unimodal distribution.
-One possibility is, after pretraining, to minimise a weighted sum of precision and spread loss, as if the spread loss were a proxy for the recall of the learned viable distribution.
-Using the identity spread, this is semantically valid: $q_\text{id}$ penalises the distance movement of probability mass between the latent and solution spaces, thereby providing an incentive to the generator to seek out areas of high satisfaction probability which are more local.
+All experiments in this section used the parameters in Appendix \ref{appendix:precisionOptimisationTrainingParameters}.
 
-Figure \ref{fig:identityAndPrecision} shows the learned viable distribution after pretraining on identity spread, then training to minimise the sum of precision and identity spread loss ($w=1$) until convergence.
+Another possibility is, after pretraining, to minimise a weighted sum of $\hat{p}$ and $q$, as if the spread loss were a substitute for $\hat{r}$.
+Using $q_\text{id}$, this has an intuitive explanation: $q_\text{id}$ penalises the relocation of probability mass between $L$ and $S$, thereby providing an incentive to $g'$ to seek out areas of high satisfaction probability which are more local.
+
+Figure \ref{fig:identityAndPrecision} shows $\hat{V'_c}$ after $q_\text{id}$ pretraining, then training to minimise $\hat{p}+q_\text{id}$ until convergence.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{identityAndPrecision}
     \caption{
-        Generator output distribution after pretraining as in Figure \ref{fig:identityThenPrecision}, followed by training to maximise the sum of precision and ideneity spread until convergence.
+        $\hat{V'_c}$ after pretraining, followed by training to maximise $\hat{p}+q_\text{id}$ until convergence.
     }
     \label{fig:identityAndPrecision}
     \end{center}
 \end{figure}
-This is clearly a result superior to any obtained previously, with the generator sampling both modes, and almost always in regions with a satisfaction probability above $0.8$.
-Solutions less likely to satisfy the constraint are almost never sampled.
+This is clearly a result superior to any obtained previously, with $\hat{V'_c}$ covering both modes, and almost always in regions with a satisfaction probability above $0.8$.
+Solutions less likely to satisfy $h$ are almost never sampled.
 
 \subsection{Constraint embeddings} \label{subsection:constraintEmbeddings}
 
 The only part of the proposed architecture that has yet to be verified is the insertion of constraints in an embedded form at the output layer of the generator.
-This is achieved using a generalised alteration of the constraint satisfaction function used in \S\ref{subsection:pretrainingResults} such that the position of each peak is controlled by one dimension of the constraint.
-Code used to construct this function inside a Tensorflow computation graph can be found in the appendix.
-The generator was trained to minimise a weighted sum of precision and identity spread (as a recall proxy) for 150 epochs of 20,000 steps each; a recall proxy weight of $0.7$ was used for these figures.
-The generator had two hidden layers while both the weight and bias embedder had one hidden layer, with every hidden layer consisting of 32 leaky-ReLU units.
-Constraints were mapped into a $10$-dimensional embedding vector.
-All output layers were also leaky-ReLU activated, with the exception of the generator's output, which was tanh activated.
+This is achieved using a generalised alteration of $h$ introduced in Appendix \ref{appendix:bimodalCSF} such that the position of each peak is controlled by one component of $c$.
+Code for replicating this function is reproduced in Appendix \ref{appendix:tensorflowCSF} and training was performed with parameters in Appendix \ref{appendix:embedderVerificationParameters}.
 
-Generally, the generator was able to learn to adapt its learned viable distribution to account for the differences in the constraint satisfaction function.
+Generally, $\hat{V'_c}$ was able to adapt to account for the differences in $h$.
 Not only was it often able to distinguish between two modes, but also adjusted its mapping appropriately when the two peaks were near each other and so merged into one mode.
 \begin{figure}[H]
     \centering
@@ -240,14 +222,14 @@ Not only was it often able to distinguish between two modes, but also adjusted i
     }
 \label{fig:embeddedConstraintsBimodal}
 \end{figure}
-Occasionally, when large regions of the solution space did not satisfy the constraint, poor mapping choices such as those observed in Figure \ref{fig:embeddedConstraintTooSparse} would occur.
-It is hypothesised that these are artefacts of the cost of moving probability mass from one side of the solution space to the other became greater than the precision gain; this is partially confirmed by observations that this error happened less frequently once the spread weight was reduced.
+Occasionally, when large regions of $S$ did not satisfy $c$, poor mapping choices such as those observed in Figure \ref{fig:embeddedConstraintTooSparse} would occur.
+It is hypothesised that these are artefacts of the cost of moving probability mass from one side of $S$ to the other became greater than the gain in precision; this is partially confirmed by observations that this error happened less frequently once $w$ was reduced.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{embeddedConstraint4}
     \caption{
-        An example of a constraint whose viable space was so small compared to the solution space that the generator was forced to sample poor solutions to prevent penalties from its recall proxy.
-        This can be prevented by reducing the recall proxy weight.
+        An example of a constraint whose viable space was so small compared to $S$ that $g'$ was forced to sample poor solutions to prevent penalties from $q_\text{id}$.
+        This can be prevented by reducing $w$.
     }
     \label{fig:embeddedConstraintTooSparse}
     \end{center}
@@ -256,7 +238,7 @@ It is hypothesised that these are artefacts of the cost of moving probability ma
     \begin{center}
     \includegraphics[width=\textwidth]{embeddedConstraint7}
     \caption{
-        A constraint for which two peaks join together into a single peak, which is accurately accounted for in the learned viable distribution.
+        A constraint for which two peaks join together into a single peak, which is accurately reflected in $\hat{V'_c}$.
     }
     \label{fig:embeddedConstraintJoinedModes}
     \end{center}
