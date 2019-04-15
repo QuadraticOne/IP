@@ -20,13 +20,13 @@ Further work into a simplex intersection algorithm could therefore allow direct 
 \subsection{Composite constraints} \label{subsection:compositeConstraints}
 
 Currently, only one constraint can be fed into $g'$ at once.
-It might be possible to train an RNN to combine constraint vectors in ways resembling set operations applied to $V_c$.
+It might be possible to train a RNN to combine constraint vectors in ways resembling set operations applied to $V_c$.
 This could allow multiple constraints to be combined, thereby making accessible the solutions to more complex, composite constraints.
 
 \subsection{Direct constraint embedding} \label{subsection:directConstraintEmbedding}
 
 The weights and biases of the output layer of $g'$ are directly estimated by a function of $c$ in the current architecture.
-It was not investigated whether $g'$ would be capable of learning effective mappings if the $c$ were used directly as the weights of the final layer, without embedding.
+It was not investigated whether $g'$ would be capable of learning effective mappings if $c$ were used directly as the weights of the final layer, without embedding.
 If this were the case, training times could be shortened by reducing the number of parameters used by the generator.
 
 \section{Conclusion} \label{section:conclusion}
@@ -44,6 +44,6 @@ The ability of the mapping to satisfy equality constraints was then examined, an
 Some nuanced solutions to equality constraints were missed, however.
 
 Visualisations of the learned latent space were explored to gain an intuitive understanding of the generator.
-Observations were made which provided plausible explanations for the shortcomings of the proposed architecture discovered in earlier experiments, and areas of further research were proposed which could overcome them.
+Observations were made which provided plausible explanations for the shortcomings of the proposed architecture discovered in earlier experiments, and areas of further research were suggested which could overcome them.
 
 \end{document}

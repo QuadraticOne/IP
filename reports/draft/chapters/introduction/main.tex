@@ -33,7 +33,7 @@ If a solution or constraint is within $S$ or $C$ then it is referred to as valid
 \end{equation}
 where $a,\;b$ are the arbitrary bounds of the hypercube in each dimension.
 
-Since both $S$ and $C$ are hypercubes, it is trivial sample them uniformly.
+Since both $S$ and $C$ are hypercubes, it is trivial to sample them uniformly.
 As such, solving an engineering problem as defined here for a given constraint $c$ can be broken down into two steps: finding a solution $s$ for which $f(s)$ is suitably large; and ensuring that $s$ is viable.
 
 \section{Learned latent mapping} \label{section:learnedLatentMapping}
@@ -43,12 +43,12 @@ When certain regions of the solution space do not satisfy the constraint, howeve
 If the regions satisfying the constraint are sparse, it may be a considerable amount of time before even a single viable solution is found, before then having to optimise its value according to the objective function.
 
 One way around this dilemna is to utilise the fact that $h$ is constant within an environment to learn its underlying patterns using data from previous experiments.
-This knowledge can be used to create a set of viable solutions $V_c$, specific to the constraint, such that any solution vector which is contained within $V_c$ satisfies the constraint by definition.
+This knowledge can be used to create a space of viable solutions $V_c$, specific to the constraint, such that any solution vector which is contained within $V_c$ satisfies $c$ by definition.
 \begin{equation}
     V_c=\{s\;|\;s\in S,\;h(c,s)=\text{satisfied}\}
 \end{equation}
 While envisaging such a set is trivial, sampling from it is not.
-One could learn a generator function $g(c)$ which maps from an arbitrary latent space $L$ (from which samples can be easily drawn) to somewhere in $V_c$:
+One can imagine a generator function $g(c)$ which maps from an arbitrary latent space $L$ (from which samples can be easily drawn) to somewhere in $V_c$:
 \begin{equation}
     g(l,c)\;:\;L,C\mapsto V_c
 \end{equation}

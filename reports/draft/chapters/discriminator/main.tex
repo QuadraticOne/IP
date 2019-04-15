@@ -5,7 +5,7 @@
 \chapter{Discriminator} \label{chapter:discriminator}
 
 Previous chapters have assumed that a discriminator, $h'$, has already been trained and is readily available.
-This chapter details the exact task of $h'$ and some rules of thumb for training it from data.
+This chapter details the exact role of $h'$ and some rules of thumb for training it from data.
 
 \section{Formal definition} \label{section:formalDefinition}
 
@@ -20,7 +20,7 @@ It is for this reason that even $h$ is known analytically, an ANN should be used
 
 Data are provided in the form of $(c,\;s,\;h(c,s))$ tuples where the first two vectors are network inputs and the third is the label.
 The discriminator will normally take the form of a standard multi-layer perceptron, taking its arguments as a concatenated vector and outputting a single scalar probability.
-As such, the output layer should be sigmoid activated, but the internal activations are not constrained (leaky-ReLU activations are used here unless otherwise specified).
+As such, the output layer should be sigmoid activated, but the internal activations are not constrained.
 
 Training is accomplished by backpropagation \cite{rumelhart86}.
 It is also strongly recommended that a proportion of the data (nominally, 20\%) is set aside for the purposes of validating $h'$ after training.
@@ -28,7 +28,7 @@ It is also strongly recommended that a proportion of the data (nominally, 20\%) 
 \section{Overfitting} \label{section:overfitting}
 
 Because $g'$ is trained off $h'$ and not from data, ensuring that $h'$ does not overfit is essential.
-A number of standard techniques should be emploted, including dropout \cite{srivastava14} and L2 regularisation \cite{krogh92}.
+A number of standard techniques should be employed, including dropout \cite{srivastava14} and L2 regularisation \cite{krogh92}.
 The size of the dataset should be considered when choosing the network depth and width, and training should be stopped before validation error begins to rise (a sign that the network is overfitting).
 
 \section{Practical considerations} \label{section:practicalConsiderations}
@@ -37,7 +37,7 @@ A number of different considerations should be taken into account on a case-by-c
 
 \subsection{Incorporating environment knowledge} \label{subsection:incorporatingEnvironmentKnowledge}
 
-Many engineering environments are understood quite well from an analytical level, and this knowledge can sometimes be leveraged to augment the training data.
+Many engineering environments are understood quite well from an analytical perspective, and this knowledge can sometimes be leveraged to augment the training data.
 A frequently valid assumption is that data points which are nearby in the feature space will produce similar outputs.
 Adding noise to the data before feeding them into the network simulates a much greater quantity of data, thereby reducing overfitting, but may cause a loss of fidelity in environments in which the output is highly sensitive to the input.
 
@@ -50,7 +50,7 @@ Sparse environments may also be amenable to performing dimensionality reduction 
 
 \subsection{Limiting network capacity} \label{subsection:limitingNetworkCapacity}
 
-Training a perfect discriminator is not always desirable, as such a discriminator will have near-zero gradients by virtue of the fact that it is trying to approximate a binary function.
+Training a perfect discriminator is not always desirable: a perfect discriminator will have near-zero gradients by virtue of the fact that it is trying to approximate a binary function.
 Deliberately forcing the discriminator to cope with greater uncertainty can reduce the chance of the discriminator's output saturating, thereby giving clearer indications to the generator by backpropagating gradients of a greater magnitude.
 
 Adding noise to the inputs as aforementioned is one way of achieving this, with another possibility being the limitation of the capacity of the network.

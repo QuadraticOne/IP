@@ -31,7 +31,7 @@ Then $g'$ training is simply a matter of minimising $D_\text{KL}$.
 
 While theoretically very simple, there are several practical problems that could arise during training with this approach.
 \begin{itemize}
-    \item[] \textbf{Exploding gradients}: a problem frequently encountered when minimising functions containing a logarithm is the occurrence of NaN values resulting from taking the logarithm of zero \cite{bengio94}.
+    \item[] \textbf{Exploding gradients}: a problem frequently encountered when minimising functions containing a logarithm is the occurrence of \url{NaN} values resulting from taking the logarithm of zero \cite{bengio94}.
     While this will not be an issue since the numerator of the fraction will be non-zero by virtue of the fact that that point has been sampled, very small values are possible.
     Zeros in the denominator are also possible.
     These will produce large negative logarithms, whose derivatives may cause exploding gradients.
@@ -62,7 +62,7 @@ Letting $\{l_1,l_2,...,l_{j-1},l_j\}$ be a batch of samples drawn from $L$, the 
 Note that $h(c,s)$ is proportional to $\hat{V_c}$ but is a probability instead of a p.d.f. and so will always be between 0 and 1.
 
 Intuitively, this is equivalent to taking a batch of points from $L$, mapping them into $S$, calculating $h$ for each point, and taking the mean of the negative logarithm of $1$ minus each of these values.
-Solutions for which $\hat{V_c}(s)\ll\hat{V'_c}(s)$ will occur frequently (because their density in $\hat{V'}(c)$ is high) but be severely penalised (because $h(c,s)$ is small and so $\text{log}(1-h(c,s))$ will be large).
+Solutions for which $\hat{V_c}(s)\ll\hat{V'_c}(s)$ will occur frequently (because their density in $\hat{V'_c}$ is high) but be severely penalised (because $h(c,s)$ is small and so $\text{log}(1-h(c,s))$ will be large).
 The result of this is that $g'$ will learn weights that avoid this situation as much as possible.
 
 \subsection{Recall} \label{subsection:recall}
@@ -73,7 +73,7 @@ Solutions which are highly likely to satisfy the constraint, but which occur ver
     \textbf{E}\big[\hat{r}(g')\big]=-\frac{1}{j}\sum_{i=1}^{j}\text{log}\big(1-g'^{-1}(s,c)+\epsilon\big)
 \end{equation}
 where $\{s_1,s_2,...,s_{j-1},s_j\}$ is a batch of solutions drawn from $\hat{V_c}$.
-Such a batch can be produced using a Markov chain Monte Carlo method such as the Metropolis-Hastings algorithm \cite{robert16}.
+Such a batch can be produced using a Markov chain Monte Carlo (MCMC) method such as the Metropolis-Hastings algorithm \cite{robert16}.
 Like direct minimisation of the KL-divergence, $\hat{r}$ assumes that $g'^{-1}$ is tractable.
 
 \subsection{Spread} \label{subsection:spread}
@@ -86,7 +86,7 @@ Some metrics are proposed below which, when minimised, discourage $g'$ from samp
     \item[] \textbf{Similarity loss}: penalises according to the squared distance between a point in $L$ and its accompanying point in $S$, when both spaces are linearly scaled such that they are unit hypercubes.
     This effectively forces $g'$ to model the identity function after its initialisation.
     \begin{equation}
-        q_\text{id}(g,l,c)=\bigg|\frac{l-a_L}{b_L-a_L}-\frac{g(l,c)-a_S}{b_S-a_S}\bigg|^2
+        q_\text{id}=\bigg|\frac{l-a_L}{b_L-a_L}-\frac{g(l,c)-a_S}{b_S-a_S}\bigg|^2
     \end{equation}
     Since any point in $L$ can be sampled, if $g'$ closely approximates the identity function then all points in $S$ will be roughly equally likely to be sampled.
     One clear drawback, however, is that this spread metric requires $m=k$, which may not be desirable for large $m$.
@@ -96,7 +96,7 @@ Some metrics are proposed below which, when minimised, discourage $g'$ from samp
         q_\text{sep}=\bigg(q_\text{target}-\frac{1}{b^2}\sum_{i,j=1}^b\big|B_i-B_j\big|^2\bigg)^2
     \end{equation}
     where $B=\{B_1,...,B_b\}$ is a batch sampled from $\hat{V'_c}$.
-    This spread metric will typically be quite slow because its calculation is of the order $\text{O}(b^2)$ as opposed to the $\text{O}(b)$ for $q_\text{id}$.
+    This spread metric will typically be quite slow because its calculation is of the order $\text{O}(b^2)$ as opposed to $\text{O}(b)$ for $q_\text{id}$.
 \end{itemize}
 As well as being used in pretraining for efficient generator initialisation, these spread metrics could be used as a weak substitute for $\hat{r}$ in the event that evaluating $\hat{V'_c}$ is intractable.
 While not strictly measuring $\hat{r}$, they prevent $g'$ from only choosing a single point repetitively.
@@ -141,8 +141,8 @@ When $n_o>n_i$, the input is overdefined by the output, hence not every output w
 An alternate way of looking at this is that the input is fully defined by the first $n_i$ dimensions of the output.
 The latter $n_o-n_i$ dimensions of the output are therefore redundant when it comes to producing $R_\text{in}$ from $R_\text{out}$.
 
-The $W$ is therefore constrained such that it is constructed by concatenating a $n_i\times n_i$ orthogonal matrix $W_\text{orth}$ with a $n_o-n_i\times n_i$ matrix whose elements can vary freely, $W_\text{free}$ (Figure \ref{fig:expansiveLayer}).
-Then to invert a space of relevant points, any constraints on the latter $n_o-n_i$ dimensions can be ignored, while any remaining constraints are rotated by $W_\text{orth}^{-1}$.
+$W$ is therefore constrained such that it is constructed by concatenating a $n_i\times n_i$ orthogonal matrix $W_\text{orth}$ with a $n_o-n_i\times n_i$ matrix whose elements can vary freely, $W_\text{free}$ (Figure \ref{fig:expansiveLayer}).
+Then to invert a space of relevant points, any constraints on the latter $n_o-n_i$ dimensions can be ignored, while any remaining constraints are rotated by $W_\text{orth}^{-1}=W_\text{orth}^T$.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=0.45\textwidth]{expansiveLayer}
@@ -160,9 +160,9 @@ Generally, the relevant input space is unconstrained and therefore infinite in $
 
 Normally, the size of the weight matrix would be $n_o\times n_i$, where $n_i>n_o$.
 In this case, however, the weight matrix will be an orthogonal matrix of size $n_i$.
-The output vector is obtained by multiplying $W$ by the input, and then retaining only the first $n_o$ components of the resulting vector.
+The output vector is obtained by multiplying $W$ by the input, and then retaining only the first $n_o$ components of the resulting vector (Figure \ref{fig:compressiveLayer}).
 
-Consider the intermediate step, after multiplying $W$ by the input but before clipping the vector (Figure \ref{fig:compressiveLayer}).
+Consider the intermediate step, after multiplying $W$ by the input but before clipping the vector.
 The space of vectors which produce $y$ when retaining only the first $n_o$ components is constrained such that:
 \begin{equation}
     x'_j=y_j\;\forall\;1\le j\le n_o
@@ -177,7 +177,7 @@ The relevant input space can then be obtained by rotating this intermediate spac
 
 Note that the infinite relevant space can be approximated by a finite polytope which extends in each unconstrained dimension to a suitably large distance from the origin, under the reasonable assumption that the activations of hidden units will never greatly exceed $1$.
 Therefore $R_\text{in}$ can be described by a set of simplices, also known as a simplicial complex, since any polytope can be constructed from a finite number of simplices \cite{wildberger12}.
-Being able to propagate these simplices backwards through the various transforms described in this section is therefore sufficient to all backpropagation of $R_\text{out}$, and thereby find its probability density.
+Being able to propagate these simplices backwards through the various transforms described in this section is therefore sufficient for the backpropagation of $R_\text{out}$, and thereby finding its probability density.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=0.7\textwidth]{compressiveLayer}
@@ -205,7 +205,7 @@ The following rules can be applied to each dimension:
 
 \subsection{Obstacles} \label{subsection:obstacles}
 
-While theoretically sound, propagating a relevant space backwards through an ANN in order to compute its p.d.f. like thisis not practical.
+While theoretically sound, propagating a relevant space backwards through an ANN in order to compute its p.d.f. like this is not practical.
 
 Problems arise because compressive layers require that a space be propagated back rather than a point.
 A simplicial complex can be used to describe this space, but inverting a simplicial complex through a ReLU activation function is impractical for two reasons.
@@ -218,7 +218,6 @@ If it intersects with the zeros of $i$ axes simultaneously, it must be split int
 While this split will not occur every time a simplex is propagated back through a ReLU activation, the potential for such an exponential growth could quickly become unmanageable.
 
 Other activation functions which do not consist of linear segments will suffer even greater problems since a simplex is a fundamentally linear shape.
-
 For this reason, methods which require the evaluation of the p.d.f. of an ANN will not be pursued further in this project.
 
 \section{Training procedure} \label{section:generatorTrainingProcedure}
@@ -243,10 +242,10 @@ This process is repeated until either the parameters converge or $q$ is sufficie
 
 In the main training phase, latent points are sampled uniformly and constraints are sampled as in the pretraining phase.
 They are matched into arbitrary pairs, each one comprising a data point.
-The constraint vector is fed to both $h'$ and embedder (which in turn feeds its values to the last layer of $g'$), while $l$ is fed to $g'$.
+The constraint vector is fed to both $h'$ and the embedders (which in turn feed their values to the last layer of $g'$), while $l$ is fed to $g'$.
 
 From these inputs, $s$ is calculated, and the likelihood of its satisfying $c$ is calculated from $h'$.
-Given all these values, $\hat{p}$ and $\hat{r}$ (or one of $q_\text{id},q_\text{sep}$ in place of $\hat{r}$) can be calculated and combined into a weighted loss term.
+Given all these values, $\hat{p}$ and $\hat{r}$ (or one of $q_\text{id},\;q_\text{sep}$ in place of $\hat{r}$) can be calculated and combined into a weighted loss term.
 Again, the derivatives of this value are used to minimise the weights of $g'$.
 If $h'$ is an ANN, its weights remain fixed throughout this process.
 

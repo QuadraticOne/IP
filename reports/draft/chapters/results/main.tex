@@ -4,7 +4,7 @@
 
 \chapter{Results} \label{chapter:results}
 
-A number of experiments were conducted with two broad goals: verifying that at least some of the proposed architecture works on simplified abstract engineering environments, and proving that it has desirable qualities in more complex environments.
+A number of experiments were conducted with two broad goals: verifying that the proposed architecture works on simplified abstract engineering environments, and proving that it has desirable qualities in more complex environments.
 Some experiments were also carried out to visualise and explore the latent space mappings in an intuitive way.
 
 \section{Approach verification} \label{section:approachVerification}
@@ -41,9 +41,9 @@ Two one-dimensional normal distributions whose means only differ by two and whos
 \end{figure}
 Figure \ref{fig:narrowKLDivergence} shows that the variables converge at approximately the same rate as when $\sigma_0=1$.
 Both $\mu$ and $\sigma$ went to \url{NaN} after the first epoch and so are not shown.
-This may well have been caused by an excessively large KL-divergence resulting in exploding gradients due to the limited precision of floating point numbers.
+This was thought to have been caused by an excessively large KL-divergence resulting in exploding gradients due to the limited precision of floating point numbers.
 
-Changing to 64- instead of 32-bit values lends further evidence to this hypothesis, as increasing the precision allowed the $\mu=1.0,2.0$, $\sigma=0.1$ cases to be optimised without numerical errors (Figure \ref{fig:narrowKLDivergenceFloat64}).
+Changing to 64- instead of 32-bit values lent further evidence to this hypothesis, as increasing the precision allowed the $\mu=1.0,2.0$, $\sigma=0.1$ cases to be optimised without numerical errors (Figure \ref{fig:narrowKLDivergenceFloat64}).
 Similarly, using 16-bit precision always resulted in \url{NaN} errors occurring.
 \begin{figure}[H]
     \begin{center}
@@ -75,8 +75,8 @@ A graph of the constraint satisfaction function on $s\in[-1,\;1]$ is shown in Fi
     \label{fig:sigmoidBumpFunction}
     \end{center}
 \end{figure}
-Optimising $g'$ against $h(c,s)$ for $\hat{p}$ consistently yields a distribution of generated solutions displayed in Figure \ref{fig:sigmoidBumpHistogram}.
-Only considering precision and disregarding recall produces a mapping which is of no use: it always maps to a singular point in spite of the fact that around $15\%$ of the solution space has a constraint satisfaction probability above $0.9$.
+Optimising $g'$ against $h(c,s)$ for $\hat{p}$ consistently yielded a distribution of generated solutions displayed in Figure \ref{fig:sigmoidBumpHistogram}.
+Only considering precision and disregarding recall produced a mapping which is of no use: it always mapped to a singular point in spite of the fact that around $15\%$ of the solution space has a constraint satisfaction probability above $0.9$.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{sigmoidBumpHistogram}
@@ -127,9 +127,9 @@ That the first assumption holds is confirmed trivially by samples from $\hat{V'_
 \label{fig:initialisedGenerator}
 \end{figure}
 Pretraining is performed in the same way as normal training, but one of the spread losses $q_\text{id}$ or $q_\text{sep}$ is minimised instead of $\hat{p}$.
-Because the spread is a subjective quality which cannot be objectively measured, the success of each spread metric will be judged on whether it enables $g'$ to learn both modes of $\hat{V_c}$ simultaneously.
+Because the spread is a subjective quality which cannot be objectively measured, the success of each spread metric was judged on whether it enabled $g'$ to learn both modes of $\hat{V_c}$ simultaneously.
 
-Below are examples of typical $\hat{V'_c}$ after pretraining with each spread metric.
+Below are examples of a typical $\hat{V'_c}$ after pretraining with each spread metric.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{identitySpread}
@@ -223,7 +223,7 @@ Not only was it often able to distinguish between two modes, but also adjusted i
 \label{fig:embeddedConstraintsBimodal}
 \end{figure}
 Occasionally, when large regions of $S$ did not satisfy $c$, poor mapping choices such as those observed in Figure \ref{fig:embeddedConstraintTooSparse} would occur.
-It is hypothesised that these are artefacts of the cost of moving probability mass from one side of $S$ to the other became greater than the gain in precision; this is partially confirmed by observations that this error happened less frequently once $w$ was reduced.
+It is hypothesised that these are artefacts of the cost of moving probability mass from one side of $S$ to the other becoming greater than the gain in precision; this is partially confirmed by observations that this error happened less frequently once $w$ was reduced.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{embeddedConstraint4}
@@ -246,7 +246,7 @@ It is hypothesised that these are artefacts of the cost of moving probability ma
 
 \section{Method properties} \label{section:methodProperties}
 
-The first half of this chapter described experiments performed on abstract, simplified engineering problems to inform the design of the project's deliverable architecture.
+The first half of this chapter described experiments performed on abstract, simplified engineering problems to inform the design of the project's proposed architecture.
 The remainder of this chapter will examine that architecture's performance in more depth and in more complex engineering environments.
 
 \subsection{Expected satisfaction probability} \label{subsection:expectedSatisfactionProbability}
@@ -279,7 +279,7 @@ An exemplar JSON file is shown in Appendix \ref{appendix:exampleJSON}, but the r
 \subsection{Effect of recall weight} \label{subsection:effectOfRecallWeight}
 
 A generator was trained on a more concrete engineering environment to examine the effect of tuning $w$ on the tradeoff between precision and recall.
-It is hypothesised that low $w$ causes high satisfaction probability but low relative density, whereas high $w$ causes the opposite.
+It was hypothesised that low $w$ causes high satisfaction probability but low relative density, whereas high $w$ causes the opposite.
 
 The holes environment (Appendix \ref{appendix:holesEnvironment}) was used to test this hypothesis.
 Datasets of $(c,s,h(c,s))$ tuples were created to train the discriminator, balanced such that roughly half of the examples were positives: samples were taken uniformly from $S$ and $C$, and the satisfaction probability was calculated for each pair.
@@ -329,7 +329,7 @@ That increasing $w$ did trade precision for spread does suggest, however, that i
 
 \subsection{Equality constraints} \label{subsection:equalityConstraints}
 
-A common constraint in engineering problems is an equality constraint, specifying a property of a design must equal a particular value.
+A common constraint in engineering problems is an equality constraint, specifying that a property of a design must equal a particular value.
 Such a constraint can be created using the proposed architecture by parameterising the constraint such that it limits the upper and lower acceptable bounds of a property, and then setting these two bounds to be arbitrarily close together.
 
 The Branin function, $\beta(x,y)$, was chosen to test the ability of the generator to approximate equality constraints as it is a standard test function for which an equality constraint produces distinct contours (Appendix \ref{appendix:braninFunction}).
@@ -449,7 +449,7 @@ It also appears to frequently overlap itself, a phenomena not frequently seen fo
     \label{fig:latentPlot0001}
     \end{center}
 \end{figure}
-Finally, Figure \ref{fig:latentPlot0001} shows a fairly lenient case with a ride range of potential solutions.
+Finally, Figure \ref{fig:latentPlot0001} shows a fairly lenient case with a wide range of potential solutions.
 Here, poor recall is particularly evident, with relatively few of the potential solutions having latent equivalents in spite of the fact that most of $L$ maps to a viable solution.
 
 \end{document}

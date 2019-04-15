@@ -8,7 +8,7 @@
 
 A number of algorithms exist for finding the maximum of a function.
 Many of these are gradient ascent algorithms \cite{ruder17} which use information about the local gradient of the function to iteratively maximise it.
-Because the gradient is used to update the current guess, these algorithms often fail to converge quickly on function whose surface is flat.
+Because the gradient is used to update the current guess, these algorithms often fail to converge quickly on functions whose surfaces are flat.
 Algorithms such as RMSProp \cite{hinton17} and Adam \cite{kingma17} have been developed to overcome this, but still fail to converge if the function is discretised.
 
 Gradient-free, stochastic optimisation algorithms such as particle swarm optimisation \cite{kennedy12} and genetic algorithms \cite{carr14} solve this problem for functions of small dimensionality by rapidly exploring the input space, then focusing on areas which give good results.
@@ -36,14 +36,14 @@ The level of noise is another hyperparameter to be optimised: too little noise w
 
 \section{Function inversion} \label{section:functionInversion}
 
-As well as approximating maps between sets, ANNs are capable of learning the inverse of an existing function.
+As well as approximating mappingss between spaces, ANNs are capable of learning the inverse of an existing function.
 Promising results have been obtained using ANNs to invert intractable functions in image processing, for uses such as deblurring \cite{nah18} and colourisation \cite{nguyen16}.
 
 Autoencoders are an unsupervised learning method used to pretrain layers of neural networks that will later be applied for supervised learning \cite{rumelhart86}, in doing so training an encoder $f(x)$ and a decoder $f^{-1}(x)$.
 This can be used to extract the more important latent features of the feature space, or remove noise from corrupted data \cite{vincent08}.
 When used for pretraining, the decoder is normally discarded; but if the encoding function $f(x)$ is already known, the autoencoder architecture can be used to learn its inverse.
 
-Other architectures have been proposed which perform the same task as a traditional autoencoder, using a generative model.
+Other architectures have been proposed which perform the same task as a traditional autoencoder using a generative model.
 Variational autoencoders (VAEs) allow sampling from the latent space by parameterising a probability distribution over the it \cite{kingma14}, predicting the latent variables most likely to explain the visible data.
 The most common use for this is learning a robust latent mapping for a dataset, but the method could be adapted to create a generative model that inverts a many-to-one function such as $h$.
 
@@ -56,7 +56,7 @@ The result is that inputs are mapped to a greater variety of the latent space, a
 More recently, algorithms have been designed to train generative models using two competing networks in a minimax game.
 The most common adversarial networks, generative adversarial networks (GANs), can be trained to sample from an arbitrary distribution \cite{goodfellow14, horger18}.
 These have been applied to a range of problems, including image resolution upscaling \cite{ledig17} and creating cross-domain transfer functions \cite{zhu18}.
-GANs may therefore be adapted to sample from a distribution modelling $V_c$, if a parameterisation of the distribution with respect to the relevant constraint can be learned.
+GANs may therefore be adapted to sample from a distribution modelling $V_c$, if a parameterisation of the distribution by the relevant constraint can be learned.
 
 Some research has been done into the using GANs to invert functions \cite{anirudh18}; while autoencoders can also accomplish this task and are generally considered to be easier to train \cite{bang18}, the generative nature of GANs is appealing considering that $V_c$ contains more than one point.
 Sampling from it is therefore a necessity.
@@ -66,7 +66,7 @@ Sampling from it is therefore a necessity.
 All ANNs discussed previously require the input data to be input as a fixed-size vector of real values.
 While many practical data structures can be meaningfully encoded in this form (images, coordinates), many others cannot (words, time series).
 
-Recursive neural networks merge information about pairs of objects, allowing the construction of representations of tree-like data structures \cite{socher11}.
+Recursive neural networks (RNNs) merge information about pairs of objects, allowing the construction of representations of tree-like data structures \cite{socher11}.
 Because the information capacity of the final state vector is finite by virtue of its fixed size, the network is forced to either generalise or forget unimportant information.
 
 Some data structures, known as tokens, cannot be represented by real values and do not consist of sub-elements that can.
