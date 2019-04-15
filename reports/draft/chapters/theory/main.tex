@@ -62,11 +62,17 @@ The value of $\gamma$ is chosen such that the probabiliy mass of $\hat{V_c}$ is 
 \begin{equation}
 	\hat{V_c}(s)=\left\{\begin{array}{ll}\gamma&\mbox{if }h(c,s)=\text{satisfied}\\0&\mbox{otherwise}\end{array}\right.
 \end{equation}
-The continuity of ANNs should therefore not threaten the feasibility of this approach, because while regions of $S$ which are not part of $V_c$ may be sampled occasionally, if the generator is trained well then these regions will be much less probable than regions highly likely to satisfy the constraint.
+The continuity of ANNs should therefore not threaten the feasibility of this approach, because while regions of $S$ which are not part of $V_c$ may be sampled occasionally, if the generator is trained well then these regions will be much less probable than regions highly likely to satisfy the constraint (Figure \ref{fig:exampleMapping}).
 Intuitively, this can be thought of as $g'$ pulling together the distinct modes of $V_c$, reducing the distance between them and thereby making it easier to find a global maximum by exploration.
-\begin{equation}
-	\text{TODO: add graphic displaying this process}
-\end{equation}
+\begin{figure}[H]
+    \begin{center}
+    \includegraphics[width=0.75\textwidth]{exampleMapping}
+    \caption{
+		An example of how two distinct regions of $V_c$ in $S$ might be transformed by the generator to be much larger and closer together in $L$. 
+    }
+    \label{fig:exampleMapping}
+    \end{center}
+\end{figure}
 Proxy metrics can now be defined which are intuitively similar to $p$ and $r$ but are functions of a p.d.f. rather than of $g'$ itself.
 It is also possible to consider a distance metric between two distributions $-$ which is much easier to define than a distance metric between two spaces $-$ and minimise this directly, to prompt $\hat{V'_c}$ to match $\hat{V_c}$.
 These avenues are explored in \S\ref{chapter:generatorTraining}.
@@ -76,11 +82,17 @@ These avenues are explored in \S\ref{chapter:generatorTraining}.
 A probabilistic interpretation of vector spaces has been introduced which provides information on the density of points within the space, thereby working around the limitation of ANNs that prevents them discontinuous jumps between modes.
 This will also later allow the definition of more tractable loss functions that can be used to train $g'$.
 The network architecture, however, is still undefined.
-\begin{equation}
-	\text{TODO: diagram of a typical GAN architecture}
-\end{equation}
+\begin{figure}[H]
+    \begin{center}
+    \includegraphics[width=0.65\textwidth]{ganArchitecture}
+    \caption{
+		A typical GAN architecture.
+    }
+    \label{fig:ganArchitecture}
+    \end{center}
+\end{figure}
 GANs, introduced in \S\ref{section:adversarialAlgorithms}, are a family of ANNs which allow samples to be drawn from a distribution.
-A typical GAN architecture has a generator, mapping samples from the latent space to the feature space, and a discriminator, which classifies feature vector as real or fake.
+A typical GAN architecture has a generator, mapping samples from the latent space to the feature space, and a discriminator, which classifies feature vector as real or fake (Figure \ref{fig:ganArchitecture}).
 This presents many similarities to the functions required to solve engineering problems, where the GAN's generator is similar to $g'$ and its discriminator models $h$.
 As such, the GAN architecture was adapted slightly for this project.
 
@@ -111,7 +123,16 @@ Crucially, the DQN is a function of two parameters (state and action) which has 
 So DQNs prove that it is possible to use ANNs as curried functions where the weights of the last layer only are varied as an embedding of the first parameter.
 
 To adapt this to approximate $g'$, one needs only realise that a constraint embedding can be produced as a function of the constraint vector, which could feasibly be approximated by another ANN.
-So information about $c$ can be passed into $g'$ by estimating the weights and biases of its output layer using a separate network, the embedder, which takes only $c$ as input.
+So information about $c$ can be passed into $g'$ by estimating the weights and biases of its output layer using two separate networks, the weight and bias embedders (Figure \ref{fig:curriedGenerator}), which takes only $c$ as input.
+\begin{figure}[H]
+    \begin{center}
+    \includegraphics[width=0.8\textwidth]{curriedGenerator}
+    \caption{
+		Proposed architecture, with two networks estimating the weights and biases of the generator's output layer.
+    }
+    \label{fig:curriedGenerator}
+    \end{center}
+\end{figure}
 
 \subsection{Data-free training} \label{subsection:dataFreeTraining}
 
