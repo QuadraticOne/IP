@@ -9,9 +9,33 @@
 \setcounter{section}{0}
 \renewcommand*{\theHsection}{chX.\the\value{section}}
 
-\section{First} \label{appendix:first}
+\section{Parameterising orthogonal matrices} \label{appendix:parameterisingOrthogonalMatrices}
 
-Text for first appendix.
+\S\ref{subsection:squareWeightMultiplication} describes the need for an orthogonal matrix whose values can be changed by an optimiser.
+Generally this is not possible since the majority of matrices will not be orthogonal.
+Hence a transformation is needed from some matrix whose values can vary freely to an orthogonal matrix.
+
+Let $\ell$ be a function which takes a matrix and returns its lower triangle, while $W$ is a square matrix whose values vary freely.
+Therefore $\ell(W)$ is lower triangle while $\ell(W)^T$ is upper triangle, and their diagonals will be equal.
+
+If $W_\text{skew}$ is defined as
+\begin{equation}
+    W_\text{skew}=\ell(W)-\ell(W)^T
+\end{equation}
+then:
+\begin{equation}
+    W_\text{skew}^T=\ell(W)^T-\ell(W)
+\end{equation}
+\begin{equation}
+    -W_\text{skew}^T=-\ell(W)^T+\ell(W)
+\end{equation}
+and so $W_\text{skew}=-W_\text{skew}^T$, which is sufficient to prove that $W_\text{skew}$ is skew-symmetric.
+It is also known that the matrix exponential of a skew-symmetric matrix always results in an orthogonal matrix.
+So it is concluded that as long as $W$ is a square matrix,
+\begin{equation}
+    W_\text{orth}=e^{\ell(W)-\ell(W)^T}
+\end{equation}
+is orthogonal.
 
 \section{Second} \label{appendix:second}
 
