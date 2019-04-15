@@ -247,66 +247,58 @@ It is hypothesised that these are artefacts of the cost of moving probability ma
 \section{Method properties} \label{section:methodProperties}
 
 The first half of this chapter described experiments performed on abstract, simplified engineering problems to inform the design of the project's deliverable architecture.
-The remainder of this chapter will examine that architecture's performance in more depth and in more concrete engineering environments.
+The remainder of this chapter will examine that architecture's performance in more depth and in more complex engineering environments.
 
 \subsection{Expected satisfaction probability} \label{subsection:expectedSatisfactionProbability}
 
-One crucial requirement of the generator is that the solutions it produces should generally have a high satisfaction probability.
-The expected satisfaction probability will be used to measure the performance of the generator on various environments, and is calculated by taking the mean across the satisfaction probability, according to $h(c,s)$, of each solution in a sample.
-Similarly, the median satisfaction probability is the median of the satisfaction probability of every solution in the sample.
+One crucial requirement of $\hat{V'_c}$ is that the solutions it produces should satisfy $c$.
+The expected satisfaction probability (ESF) will be used to measure the performance of the generator on various environments, and is calculated by taking the mean of $h'(c,s)$ over a batch of sampled solutions.
+Similarly, the median satisfaction probability (MSF) is the median $h'(c,s)$ of every solution in the batch.
 
 \subsection{Relative density of true solutions} \label{subsection:relativeDensityOfTrueSolutions}
 
-Another requirement of the generator is that it samples from the entire range of viable solutions.
-In all further experiments, identity spread is used as a subtitute for the recall due to its intractibility.
-For the purposes of evaluating the generator, the relative density of true solutions in the learned viable distribution will be calculated.
+Another requirement of $\hat{V'_c}$ is that it samples from the entire range of viable solutions.
+In all further experiments, either $q_\text{id}$ or $q_\text{sep}$ is used as a subtitute for $\hat{r}$ due to its intractibility.
+For the purposes of evaluating the generator's performance, the relative density of true solutions in $\hat{V'_c}$ will be calculated.
 
-Calculating this value requires a sample of solutions from the true viable distribution: this is achieved by fixing the constraint vector, and then sampling from the discriminator using the Metropolis-Hastings algorithm.
-The sampled data should be distributed in approximately the same way as $V(c)$ for sufficiently long Markov chains.
-
-Finding the relative density of each of these solutions in the learned viable distribution requires creating an histogram from a large number of samples from the generator (for $m>1$ an $n$-tree is used to adaptively reduce the number of bins needed).
+Calculating this value requires a sample of solutions from $\hat{V_c}$; this is achieved using the Metropolis-Hastings algorithm \cite{robert16}.
+Finding the relative density of each of these solutions in $\hat{V'_c}$ requires creating an $n$-tree (a generalisation of a quadtree to an arbitrary number of dimensions) from a large number of samples from $g'$.
 For each true solution sampled from the Markov chain, the smallest bin within the $n$-tree containing that solution is found.
-The relative density of that solution is then defined as the ratio of proportion of generator-sampled points in that bin to the proportion of the volume of the solution space which is bounded by that bin.
-
+The relative density of that solution is then defined as:
+\begin{equation}
+    \text{relative density}=\rho=\frac{\text{population of bin}/\text{population of whole tree}}{\text{volume of bin}/\text{volume of }S}
+\end{equation}
 Intuitively, if a solution has a relative density greater than $1$ then it is being sampled more frequently than it would be if the generator simply output a uniform distribution; conversely, a relative density of less than $1$ suggests it is being sampled less frequently.
-For a generator with good recall it could therefore be expected that the mean relative density over a sample of points taken from the true viable distribution by a Markov chain Monte Carlo algorithm should be above $1$.
+For a generator with good recall it could therefore be expected that the mean relative density over a sample of solutions taken from $\hat{V_c}$ by a MCMC algorithm should be above $1$.
 
 \subsection{Data collection} \label{subsection:dataCollection}
 
 All environments used in further experiments implemented a common interface that allowed the training of a generator upon them to output a large JSON file containing data about the experiment parameters and results.
-An exemplar JSON file is shown in the appendix, but the results were not reproduced here in full due to their excessive size.
-Unless otherwise stated: the generator consists of two hidden layers with 4 leaky-ReLU units and a single tanh output unit; the weight and bias constraint embedder also have two hidden layers with 4 leaky-ReLU units and 2 leaky-ReLU output units; pretraining is performed to minimise $q_\text{id}$ and then full training is performed to minimise a weighted sum of the precision proxy and $q_\text{id}$, both until convergence.
+An exemplar JSON file is shown in Appendix \ref{appendix:exampleJSON}, but the results were not reproduced here in full due to their excessive size.
 
 \subsection{Effect of recall weight} \label{subsection:effectOfRecallWeight}
 
 A generator was trained on a more concrete engineering environment to examine the effect of tuning $w$ on the tradeoff between precision and recall.
 It is hypothesised that low $w$ causes high satisfaction probability but low relative density, whereas high $w$ causes the opposite.
 
-The engineering environment consists of a square plate with sides two units long whose origin is at its centre.
-Two holes are drilled into the plate, each described by the coordinates of their centre (which may be anywhere on the plate) and their radius (which may be in $[0,1]$).
-One of the hole's parameters are fixed; this hole is taken to be the constraint.
-The other hole's parameters are varied as the parameters of the solution.
-Satisfaction of the constraint occurs when the holes do not overlap.
-As such, $m=n=3$.
-
-Datasets of 64, 256, and 1024 $(s,c,h(c,s))$ tuples were created to train the discriminator, each balanced such that roughly half of the examples satisfied the constraint.
-Samples were taken uniformly from $S$ and $C$, and the satisfaction probability was calculated for each pair.
-One hidden layer of four leaky-ReLU nodes was used for the discriminator.
+The holes environment (Appendix \ref{appendix:holesEnvironment}) was used to test this hypothesis.
+Datasets of $(c,s,h(c,s))$ tuples were created to train the discriminator, balanced such that roughly half of the examples were positives: samples were taken uniformly from $S$ and $C$, and the satisfaction probability was calculated for each pair.
+The training parameters used are reproduced in Appendix \ref{appendix:holesTrainingParameters}.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{solutionPropertiesEvenlyWeighted}
     \caption{
         The median and interquartile range of the satisfaction probability and relative density of 128 generated and 128 true solutions to a sample of constraints.
-        Generator trained with $w=1$.
         Relative density is given as $\log_2(\rho+1)$ to space the data while conserving the important lines $\rho=0$ and $\rho=1$.
+        Generator trained with $w=1$.
     }
     \label{fig:solutionPropertiesEvenlyWeighted}
     \end{center}
 \end{figure}
 Immediately noticeable is the very high precision: only one of the constraints has a satisfaction probability of under $0.8$ for at least half of its generated solutions.
 Recall is generally quite poor, however.
-Only a small proportion of the true solutions were sampled more frequently by the generator than by a uniform distribution.
-It was hypothesised that increasing $w$ would shift the constraints to regions of higher relative density, at the cost of slightly decreasing the precision of the generator.
+Only a small proportion of the true solutions were sampled more frequently by $\hat{V'_c}$ than by a uniform distribution.
+The hypothesis suggests that increasing $w$ would shift the constraints to regions of higher $\rho$, at the cost of slightly decreasing $\hat{p}$.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{solutionPropertiesW3}
@@ -317,9 +309,9 @@ It was hypothesised that increasing $w$ would shift the constraints to regions o
     \label{fig:solutionPropertiesW3}
     \end{center}
 \end{figure}
-Figure \ref{fig:solutionPropertiesW3} shows this to be partially incorrect, however; while a reduction in satisfaction probability is observed, increasing $w$ does not appear to have increased the relative density for the majority of constraints.
+Figure \ref{fig:solutionPropertiesW3} shows this to be partially incorrect, however: while a reduction in satisfaction probability is observed, increasing $w$ does not appear to have increased the relative density for the majority of constraints.
 But the spread loss does appear to be consistently reduced by increasing $w$ (Table \ref{table:generatorTrainingProgression}), suggesting that $q_\text{id}$ is not an accurate gauge of recall.
-That increasing $w$ did trade precision for spread does suggest, however, that if a feasible estimate for recall could be obtained, tuning $w$ would have the intuitive effect hypothesised previously.
+That increasing $w$ did trade precision for spread does suggest, however, that if a better substitute for recall could be obtained, tuning $w$ might have the intuitive effect hypothesised previously.
 \begin{table}[H]
     \centering
     \begin{tabular}{*6c}
@@ -331,30 +323,16 @@ That increasing $w$ did trade precision for spread does suggest, however, that i
     17&3.000&0.088&-0.443&0.121&-0.544\\18&3.000&0.123&-0.444&0.108&-0.551\\19&3.000&0.100&-0.423&0.099&-0.511\\20&3.000&0.103&-0.427&0.111&-0.487\\
     \bottomrule
     \end{tabular}
-    \caption{Generator precision and spread loss at different points throughout training for $\epsilon=1$.}
+    \caption{$\hat{p}$ and $q_\text{id}$ at different points throughout training.}
     \label{table:generatorTrainingProgression}
-\end{table}
-Using the separation spread loss as a recall proxy instead results in an even lower relative density, with the spread loss approaching effectively $0$ but the generator only sampling from a tiny subset of satisfactory solutions (Table \ref{table:separationTrainedGeneratorSamples}).
-\begin{table}[H]
-    \centering
-    \begin{tabular}{*3c}
-    \toprule
-    $s_1\;(x)$&$s_2\;(y)$&$s_3\;(r)$\\
-    \midrule
-    -0.775&-1.000&0.666\\-0.185&-0.927&0.739\\0.557&1.000&0.821\\0.937&1.000&0.877\\0.825&1.000&0.843\\0.502&1.000&0.783\\-0.767&-1.000&0.661\\-0.758&-1.000&0.656\\-0.718&-1.000&0.627\\-0.581&-1.000&0.662\\
-    \bottomrule
-    \end{tabular}
-    \caption{Example solutions for $c=[0.324,\;0.307,\;0.568]$ sampled from a generator trained using separation spread loss as a recall proxy with $w=1,\;q_\text{target}=1$.
-    Samples come from a very limited subset of $S$ which consists mostly of the fringes of the solution space.}
-    \label{table:separationTrainedGeneratorSamples}
 \end{table}
 
 \subsection{Equality constraints} \label{subsection:equalityConstraints}
 
-A constraint found commonly in engineering problems is an equality constraint, specifying that some property must equal a particular value.
-Such a constraint can be created using the current architecture by parameterising the constraint such that it describes the upper and lower acceptable bounds on a property, and then setting these two bounds to be arbitrarily close together.
+A common constraint in engineering problems is an equality constraint, specifying a property of a design must equal a particular value.
+Such a constraint can be created using the proposed architecture by parameterising the constraint such that it limits the upper and lower acceptable bounds of a property, and then setting these two bounds to be arbitrarily close together.
 
-The Branin function, $\beta(x,y)$, was chosen to test the ability of the generator to approximate equality constraints as it is a standard test function for which an equality constraint produces distinct contours.
+The Branin function, $\beta(x,y)$, was chosen to test the ability of the generator to approximate equality constraints as it is a standard test function for which an equality constraint produces distinct contours (Appendix \ref{appendix:braninFunction}).
 Having a solution dimension of $2$ also makes visualisation of the results possible.
 To make passing the function and its arguments into the discriminator possible, both inputs and the output were scaled to be in $[0,\;1]$.
 The constraint vector, in two dimensions, was then defined such that the constraint is considered satisfied when:
@@ -365,21 +343,20 @@ and so:
 \begin{equation}
     h(c,s)=\left\{\begin{array}{ll}\text{satisfied}&\mbox{if }c_1\cdot c_2\le\beta(s_1,s_2)\le c_2\\\text{unsatisfied}&\mbox{otherwise}\end{array}\right.
 \end{equation}
-As with the environment in \S\ref{subsection:effectOfRecallWeight}, datasets of various sizes were created and a discriminator and generator were trained on the resulting data.
-The generator seemed to produce good solutions over a large range of the true viable space for most constraints, but was unable to find solutions to some constraints, as shown in Figure \ref{fig:braninPropertiesW3}.
+As with the environment in \S\ref{subsection:effectOfRecallWeight}, datasets of various sizes were created and the proposed architecture was trained on the resulting data.
+Training parameters can be found in Appendix \ref{appendix:braninTrainingParameters}.
+The generator produced good solutions over a large range of $V_c$ for most constraints, but was unable to find solutions to some constraints, as shown in Figure \ref{fig:braninPropertiesW3}.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{braninPropertiesW1}
     \caption{
-        Solutions which produce values within certain bounds when passed through the Branin function, as sampled by $5$ instances of a generator.
-        The discriminator was trained with one hidden layer, while the generator and constraint embedders each had two, all of which had 32 leaky-ReLU activated nodes.
-        Identity spread loss was used as a substitute for recall with $w=1$.
+        Solutions to a constrained Branin function, as sampled from $5$ different instances of $\hat{V'_c}$.
     }
     \label{fig:braninPropertiesW3}
     \end{center}
 \end{figure}
-After training, the constraint $c=[0.5,\;0.5]$ was chosen, corresponding to regions of the solution space for which the altered Branin function outputs values in $[0.25,\;0.5]$.
-Samples were then drawn from the learned viable distribution and plotted in the solution space, with overlays for the output of the discriminator and the true constraint satisfaction function, in Figure \ref{fig:equality05}.
+After training, the constraint $c=[0.5,\;0.5]$ was chosen, corresponding to regions of the solution space for which $\beta'$ outputs values in $[0.25,\;0.5]$.
+Samples were then drawn from $\hat{V'_c}$ and plotted in $S$, with overlays for the output of both $h'$ and $h$, in Figure \ref{fig:equality05}.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{equality05}
@@ -390,11 +367,11 @@ Samples were then drawn from the learned viable distribution and plotted in the 
     \label{fig:equality05}
     \end{center}
 \end{figure}
-It is immediately clear that the vast majority of sampled solutions lie within regions of $S$ which the discriminator predicts are likely to satisfy the constraint satisfaction function.
-Note also that the discriminator appears to have sharp edges (the cyan region in Figure \ref{fig:equality05} is thin compared to the blue region) and is generally accurate in its prediction of the boundaries of the viable space.
-While the points are spread out sufficiently to cover a wide range of the viable space and avoid coalescing into peaks, there are also regions near the periphery of the viable space which are undersampled, suggesting that some precision could be traded for an increase in recall.
+It is immediately clear that the vast majority of sampled solutions lie within regions of $S$ which the discriminator predicts are likely to satisfy $c$.
+Note also that $h'$ appears to have regions of very steep gradients (the cyan region in Figure \ref{fig:equality05} is thin compared to the blue region) and is generally accurate in its prediction of the boundaries of $V_c$.
+While the points are spread out sufficiently to cover much of $V_c$ and avoid coalescing into peaks, there are also regions near the periphery of $V_c$ which are undersampled, suggesting that some precision could be traded for an increase in recall.
 
-Increasing $c_1$ to $0.7$, constraining the viable space to those solutions for which $0.35\le\beta(s_1,s_2)\le0.5$, yields similar results (Figure \ref{fig:equality07}).
+Increasing $c_1$ to $0.7$, constraining $V_c$ to those solutions for which $0.35\le\beta'(s)\le0.5$, yields similar results (Figure \ref{fig:equality07}).
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{equality07}
@@ -405,13 +382,13 @@ Increasing $c_1$ to $0.7$, constraining the viable space to those solutions for 
     \label{fig:equality07}
     \end{center}
 \end{figure}
-The discriminator's predictions appear to be becoming less accurate as the bounded constraint approaches an equality constraint, failing to recognise that solutions near the origin do not satisfy the constraint.
-While the discriminator made similar misclassifications for $c=[0.5,\;0.5]$, the error is now affecting the learned viable distribution to the extent that a large number of samples are drawn from a region outside the true viable space.
+The discriminator's predictions appear to be becoming less accurate as the bounded constraint approaches an equality constraint, failing to recognise that solutions near the origin do not satisfy $c$.
+While the discriminator made similar misclassifications for $c=[0.5,\;0.5]$, the error is now affecting $\hat{V'_c}$ to the extent that a large number of samples are drawn from a region outside $V_c$.
 
-Finally, $c_1$ was increased to $0.9$, representing regions for which $0.45\le\beta(s_1,s_2)\le0.5$, effectively approaching an equality constraint (Figure \ref{fig:equality09}).
-Of the two modes in the true viable space, one is fairly consistently sampled by the learned viable distribution, while the other is missed almost entirely.
-It should be noted, however, that the generator has learned to sample high-likelihood regions of the discriminator, but that the discriminator misclassified the mode closer to the origin.
-This presents promising evidence that, with further refinement of the discriminator, this architecture could be used to accurately sample equality constraints.
+Finally, $c_1$ was increased to $0.9$, representing regions for which $0.45\le\beta'(s)\le0.5$, effectively mimicking an equality constraint (Figure \ref{fig:equality09}).
+Of the two modes of $V_c$, one is fairly consistently sampled by $\hat{V'_c}$, while the other is missed almost entirely.
+It should be noted that the generator has learned to sample high-likelihood regions of $h'$, but that the discriminator misclassified the mode closer to the origin.
+This presents promising evidence that, with further refinement of $h'$, the proposed architecture could be used to accurately sample equality constraints.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{equality09}

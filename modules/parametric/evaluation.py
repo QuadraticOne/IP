@@ -246,10 +246,11 @@ class EvaluationParameters:
         Trainer -> [np.array]
         Generate a list of constraints for which solutions are to be sampled.  If
         the evaluation parameters object's `constraint_samples` parameter is a list,
-        this list will be returned.  Otherwise, its value is expected to be a string.
-        In this case, it should be the type of sampling (currently only "uniform" is
-        supported), followed by the number of constraints to sample, separated by
-        a comma, such as "uniform, 64".
+        this list will be returned.  Otherwise, its value is expected to be a dictionary.
+        In this case, it should have entries for "quantity", an integer describing
+        how many constraints should be sampled, and "samplingMethod", a string
+        describing how the samples should be taken.  Currently only "uniform" is
+        accepted for this value.
         """
         if isinstance(self.constraint_samples, list) or isinstance(
             self.constraint_samples, np.ndarray

@@ -246,4 +246,650 @@ Two neural networks, the weight embedder and bias embedder, produce the weights 
 }
 \end{lstlisting}
 
+\section{Holes environment} \label{appendix:holesEnvironment}
+
+An engineering environment, referred to as the holes environment, was created for the purpose of testing the properties of the proposed architecture.
+It consists of a square plate with sides two units long whose origin is at its centre.
+Two holes are drilled into the plate, each described by the coordinates of their centre (which may be anywhere on the plate) and their radius (which may be in $[0,1]$).
+One of the hole's parameters are fixed; this hole is taken to be the constraint.
+The other hole's parameters are varied as the parameters of the solution.
+As such, $m=n=3$.
+Satisfaction of the constraint occurs when the holes do not meet.
+\begin{equation}
+    h(c,s)=(c_1-s_1)^2+(c_2-s_2)^2>(c_3+s_3)^2
+\end{equation}
+
+\section{Training parameters for holes environment} \label{appendix:holesTrainingParameters}
+
+The parameters used to train a generator to match an arbitrarily defined constraint satifaction function are reproduced below.
+Two neural networks, the weight embedder and bias embedder, produce the weights for the final layer of the generator.
+
+\begin{lstlisting}[language=json,firstnumber=1,caption={Experimental parameters for training a generator on the holes environment.},captionpos=b]
+{  
+    "discriminatorTrainingParameters": {  
+        "epochs": 20,
+        "evaluationSampleSize": 256,
+        "stepsPerEpoch": 20000,
+        "batchSize": 32
+    },
+    "recallProxy": "identity",
+    "epsilon": 1.0,
+    "parametricGenerator": {  
+        "generatorArchitecture": {  
+            "internalLayers": [  
+                {  
+                    "activation": "leaky-relu",
+                    "nodes": 4
+                },
+                {  
+                    "activation": "leaky-relu",
+                    "nodes": 4
+                }
+            ],
+            "internalActivation": "leaky-relu",
+            "outputActivation": "tanh"
+        },
+        "discriminatorArchitecture": [  
+            {  
+                "activation": "leaky-relu",
+                "nodes": 4
+            }
+        ],
+        "generatorTrainingBatchSize": 64,
+        "embeddingDimension": 2,
+        "latentDimension": 3,
+        "constraintSpace": {  
+            "upperBound": 1.0,
+            "lowerBound": -1.0
+        },
+        "solutionDimension": 3,
+        "embedderArchitecture": {  
+            "biases": {  
+                "activation": "leaky-relu",
+                "internalLayers": [  
+                    {  
+                        "activation": "leaky-relu",
+                        "nodes": 4
+                    },
+                    {  
+                        "activation": "leaky-relu",
+                        "nodes": 4
+                    }
+                ]
+            },
+            "weights": {  
+                "activation": "leaky-relu",
+                "internalLayers": [  
+                    {  
+                        "activation": "leaky-relu",
+                        "nodes": 4
+                    },
+                    {  
+                        "activation": "leaky-relu",
+                        "nodes": 4
+                    }
+                ]
+            }
+        },
+        "latentSpace": {  
+            "upperBound": 1.0,
+            "lowerBound": 0.0
+        },
+        "constraintDimension": 3,
+        "solutionSpace": {  
+            "upperBound": 1.0,
+            "lowerBound": -1.0
+        }
+    },
+    "discriminatorValidationProportion": 0.2,
+    "generatorTrainingParameters": {  
+        "epochs": 20,
+        "evaluationSampleSize": 256,
+        "stepsPerEpoch": 20000,
+        "batchSize": 64
+    },
+    "recallWeights": [0.5, 1.0, 2.0, 3.0],
+    "evaluationParameters": {  
+        "generatedSolutionsPerConstraint": 128,
+        "trueSolutionsPerConstraint": 128,
+        "constraintSamples": {  
+            "quantity": 32,
+            "samplingMethod": "uniform"
+        },
+        "monteCarlo": {  
+            "burnIn": 1024,
+            "sampleGap": 64
+        },
+        "nTree": {  
+            "bucketSize": 128,
+            "population": 8192
+        }
+    },
+    "precisionProxy": "precision",
+    "dataset": "production/datasets/holes/256",
+    "pretrainingLoss": "identity",
+    "generatorPretrainingParameters": {  
+        "epochs": 20,
+        "evaluationSampleSize": 256,
+        "stepsPerEpoch": 20000,
+        "batchSize": 64
+    }
+}
+\end{lstlisting}
+
+\section{Branin Function} \label{appendix:braninFunction}
+
+The Branin Function is a function designed for testing optimisation algorithms \cite{bingham17}.
+It is defined as
+\begin{equation}
+    \beta(x,y)=a(y-bx^2+cx-r)^2+s(1-t)\cos(x)+s
+\end{equation}
+where
+\begin{equation}
+    a=1,\;b=\frac{5.1}{4\pi^2},\;c=\frac{5}{\pi},\;r=6,\;s=10,\;t=\frac{1}{8\pi}
+\end{equation}
+For the purposes of this project, a rescaled version is used, such that:
+\begin{equation}
+    \beta'(s)=\frac{1}{250}\beta(15s_1-5,\;15s_2)
+\end{equation}
+Finally, the Branin environment imposes a constraint upon the upper and lower bounds of $\beta'$, limiting them to $c_1\cdot c_2$ and $c_2$ respectively.
+As such, a constraint in the Branin environment begins to approximate an equality constraint as $c_1\to1$.
+
+\section{Training parameters for constrained Branin function} \label{appendix:braninTrainingParameters}
+
+An extract from the configuration file for the instance of the proposed architecture trained on the Branin environment is included below.
+
+\begin{lstlisting}[language=json,firstnumber=1,caption={Experimental parameters for training a generator on the constrained Branin function environment.},captionpos=b]
+{  
+    "epsilon": 1.0,
+    "recallProxyMetadata": {
+    },
+    "discriminatorTrainingParameters": {  
+        "evaluationSampleSize": 256,
+        "batchSize": 32,
+        "epochs": 64,
+        "stepsPerEpoch": 20000
+    },
+    "precisionProxy": "precision",
+    "recallWeight": 3,
+    "generatorTrainingParameters": {  
+        "evaluationSampleSize": 256,
+        "batchSize": 64,
+        "epochs": 128,
+        "stepsPerEpoch": 20000
+    },
+    "recallProxy": "identity",
+    "parametricGenerator": {  
+        "generatorTrainingBatchSize": 64,
+        "constraintDimension": 2,
+        "latentDimension": 2,
+        "generatorArchitecture": {  
+            "outputActivation": "sigmoid",
+            "internalActivation": "leaky-relu",
+            "internalLayers": [  
+                {  
+                    "nodes": 32,
+                    "activation": "leaky-relu"
+                },
+                {  
+                    "nodes": 32,
+                    "activation": "leaky-relu"
+                }
+            ]
+        },
+        "solutionDimension": 2,
+        "embeddingDimension": 8,
+        "embedderArchitecture": {  
+            "biases": {  
+                "activation": "leaky-relu",
+                "internalLayers": [  
+                    {  
+                        "nodes": 32,
+                        "activation": "leaky-relu"
+                    },
+                    {  
+                        "nodes": 32,
+                        "activation": "leaky-relu"
+                    }
+                ]
+            },
+            "weights": {  
+                "activation": "leaky-relu",
+                "internalLayers": [  
+                    {  
+                        "nodes": 32,
+                        "activation": "leaky-relu"
+                    },
+                    {  
+                        "nodes": 32,
+                        "activation": "leaky-relu"
+                    }
+                ]
+            }
+        },
+        "repeatConstraints": false,
+        "latentSpace": {  
+            "lowerBound": 0.0,
+            "upperBound": 1.0
+        },
+        "constraintSpace": {  
+            "lowerBound": 0.0,
+            "upperBound": 1.0
+        },
+        "discriminatorArchitecture": [  
+            {  
+                "nodes": 64,
+                "activation": "leaky-relu"
+            },
+            {  
+                "nodes": 64,
+                "activation": "leaky-relu"
+            }
+        ],
+        "solutionSpace": {  
+            "lowerBound": 0.0,
+            "upperBound": 1.0
+        }
+    },
+    "pretrainingLossMetadata": {},
+    "pretrainingLoss": "identity",
+    "discriminatorValidationProportion": 0.2,
+    "evaluationParameters": {  
+        "generatedSolutionsPerConstraint": 128,
+        "constraintSamples": {  
+            "quantity": 16,
+            "samplingMethod": "uniform"
+        },
+        "trueSolutionsPerConstraint": 128,
+        "monteCarlo": {  
+            "sampleGap": 64,
+            "burnIn": 1024
+        },
+        "nTree": {  
+            "bucketSize": 128,
+            "population": 8192
+        }
+    },
+    "precisionProxyMetadata": {},
+    "generatorPretrainingParameters": {  
+        "evaluationSampleSize": 256,
+        "batchSize": 64,
+        "epochs": 16,
+        "stepsPerEpoch": 20000
+    },
+    "dataset": "production/datasets/branin/1024"
+}
+\end{lstlisting}
+
+\section{Exemplar results JSON} \label{appendix:exampleJSON}
+
+An example of a typical results dump produced by the common experiment interface used for all experiments in \S\ref{section:methodProperties}.
+
+\begin{lstlisting}[language=json,firstnumber=1,caption={The output of a typical experiment, automatically logged when the experiment concludes.},captionpos=b]
+{  
+    "generatorPretraining": {  
+        "startTime": 1555341084.538,
+        "before": {  
+            "loss": 0.096
+        },
+        "endTime": 1555341086.955,
+        "duration": 2.417,
+        "after": {  
+            "loss": 0.000
+        }
+    },
+    "evaluation": {  
+        "constraintSamples": [  
+            {  
+                "solutions": [  
+                    {  
+                        "type": "generated",
+                        "latent": [0.692, 0.607],
+                        "relativeDensity": 7.625,
+                        "solution": [0.649, 0.572],
+                        "satisfactionProbability": 0.873
+                    },
+                    ...,
+                    {  
+                        "type": "generated",
+                        "latent": [0.915, 0.810],
+                        "relativeDensity": 10.250,
+                        "solution": [0.787, 0.549],
+                        "satisfactionProbability": 0.980
+                    },
+                    {  
+                        "type": "true",
+                        "relativeDensity": 0.688,
+                        "solution": [0.137, 0.279],
+                        "satisfactionProbability": 0.911
+                    },
+                    ...,
+                    {  
+                        "type": "true",
+                        "relativeDensity": 12.500,
+                        "solution": [0.240, 0.023],
+                        "satisfactionProbability": 1.000
+                    }
+                ],
+                "constraint": [0.519, 0.260],
+                "summary": {  
+                    "true": {  
+                        "satisfactionProbability": {  
+                            "median": 0.956,
+                            "mean": 0.956,
+                            "minimum": 0.911,
+                            "maximum": 1.000
+                        },
+                        "relativeDensity": {  
+                            "median": 6.594,
+                            "mean": 6.594,
+                            "minimum": 0.688,
+                            "maximum": 12.500
+                        }
+                    },
+                    "generated": {  
+                        "satisfactionProbability": {  
+                            "median": 0.926,
+                            "mean": 0.926,
+                            "minimum": 0.873,
+                            "maximum": 0.980
+                        },
+                        "relativeDensity": {  
+                            "median": 8.938,
+                            "mean": 8.938,
+                            "minimum": 7.625,
+                            "maximum": 10.250
+                        }
+                    },
+                    "all": {  
+                        "satisfactionProbability": {  
+                            "median": 0.945,
+                            "mean": 0.941,
+                            "minimum": 0.873,
+                            "maximum": 1.000
+                        },
+                        "relativeDensity": {  
+                            "median": 8.938,
+                            "mean": 7.766,
+                            "minimum": 0.688,
+                            "maximum": 12.500
+                        }
+                    }
+                }
+            },
+            ...,
+            {  
+                "solutions": [  
+                    {  
+                        "type": "generated",
+                        "latent": [0.704, 0.663],
+                        "relativeDensity": 8.125,
+                        "solution": [0.669, 0.525],
+                        "satisfactionProbability": 0.994
+                    },
+                    ...,
+                    {  
+                        "type": "generated",
+                        "latent": [0.213, 0.650],
+                        "relativeDensity": 0.395,
+                        "solution": [0.362, 0.734],
+                        "satisfactionProbability": 1.000
+                    },
+                    {  
+                        "type": "true",
+                        "relativeDensity": 0.234,
+                        "solution": [0.621, 0.339],
+                        "satisfactionProbability": 0.922
+                    },
+                    ...,
+                    {  
+                        "type": "true",
+                        "relativeDensity": 3.719,
+                        "solution": [0.429, 0.666],
+                        "satisfactionProbability": 1.000
+                    }
+                ],
+                "constraint": [0.272, 0.279],
+                "summary": {  
+                    "true": {  
+                        "satisfactionProbability": {  
+                            "median": 0.961,
+                            "mean": 0.961,
+                            "minimum": 0.922,
+                            "maximum": 1.000
+                        },
+                        "relativeDensity": {  
+                            "median": 1.977,
+                            "mean": 1.977,
+                            "minimum": 0.234,
+                            "maximum": 3.719
+                        }
+                    },
+                    "generated": {  
+                        "satisfactionProbability": {  
+                            "median": 0.997,
+                            "mean": 0.997,
+                            "minimum": 0.994,
+                            "maximum": 1.000
+                        },
+                        "relativeDensity": {  
+                            "median": 4.260,
+                            "mean": 4.260,
+                            "minimum": 0.395,
+                            "maximum": 8.125
+                        }
+                    },
+                    "all": {  
+                        "satisfactionProbability": {  
+                            "median": 0.997,
+                            "mean": 0.979,
+                            "minimum": 0.922,
+                            "maximum": 1.000
+                        },
+                        "relativeDensity": {  
+                            "median": 2.057,
+                            "mean": 3.118,
+                            "minimum": 0.234,
+                            "maximum": 8.125
+                        }
+                    }
+                }
+            }
+        ],
+        "summary": {  
+            "true": {  
+                "satisfactionProbability": {  
+                    "median": 0.961,
+                    "mean": 0.958,
+                    "minimum": 0.911,
+                    "maximum": 1.000
+                },
+                "relativeDensity": {  
+                    "median": 2.203,
+                    "mean": 4.285,
+                    "minimum": 0.234,
+                    "maximum": 12.500
+                }
+            },
+            "generated": {  
+                "satisfactionProbability": {  
+                    "median": 0.987,
+                    "mean": 0.962,
+                    "minimum": 0.873,
+                    "maximum": 1.000
+                },
+                "relativeDensity": {  
+                    "median": 7.875,
+                    "mean": 6.599,
+                    "minimum": 0.395,
+                    "maximum": 10.250
+                }
+            },
+            "all": {  
+                "satisfactionProbability": {  
+                    "median": 0.987,
+                    "mean": 0.960,
+                    "minimum": 0.873,
+                    "maximum": 1.000
+                },
+                "relativeDensity": {  
+                    "median": 5.672,
+                    "mean": 5.442,
+                    "minimum": 0.234,
+                    "maximum": 12.500
+                }
+            }
+        }
+    },
+    "generatorTraining": {  
+        "startTime": 1555341087.703,
+        "before": {  
+            "recallProxy": 0.000,
+            "loss": -0.176,
+            "precisionProxy": -0.176
+        },
+        "endTime": 1555341111.789,
+        "duration": 24.087,
+        "after": {  
+            "recallProxy": 0.040,
+            "loss": -0.464,
+            "precisionProxy": -0.585
+        }
+    },
+    "discriminatorTraining": {  
+        "startTime": 1555341069.424,
+        "before": {  
+            "loss": 1.398,
+            "accuracy": 0.469
+        },
+        "endTime": 1555341083.675,
+        "duration": 14.251,
+        "after": {  
+            "validationAccuracy": 0.919,
+            "validationLoss": 0.347,
+            "trainingAccuracy": 1.000,
+            "trainingLoss": 0.020
+        }
+    },
+    "parameters": {  
+        "dataset": "production/datasets/example/256",
+        "recallWeight": 3.000,
+        "precisionProxy": "precision",
+        "evaluationParameters": {  
+            "generatedSolutionsPerConstraint": 128,
+            "monteCarlo": {  
+                "sampleGap": 64,
+                "burnIn": 1024
+            },
+            "constraintSamples": {  
+                "quantity": 128,
+                "samplingMethod": "uniform"
+            },
+            "nTree": {  
+                "bucketSize": 128,
+                "population": 8192
+            },
+            "trueSolutionsPerConstraint": 128
+        },
+        "parametricGenerator": {  
+            "generatorArchitecture": {  
+                "internalActivation": "leaky-relu",
+                "outputActivation": "sigmoid",
+                "internalLayers": [  
+                    {  
+                        "nodes": 32,
+                        "activation": "leaky-relu"
+                    },
+                    {  
+                        "nodes": 32,
+                        "activation": "leaky-relu"
+                    }
+                ]
+            },
+            "solutionDimension": 2,
+            "embeddingDimension": 8,
+            "constraintSpace": {  
+                "lowerBound": 0.000,
+                "upperBound": 1.000
+            },
+            "discriminatorArchitecture": [  
+                {  
+                    "nodes": 64,
+                    "activation": "leaky-relu"
+                },
+                {  
+                    "nodes": 64,
+                    "activation": "leaky-relu"
+                }
+            ],
+            "solutionSpace": {  
+                "lowerBound": 0.000,
+                "upperBound": 1.000
+            },
+            "latentDimension": 2,
+            "latentSpace": {  
+                "lowerBound": 0.000,
+                "upperBound": 1.000
+            },
+            "generatorTrainingBatchSize": 64,
+            "repeatConstraints": false,
+            "constraintDimension": 2,
+            "embedderArchitecture": {  
+                "biases": {  
+                    "activation": "leaky-relu",
+                    "internalLayers": [  
+                        {  
+                            "nodes": 32,
+                            "activation": "leaky-relu"
+                        },
+                        {  
+                            "nodes": 32,
+                            "activation": "leaky-relu"
+                        }
+                    ]
+                },
+                "weights": {  
+                    "activation": "leaky-relu",
+                    "internalLayers": [  
+                        {  
+                            "nodes": 32,
+                            "activation": "leaky-relu"
+                        },
+                        {  
+                            "nodes": 32,
+                            "activation": "leaky-relu"
+                        }
+                    ]
+                }
+            }
+        },
+        "generatorPretrainingParameters": {  
+            "stepsPerEpoch": 20000,
+            "epochs": 16,
+            "batchSize": 64,
+            "evaluationSampleSize": 256
+        },
+        "pretrainingLoss": "identity",
+        "generatorTrainingParameters": {  
+            "stepsPerEpoch": 20000,
+            "epochs": 128,
+            "batchSize": 64,
+            "evaluationSampleSize": 256
+        },
+        "recallProxyMetadata": {},
+        "recallSubstitute": "identity",
+        "precisionProxyMetadata": {},
+        "discriminatorValidationProportion": 0.200,
+        "pretrainingLossMetadata": {},
+        "epsilon": 1.000,
+        "discriminatorTrainingParameters": {  
+            "stepsPerEpoch": 20000,
+            "epochs": 64,
+            "batchSize": 32,
+            "evaluationSampleSize": 256
+        }
+    }
+}
+\end{lstlisting}
+
 \end{document}
