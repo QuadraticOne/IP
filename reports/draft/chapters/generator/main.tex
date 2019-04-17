@@ -196,9 +196,9 @@ It consists of two linear segments and is applied elementwise to a vector at the
 Because the activation function is applied elementwise, the way in which $R_\text{out}$ propagates backwards through a ReLU unit can be considered in terms of each dimension independently.
 The following rules can be applied to each dimension:
 \begin{enumerate}
-    \item any region which is above $0$ can propagate backwards unchanged, since the ReLU function mimics the identity function above $0$;
-    \item any region which is below $0$ can be ignored, since the ReLU function will never produce an input which is below $0$;
-    \item if $0$ is a possible value in a dimension, all negative values must be added to $R_\text{in}$ in that dimension.
+    \item Any region which is above $0$ can propagate backwards unchanged, since the ReLU function mimics the identity function above $0$;
+    \item Any region which is below $0$ can be ignored, since the ReLU function will never produce an input which is below $0$;
+    \item If $0$ is a possible value in a dimension, all negative values must be added to $R_\text{in}$ in that dimension.
     This is because any negative value in that dimension would have produced an output of $0$.
     Again, simplices extending suitably far from the origin can be used to approximate an extension to infinity.
 \end{enumerate}

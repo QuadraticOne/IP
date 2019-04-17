@@ -138,7 +138,7 @@ So information about $c$ can be passed into $g'$ by estimating the weights and b
 
 If the discriminator has already been trained, or is known, no data are needed to train $g'$ because samples from $L$ can be used as training examples.
 Hence, training data are only used as examples for training an approximation of $h$, $h'$, used as the discriminator; no additional data are needed to train $g'$.
-The advantags to this approach are twofold: data are only needed to train $h'$ individually rather than adversarially in a GAN (which are notoriously hard to train \cite{bang18}), and $g'$ is only capable of overfitting to the extent that $h'$ has overfit its data.
+The advantages to this approach are twofold: data are only needed to train $h'$ individually rather than adversarially in a GAN (which are notoriously hard to train \cite{bang18}), and $g'$ is only capable of overfitting to the extent that $h'$ has overfit its data.
 
 When $h$ is known analytically, any overfitting of $g'$ can be combatted by increasing its capacity or training for longer.
 When $h$ is modelled by a discriminator $h'$ learned from data, knowledge of the engineering environment can be used to augment data to alleviate overfitting (see \S\ref{chapter:discriminator}).
