@@ -14,6 +14,34 @@
 The experiments for this project were programmed in Python using Tensorflow as the primary machine learning library.
 All code used for the project can be found at \url{https://github.com/aatack/IP}, with some high-level wrappers for Tensorflow graphs implemented separately in \url{https://github.com/aatack/Wise}.
 
+\section{Sampling from axis-aligned hypercubes} \label{appendix:samplingFromAxisAlignedHypercubes}
+
+While vector spaces in general are computationally expensive to sample, some special cases can be sampled by efficient algorithms.
+One such example is an axis-aligned hypercube, which is constrained in every dimension by a lower and upper bound.
+Any function that draws pseudo-random samples from a uniform distribution can be called multiple times and concatenated to produce a point which will always be inside that hypercube; this is also capable of producing any point inside the hypercube ($p=r=1$).
+An example of this in Python is shown below.
+
+\begin{lstlisting}[language=python,firstnumber=1,caption={Python code to sample from an axis-aligned hypercube.},captionpos=b]
+>>> from numpy.random import uniform
+>>> uniform(low=0.0, high=1.0, size=(5,))
+array([0.0051103 , 0.60075015, 0.25896835, 0.56730558, 0.05386095])
+\end{lstlisting}
+
+A simple benchmarking function can be written to show that this process is also efficient:
+
+\begin{lstlisting}[language=python,firstnumber=1,caption={A simple benchmarking function to prove the efficiency of sampling from an axis-aligned hypercube.  Each sample takes an average of 1.89 microseconds for a 5-dimensional hypercube.},captionpos=b]
+>>> import time
+>>> def benchmark(f, n_runs):
+...     start = time.time()
+...     for _ in range(n_runs):
+...         f()
+...     end = time.time()
+...     return (end - start) / n_runs
+...
+>>> benchmark(lambda: uniform(low=0.0, high=1.0, size=(5,)), 10000)
+1.8946647644042968e-06
+\end{lstlisting}
+
 \section{Parameterising orthogonal matrices} \label{appendix:parameterisingOrthogonalMatrices}
 
 \S\ref{subsection:squareWeightMultiplication} describes the need for an orthogonal matrix whose values can be changed by an optimiser.
