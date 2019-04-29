@@ -24,7 +24,7 @@ The functions $f$ and $h$ are deterministic and belong to an engineering environ
 While each environment has a unique constraint satisfaction function $h$, they may define a number of different continuous objective functions.
 
 It is also assumed that both the solution and constraint are parameterised by a vector bounded by an hypercube in $m$ or $n$ dimensions respectively, denoted $S$ and $C$.
-If a solution or constraint is within $S$ or $C$ then it is referred to as valid.
+$h(c,s)$ is defined as long as $c\in C$ and $s\in S$.
 \begin{equation}
     S=\{(s_1,...,s_m)\;|\;s_i\in\{a_S,b_S\},1\le i\le m\}
 \end{equation}
@@ -33,7 +33,7 @@ If a solution or constraint is within $S$ or $C$ then it is referred to as valid
 \end{equation}
 where $a,\;b$ are the arbitrary bounds of the hypercube in each dimension.
 
-Since both $S$ and $C$ are hypercubes, it is trivial to draw samples from them uniformly (Appendix \ref{appendix:samplingFromAxisAlignedHypercubes}).
+Since both $S$ and $C$ are hypercubes, it is trivial to generate vectors which lie within them (Appendix \ref{appendix:samplingFromAxisAlignedHypercubes}).
 As such, solving an engineering problem as defined here for a given constraint $c$ can be broken down into two steps: finding a solution $s$ for which $f(s)$ is suitably large; and ensuring that $s$ is viable.
 
 \section{Learned latent mapping} \label{section:learnedLatentMapping}
