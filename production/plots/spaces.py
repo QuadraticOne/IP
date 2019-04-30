@@ -160,11 +160,17 @@ def draw_boxes(points, colour, alpha, mesh, show=False):
 
 
 def plot_latent_contours(
-    export, constraint, mesh, dimensions=(0, 1), thinning_factor=5, environment=None
+    export,
+    constraint,
+    mesh,
+    dimensions=(0, 1),
+    thinning_factor=5,
+    environment=None,
+    legend=True,
 ):
     """
     ExportedParametricGenerator -> [Float] -> Mesh -> (Int, Int)?
-        -> Int -> VectorEnvironment -> ()
+        -> Int -> VectorEnvironment? -> Bool? -> ()
     Plot lines for which l_1 and l_2 are held constant in the
     solution space.
     """
@@ -216,36 +222,39 @@ def plot_latent_contours(
     plot_text(right[0][0], right[0][1], "$l=(1,0)$")
     plot_text(right[-1][0], right[-1][1], "$l=(1,1)$")
 
-    legend = []
-    legend.append(
-        mlines.Line2D(
-            [],
-            [],
-            color="blue",
-            marker="None",
-            alpha=0.4,
-            markersize=10,
-            label="$l_1=\\mathrm{const}$",
-        )
-    )
-    legend.append(
-        mlines.Line2D(
-            [],
-            [],
-            color="red",
-            marker="None",
-            alpha=0.4,
-            markersize=10,
-            label="$l_2=\\mathrm{const}$",
-        )
-    )
-    if environment is not None:
+    if legend:
+        legend = []
         legend.append(
-            mpatches.Patch(
-                color="grey", label="$h(c, [s_1, s_2])=\\mathrm{satisfied}$", alpha=0.2
+            mlines.Line2D(
+                [],
+                [],
+                color="blue",
+                marker="None",
+                alpha=0.4,
+                markersize=10,
+                label="$l_1=\\mathrm{const}$",
             )
         )
-    plt.legend(handles=legend)
+        legend.append(
+            mlines.Line2D(
+                [],
+                [],
+                color="red",
+                marker="None",
+                alpha=0.4,
+                markersize=10,
+                label="$l_2=\\mathrm{const}$",
+            )
+        )
+        if environment is not None:
+            legend.append(
+                mpatches.Patch(
+                    color="grey",
+                    label="$h(c, [s_1, s_2])=\\mathrm{satisfied}$",
+                    alpha=0.2,
+                )
+            )
+        plt.legend(handles=legend)
 
     mesh.bound_pyplot()
     plt.xlabel("$s_1$")
