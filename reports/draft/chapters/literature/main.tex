@@ -7,7 +7,7 @@
 \section{Na\"{i}ve optimisation techniques} \label{section:naiveOptimisationTechniques}
 
 A number of algorithms exist for finding the maximum of a function.
-Many of these are gradient ascent algorithms \cite{ruder17} which use information about the local gradient of the function to iteratively maximise it.
+Many of these are gradient descent algorithms \cite{ruder17} which use information about the local gradient of the function to iteratively maximise it.
 Because the gradient is used to update the current guess, these algorithms often fail to converge quickly on functions whose surfaces are flat.
 Algorithms such as RMSProp \cite{hinton17} and Adam \cite{kingma17} have been developed to overcome this, but still fail to converge if the function is discretised.
 
