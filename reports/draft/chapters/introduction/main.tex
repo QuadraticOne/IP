@@ -9,10 +9,10 @@
 Many engineering challenges can be expressed as optimisation problems, in which the objective is to search a space of possibilities for a value which maximises some objective function.
 In real world problems, the objective function is typically complicated enough that its maximum cannot be found analytically; in these cases, it is necessary to explore the solution space in order to find the optimal solution.
 A number of algorithms exist to search this space efficiently, but often converge slowly when the error surface of the objective function changes abruptly.
-This will often be the case when trying to optimise continuous properties, such as minimising the mass of a design, while simultaneously adhering to binary constraints, such as avoiding degenerate geometries.
+This will often be the case when trying to optimise continuous properties, such as minimising the mass of a design, while simultaneously adhering to constraints, such as avoiding degenerate geometries.
 
 Machine learning excels in exploiting underlying patterns in data to make predictions in the face of uncertainty.
-This project explores the use of machine learning in constructing a differentiable mapping, parameterised by a binary constraint, between an arbitrary latent space and the space of solutions to a problem such that any point in the latent space, when mapped to the solution space, satisfies the constraint.
+This project explores the use of machine learning in constructing a differentiable mapping, parameterised by a constraint, between an arbitrary latent space and the space of solutions to a problem such that any point in the latent space, when mapped to the solution space, satisfies the constraint.
 
 \section{Engineering problems} \label{section:engineeringProblems}
 
@@ -39,7 +39,7 @@ As such, solving an engineering problem as defined here for a given constraint $
 \section{Learned latent mapping} \label{section:learnedLatentMapping}
 
 The first step can already be achieved with conventional optimisation algorithms which have no knowledge of the objective surface.
-When certain regions of the solution space do not satisfy the constraint, however, optimisation algorithms which work by exploring the solution space are unable to work efficiently since there is no natural way of reconciling a binary constraint with a continuous objective function other than evaluating $h$ for every candidate solution.
+When certain regions of the solution space do not satisfy the constraint, however, optimisation algorithms which work by exploring the solution space are unable to work efficiently since there is no natural way of reconciling the satisfaction of a constraint with a continuous objective function other than evaluating $h$ for every candidate solution.
 If the regions satisfying the constraint are sparse, it may be a considerable amount of time before even a single viable solution is found, before then having to optimise its value according to the objective function.
 
 One way around this dilemna is to utilise the fact that $h$ is constant within an environment to learn its underlying patterns using data from previous experiments.
