@@ -1,4 +1,4 @@
-Introduction         677
+Introduction         679
 Literature          1062
 Theory              1593
 Generator           2400
@@ -7,4 +7,4 @@ Results             3204
 Conclusion           549
 Duplicate captions  -184
 ------------------------
-                    9967
+                    9969

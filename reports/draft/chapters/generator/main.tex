@@ -9,7 +9,7 @@
 \subsection{KL-divergence} \label{subsection:klDivergence}
 
 Because using ANNs requires a space similarity problem to be framed as a distribution similarity problem (\S\ref{section:modellingSpacesAsDistributions}), distribution distance metrics can be used.
-If $g'$ is modelled by a network whose p.d.f. can quickly be found, the KL-divergence between $\hat{V_c}'$ and $\hat{V_c}$ can be estimated by drawing samples from $\hat{V'_c}$.
+If $g'$ is modelled by a network whose p.d.f. can quickly be found, the KL-divergence between $\hat{V'_c}$ and $\hat{V_c}$ can be estimated by drawing samples from $\hat{V'_c}$.
 The p.d.f. of an ANN can be found by inverting it or using a constrained architecture such as a radial basis function \cite{park91}.
 Whether or not inverting a network is plausible is discussed in \S\ref{section:neuralNetworkInversion}.
 The integral form of the KL-divergence is:
@@ -44,7 +44,7 @@ While theoretically very simple, there are several practical problems that could
 
 \section{Metric proxies} \label{section:metricProxies}
 
-As discussed in \S\ref{section:modellingSpacesAsDistributions}, modelling spaces as distributions invalidates the equations for $p$ and $r$ that were discussed in \S\ref{section:solutionAndConstraintSpaces}.
+As discussed in \S\ref{section:modellingSpacesAsDistributions}, modelling spaces as distributions invalidates the equations for $p$ and $r$ that were introduced in \S\ref{section:solutionAndConstraintSpaces}.
 Proxy metrics will now be defined for $p$ and $r$, which are intuitively similar to the concepts described for spaces but applicable to distributions.
 
 \subsection{Precision} \label{subsection:precision}
@@ -128,7 +128,7 @@ As such, the space of relevant inputs is equivalent to the space of relevant out
 \subsection{Square weight multiplication} \label{subsection:squareWeightMultiplication}
 
 A layer in which $W$ is a square matrix has $n_i=n_o$.
-There exists exactly one input which produces the desired output assuming that the output is not a null vector and $|W|\neq 0$; both these are generally valid assumptions.
+There exists exactly one input which produces the desired output assuming that the output is not a null vector and $|W|\neq 0$; both of these are generally valid assumptions.
 Therefore $R_\text{in}$ can be found by rotating $R_\text{out}$ according to $W^{-1}$.
 
 In general, evaluating $W^{-1}$ computationally expensive, especially when $n_i$ is large.
@@ -218,12 +218,12 @@ If it intersects with the zeros of $i$ axes simultaneously, it must be split int
 While this split will not occur every time a simplex is propagated back through a ReLU activation, the potential for such an exponential growth could quickly become unmanageable.
 
 Other activation functions which do not consist of linear segments will suffer even greater problems since a simplex is a fundamentally linear shape.
-For this reason, methods which require the evaluation of the p.d.f. of an ANN will not be pursued further in this project.
+For this reason, methods which require the evaluation of the p.d.f. of an ANN will not be pursued further in this report.
 
 \section{Training procedure} \label{section:generatorTrainingProcedure}
 
 This section assumes that $h$ is either already known, or approximated by $h'$.
-That process is explored in greater depth in the \S\ref{chapter:discriminator}.
+That process is explored in greater depth in \S\ref{chapter:discriminator}.
 
 Training broadly consists of two steps: pretraining, which involves initialising $g'$ to explore a reasonable subset of $S$; and training, in which $g'$ is trained to balance $\hat{p}$ and $\hat{r}$.
 

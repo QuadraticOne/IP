@@ -399,7 +399,7 @@ It should be noted that the generator has learned to sample high-likelihood regi
     \end{center}
 \end{figure}
 $h'$ was therefore retrained using more data (16,384 examples as opposed to 1024) to see if a more accurate discriminator allowed sampling closer to an equality constraint.
-Figure \ref{fig:equality09805} shows samples from $\hat{V_c}$ for $c_1=0.98$, or $0.49\le\beta'(s)\le0.5$.
+Figure \ref{fig:equality09805} shows samples from $\hat{V'_c}$ for $c_1=0.98$, or $0.49\le\beta'(s)\le0.5$.
 \begin{sidewaysfigure}
     \centering
     \includegraphics[width=\textwidth]{equality09805}
@@ -441,7 +441,7 @@ This might explain why, in \S\ref{subsection:effectOfRecallWeight}, so many true
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{latentPlot0407w10}
-    \caption[Latent Branin invariants for $c={[0.8,\;0.3]}$ and $w=10$]{
+    \caption[Latent Branin invariants for $c={[0.4,\;0.7]}$ and $w=10$]{
         Latent invariants in the solution space of the bounded Branin environment for $c=[0.4,\;0.7]$, trained with $w=10$.
     }
     \label{fig:latentPlot0407w10}
@@ -453,7 +453,7 @@ This comes at the cost, however, of more frequently sampling regions of low sati
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{latentPlot0407wHalf}
-    \caption[Latent Branin invariants for $c={[0.8,\;0.3]}$ and $w=0.5$]{
+    \caption[Latent Branin invariants for $c={[0.4,\;0.7]}$ and $w=0.5$]{
         Latent invariants in the solution space of the bounded Branin environment for $c=[0.4,\;0.7]$, trained with $w=0.5$.
     }
     \label{fig:latentPlot0407wHalf}

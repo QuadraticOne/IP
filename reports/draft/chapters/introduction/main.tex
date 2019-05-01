@@ -53,7 +53,7 @@ One can imagine a generator function $g(c)$ which maps from an arbitrary latent 
     g(l,c)\;:\;L,C\mapsto V_c
 \end{equation}
 \begin{equation}
-    L=\{(l_1,...,l_k)\;|\;l_i\in\{a_L,b_L\},1\le i\le k\}
+    L=\{[l_1,...,l_k]^T\;|\;a_L\le l_i\le b_L\;\forall\;1\le i\le k\}
 \end{equation}
 $g$ can therefore be viewed as the inverse of $h$.
 Once $V$ and $g$ have been learned, solving the engineering problem for a constraint is a matter of performing optimisation over $l\in L$ of $(f\circ g)\;(l,c)$ using any exploratory optimisation algorithm.
