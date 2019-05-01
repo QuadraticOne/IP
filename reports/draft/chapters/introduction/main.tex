@@ -26,10 +26,10 @@ While each environment has a unique constraint satisfaction function $h$, they m
 It is also assumed that both the solution and constraint are parameterised by a vector bounded by an hypercube in $m$ or $n$ dimensions respectively, denoted $S$ and $C$.
 $h(c,s)$ is defined as long as $c\in C$ and $s\in S$.
 \begin{equation}
-    S=\{(s_1,...,s_m)\;|\;s_i\in\{a_S,b_S\},1\le i\le m\}
+    S=\{[s_1,...,s_m]^T\;|\;a_S\le s_i\le b_S\;\forall\;1\le i\le m\}
 \end{equation}
 \begin{equation}
-    C=\{(c_1,...,c_n)\;|\;c_i\in\{a_C,b_C\},1\le i\le n\}
+    C=\{[c_1,...,c_n]^T\;|\;a_C\le c_i\le b_C\;\forall\;1\le i\le n\}
 \end{equation}
 where $a,\;b$ are the arbitrary bounds of the hypercube in each dimension.
 
