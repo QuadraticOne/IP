@@ -333,7 +333,7 @@ A common constraint in engineering problems is an equality constraint, specifyin
 Such a constraint can be created using the proposed architecture by parameterising the constraint such that it limits the upper and lower acceptable bounds of a property, and then setting these two bounds to be arbitrarily close together.
 
 The Branin function, $\beta(x,y)$, was chosen to test the ability of the generator to approximate equality constraints as it is a standard test function for which an equality constraint produces distinct contours (Appendix \ref{appendix:braninFunction}).
-Having a solution dimension of $2$ also makes visualisation of the results possible.
+Having a solution dimension of $2$ also allows simple visualisation of the results.
 To make passing the function and its arguments into the discriminator possible, both inputs and the output were scaled to be in $[0,\;1]$.
 The constraint vector, in two dimensions, was then defined such that the constraint is considered satisfied when:
 \begin{equation}
@@ -385,10 +385,9 @@ Increasing $c_1$ to $0.7$, constraining $V_c$ to those solutions for which $0.35
 The discriminator's predictions appear to be becoming less accurate as the bounded constraint approaches an equality constraint, failing to recognise that solutions near the origin do not satisfy $c$.
 While the discriminator made similar misclassifications for $c=[0.5,\;0.5]$, the error is now affecting $\hat{V'_c}$ to the extent that a large number of samples are drawn from a region outside $V_c$.
 
-Finally, $c_1$ was increased to $0.9$, representing regions for which $0.45\le\beta'(s)\le0.5$, effectively mimicking an equality constraint (Figure \ref{fig:equality09}).
+$c_1$ was then increased to $0.9$, representing regions for which $0.45\le\beta'(s)\le0.5$ (Figure \ref{fig:equality09}).
 Of the two modes of $V_c$, one is fairly consistently sampled by $\hat{V'_c}$, while the other is missed almost entirely.
 It should be noted that the generator has learned to sample high-likelihood regions of $h'$, but that the discriminator misclassified the mode closer to the origin.
-This presents promising evidence that, with further refinement of $h'$, the proposed architecture could be used to accurately sample equality constraints.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{equality09}
@@ -399,6 +398,17 @@ This presents promising evidence that, with further refinement of $h'$, the prop
     \label{fig:equality09}
     \end{center}
 \end{figure}
+$h'$ was therefore retrained using more data to see if a more accurate discriminator allowed sampling closer to an equality constraint.
+Figure \ref{fig:equality09805} shows samples from $\hat{V_c}$ for $c_1=0.98$, or $0.49\le\beta'(s)\le0.5$.
+\begin{sidewaysfigure}
+    \centering
+    \includegraphics[width=\textwidth]{equality09805}
+    \caption{
+        1024 sample solutions for a generator trained on the bounded Branin function environment for $c=[0.98,\;0.5]$.
+    }
+    \label{fig:equality09805}
+\end{sidewaysfigure}
+This supports previous observations that the generator learns to sample high-likelihood regions of the discriminator, and therefore that if the discriminator is well trained, sampling solutions to constraints close to equality constraints is possible.
 
 \section{Latent space visualisation} \label{section:latentSpaceVisualisation}
 
