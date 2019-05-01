@@ -1,0 +1,10 @@
+Introduction         677
+Literature          1062
+Theory              1593
+Generator           2400
+Discriminator        666
+Results             3204
+Conclusion           549
+Duplicate captions  -184
+------------------------
+                    9967
