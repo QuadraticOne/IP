@@ -425,7 +425,7 @@ Because both its solution and constraint spaces are two-dimensional, the bounded
     \end{center}
 \end{figure}
 Figure \ref{fig:latentPlot0803} shows a highly constrained case where two distinct, narrow bands of viable solutions exist.
-As expected given previous results, the latent space is highly compressed within these two regions, with a sparse region between them.
+As expected given previous results, the latent space is compressed within these two regions, and sparse between them.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{latentPlot0407}
@@ -435,9 +435,32 @@ As expected given previous results, the latent space is highly compressed within
     \label{fig:latentPlot0407}
     \end{center}
 \end{figure}
-The near-equality constraint is relaxed somewhat in Figure \ref{fig:latentPlot0407}, giving way to much larger areas of viable solutions.
+The constraint is relaxed somewhat in Figure \ref{fig:latentPlot0407}, giving way to much larger areas of viable solutions.
 The latent space is, correctly, more spread out in this plot, but some parts of $S$ $-$ including some viable solutions $-$ exist completely outside $L$.
 This might explain why, in \S\ref{subsection:effectOfRecallWeight}, so many true solutions were found to have no likelihood of occurring in $\hat{V'_c}$.
+\begin{figure}[H]
+    \begin{center}
+    \includegraphics[width=\textwidth]{latentPlot0407w10}
+    \caption{
+        Latent invariants in the solution space of the bounded Branin environment for $c=[0.4,\;0.7]$, trained with $w=10$.
+    }
+    \label{fig:latentPlot0407w10}
+    \end{center}
+\end{figure}
+The same constraint was sampled, but using a generator trained with $w=10$ (Figure \ref{fig:latentPlot0407w10}).
+A latent space which covers a wider range of the solution space is clearly observed, allowing more viable solutions from the mode near the origin to be sampled.
+This comes at the cost, however, of more frequently sampling regions of low satisfaction probability.
+\begin{figure}[H]
+    \begin{center}
+    \includegraphics[width=\textwidth]{latentPlot0407wHalf}
+    \caption{
+        Latent invariants in the solution space of the bounded Branin environment for $c=[0.4,\;0.7]$, trained with $w=0.5$.
+    }
+    \label{fig:latentPlot0407wHalf}
+    \end{center}
+\end{figure}
+Correspondingly, reducing the recall weight to $0.5$ shrinks the latent space considerably and causes one mode to be missed entirely, in spite of the fact that all sampled solutions do satisfy the constraint (Figure \ref{fig:latentPlot0407wHalf}).
+These visualisations provide intuitive explanations for the tradeoff explored in \S\ref{subsection:effectOfRecallWeight}.
 \begin{figure}[H]
     \begin{center}
     \includegraphics[width=\textwidth]{latentPlot0000}
