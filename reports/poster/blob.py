@@ -1,4 +1,4 @@
-from math import cos, sin, pi
+from math import cos, sin, pi, exp
 from numpy import linspace
 from random import uniform
 import matplotlib.pyplot as plt
@@ -122,3 +122,63 @@ def cycle(values):
     Create a new list with the first value moved to the end of the list.
     """
     return values[1:] + [values[0]]
+
+
+class SplinePoint:
+    def __init__(self, radial_position, global_position):
+        """
+        Float -> (Float, Float) -> SplinePoint
+        Create a single spline point.
+        """
+        self.radial_position = radial_position
+        self.global_position = global_position
+        self.x, self.y = self.global_position
+
+    def radial_distance_to(self, t):
+        """
+        Float -> Float
+        Calculate the radial distance to the spline point.
+        """
+        d = abs(t - self.radial_position)
+        return min(d, 1 - d)
+
+
+class Spline:
+    def __init__(self, spline_points):
+        """
+        [SplinePoint] -> Spline
+        Create a spline from a series of weighted points.
+        """
+        self.spline_points = spline_points
+
+    def position_at(self, t):
+        """
+        Float -> (Float, Float)
+        Get the spline's position at the given parametric value.
+        """
+        weighted_positions = self.weights_at(t)
+        n = len(self.spline_points)
+        x_total, y_total = 0.0, 0.0
+        for x, y in weighted_positions:
+            x_total += x
+            y_total += y
+        return x_total / n, y_total / n
+
+    def weights_at(self, t):
+        """
+        Float -> [(Float, Float)]
+        Calculate the weighted position of each spline at the given
+        parametric value.
+        """
+        weights = softmax([p.radial_distance_to(t) for p in self.spline_points])
+        return [(p.x * w, p.y * w) for p, w in zip(self.spline_points, weights)]
+
+
+def softmax(xs):
+    """
+    [Float] -> [Float]
+    Calculate the softmax of a vector of values.
+    """
+    exponentials = [exp(x) for x in xs]
+    total = sum(exponentials)
+    return [x / total for x in exponentials]
