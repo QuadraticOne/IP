@@ -1,0 +1,82 @@
+\documentclass[24pt, a1paper, portrait]{tikzposter}
+\tikzposterlatexaffectionproofoff
+
+\usepackage[utf8]{inputenc}
+\usepackage{blindtext}
+\usepackage[default]{sourcesanspro}
+\usepackage[T1]{fontenc}
+\usepackage{url}
+
+\title{Learning Latent Mappings for Optimisation}
+\author{Alexander Atack}
+\date{\today}
+\institute{University of Southampton}
+\usetheme{Simple}
+
+\definecolor{posterBackgroundColour}{HTML}{274C77}
+\definecolor{blockBackgroundColour}{HTML}{323421}
+
+\newcommand\fullpagespan[1]{
+  \parbox{0.98\textwidth}{#1}
+}
+
+\defineblockstyle{bodyblock}{
+    titlewidthscale=1.0,
+    bodywidthscale=1,
+    titleleft,
+    titleoffsetx=0pt,
+    titleoffsety=0pt,
+    bodyoffsetx=0mm,
+    bodyoffsety=15mm,
+    bodyverticalshift=10mm,
+    roundedcorners=1,
+    linewidth=2pt,
+    titleinnersep=6mm,
+    bodyinnersep=1cm
+}{
+    \draw[
+        color=framecolor,
+        fill=blockbodybgcolor,
+        rounded corners=\blockroundedcorners
+    ] (blockbody.south west) rectangle (blockbody.north east);
+\ifBlockHasTitle
+    \draw[
+        color=framecolor,
+        fill=blocktitlebgcolor,
+        rounded corners=\blockroundedcorners
+    ] (blocktitle.south west) rectangle (blocktitle.north east);
+    \fi
+}
+
+\colorlet{backgroundcolor}{posterBackgroundColour} 
+\colorlet{blockbodybgcolor}{white}
+\colorlet{blocktitlebgcolor}{white}
+
+\useblockstyle{bodyblock}
+
+\begin{document}
+
+% \maketitle
+
+\begin{columns}
+    \column{0.3}
+    \block{Placeholder left}{\blindtext}
+
+    \column{0.7}
+    \block{Placeholder right}{\blindtext}
+\end{columns}
+
+\node [
+    above right,
+    outer sep=0pt,
+    minimum width=\paperwidth,
+    minimum height=0.02\paperheight,
+    align=center,font=\normalsize,
+    fill=posterBackgroundColour] at ([shift={(0.5*\pgflinewidth,0.5*\pgflinewidth)}
+] bottomleft)
+{
+    \centering
+    \fullpagespan{aa7g15@soton.ac.uk \hfill \url{www.github.com/aatack}}
+};
+
+\end{document}
