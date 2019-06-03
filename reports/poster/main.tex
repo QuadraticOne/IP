@@ -7,19 +7,18 @@
 \usepackage[T1]{fontenc}
 \usepackage{url}
 
-\title{Learning Latent Mappings for Optimisation}
-\author{Alexander Atack}
-\date{\today}
-\institute{University of Southampton}
 \usetheme{Simple}
 
+% Colours
 \definecolor{posterBackgroundColour}{HTML}{274C77}
 \definecolor{blockBackgroundColour}{HTML}{323421}
 
+% Spans
 \newcommand\fullpagespan[1]{
   \parbox{0.98\textwidth}{#1}
 }
 
+% Block styles
 \defineblockstyle{bodyblock}{
     titlewidthscale=1.0,
     bodywidthscale=1,
@@ -29,7 +28,7 @@
     bodyoffsetx=0mm,
     bodyoffsety=15mm,
     bodyverticalshift=10mm,
-    roundedcorners=1,
+    roundedcorners=4,
     linewidth=2pt,
     titleinnersep=6mm,
     bodyinnersep=1cm
@@ -48,34 +47,26 @@
     \fi
 }
 
-\definetitlestyle{sampletitle}{
-width=500mm, roundedcorners=1, linewidth=0pt, innersep=5pt,
-titletotopverticalspace=10mm, titletoblockverticalspace=10mm
-}{
-\begin{scope}[line width=\titlelinewidth, rounded corners=\titleroundedcorners]
-\draw[color=blocktitlebgcolor, fill=titlebgcolor]
-(\titleposleft,\titleposbottom) rectangle (\titleposright,\titlepostop);
-\end{scope}
-}
-
-
+% Style commands
 \colorlet{backgroundcolor}{posterBackgroundColour} 
 \colorlet{blockbodybgcolor}{white}
 \colorlet{blocktitlebgcolor}{white}
 
-
-\usetitlestyle{sampletitle}
 \useblockstyle{bodyblock}
 
+% Document
 \begin{document}
 
-\maketitle
+% Prevent whitespace when excluding title
+\makeatletter
+    \setlength{\TP@blocktop}{.47\textheight}
+\makeatother
 
 \begin{columns}
-    \column{0.3}
+    \column{0.4}
     \block{Placeholder left}{\blindtext}
 
-    \column{0.7}
+    \column{0.6}
     \block{Placeholder right}{\blindtext}
 \end{columns}
 
