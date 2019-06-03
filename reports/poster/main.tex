@@ -10,8 +10,12 @@
 \usetheme{Simple}
 
 % Colours
-\definecolor{posterBackgroundColour}{HTML}{274C77}
-\definecolor{blockBackgroundColour}{HTML}{323421}
+\definecolor{darkcolour}{HTML}{274C77}
+\definecolor{middlecolour}{HTML}{D1FAFF}
+\definecolor{lightcolour}{HTML}{FFFFFF}
+\definecolor{offcolour}{HTML}{88A0A8}
+\definecolor{textcolour}{HTML}{262322}
+\definecolor{darktext}{HTML}{000505}
 
 % Spans
 \newcommand\fullpagespan[1]{
@@ -48,14 +52,28 @@
 }
 
 % Style commands
-\colorlet{backgroundcolor}{posterBackgroundColour} 
-\colorlet{blockbodybgcolor}{white}
-\colorlet{blocktitlebgcolor}{white}
+\colorlet{backgroundcolor}{darkcolour} 
+\colorlet{blockbodybgcolor}{lightcolour}
+\colorlet{blocktitlebgcolor}{offcolour}
+\colorlet{blocktitlefgcolor}{textcolour}
 
 \useblockstyle{bodyblock}
 
 % Document
 \begin{document}
+
+\node [
+    below right,
+    outer sep=0pt,
+    minimum width=\paperwidth,
+    minimum height=0.1\paperheight,
+    align=center,font=\normalsize,
+    fill=middlecolour] at ([shift={(0.5*\pgflinewidth,0.5*\pgflinewidth)}
+] bottomleft)
+{
+    \centering
+    \fullpagespan{aa7g15@soton.ac.uk \hfill \url{www.github.com/aatack}}
+};
 
 % Prevent whitespace when excluding title
 \makeatletter
@@ -76,7 +94,7 @@
     minimum width=\paperwidth,
     minimum height=0.02\paperheight,
     align=center,font=\normalsize,
-    fill=posterBackgroundColour] at ([shift={(0.5*\pgflinewidth,0.5*\pgflinewidth)}
+    fill=middlecolour] at ([shift={(0.5*\pgflinewidth,0.5*\pgflinewidth)}
 ] bottomleft)
 {
     \centering
