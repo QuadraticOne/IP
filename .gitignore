@@ -11,6 +11,7 @@
 *.lot
 reports/draft/main.pdf
 reports/draft/**/main.pdf
+reports/poster/main.pdf
 
 # Local packages
 wise/

@@ -48,15 +48,28 @@
     \fi
 }
 
+\definetitlestyle{sampletitle}{
+width=500mm, roundedcorners=1, linewidth=0pt, innersep=5pt,
+titletotopverticalspace=10mm, titletoblockverticalspace=10mm
+}{
+\begin{scope}[line width=\titlelinewidth, rounded corners=\titleroundedcorners]
+\draw[color=blocktitlebgcolor, fill=titlebgcolor]
+(\titleposleft,\titleposbottom) rectangle (\titleposright,\titlepostop);
+\end{scope}
+}
+
+
 \colorlet{backgroundcolor}{posterBackgroundColour} 
 \colorlet{blockbodybgcolor}{white}
 \colorlet{blocktitlebgcolor}{white}
 
+
+\usetitlestyle{sampletitle}
 \useblockstyle{bodyblock}
 
 \begin{document}
 
-% \maketitle
+\maketitle
 
 \begin{columns}
     \column{0.3}
