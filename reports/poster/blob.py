@@ -91,3 +91,34 @@ def create_plot():
     plt.xticks([])
     plt.yticks([])
     plt.show()
+
+
+def get_control_points():
+    """
+    () -> [((Float, Float), (Float, Float))]
+    Generate a number of control points used for calculating the
+    latent representations of the viable spaces.
+    """
+    quadrants = [(1, 1), (-1, 1), (-1, -1), (1, -1)]
+    inners = [(uniform(0.1, x * 0.8), uniform(0.1, y * 0.8)) for x, y in quadrants]
+    outers = [(uniform(12, 36) * x, uniform(12, 36) * y) for x, y in inners]
+    return [(inner, outer) for inner, outer in zip(inners, outers)]
+
+
+def extract_quadrilaterals(control_points):
+    """
+    [((Float, Float), (Float, Float))] -> [[(Float, Float)]]
+    Exract the vertex coordinates of five quadrilaterals from the
+    given control points.
+    """
+    return [
+        list(a)[::-1] + list(b) for a, b in zip(control_points, cycle(control_points))
+    ] + [[inner for inner, _ in control_points]]
+
+
+def cycle(values):
+    """
+    [a] -> [a]
+    Create a new list with the first value moved to the end of the list.
+    """
+    return values[1:] + [values[0]]
