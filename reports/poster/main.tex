@@ -6,6 +6,7 @@
 \usepackage[default]{sourcesanspro}
 \usepackage[T1]{fontenc}
 \usepackage{url}
+\usepackage{tikz}
 
 \usetheme{Simple}
 
@@ -23,6 +24,34 @@
 }
 
 % Block styles
+\defineblockstyle{titleblock}{
+    titlewidthscale=1.0,
+    bodywidthscale=1,
+    titleleft,
+    titleoffsetx=0pt,
+    titleoffsety=0pt,
+    bodyoffsetx=0mm,
+    bodyoffsety=0mm,
+    bodyverticalshift=0mm,
+    roundedcorners=0,
+    linewidth=2pt,
+    titleinnersep=0mm,
+    bodyinnersep=0cm
+}{
+    \draw[
+        color=framecolor,
+        fill=blockbodybgcolor,
+        rounded corners=\blockroundedcorners
+    ] (blockbody.south west) rectangle (blockbody.north east);
+\ifBlockHasTitle
+    \draw[
+        color=framecolor,
+        fill=blocktitlebgcolor,
+        rounded corners=\blockroundedcorners
+    ] (blocktitle.south west) rectangle (blocktitle.north east);
+    \fi
+}
+
 \defineblockstyle{bodyblock}{
     titlewidthscale=1.0,
     bodywidthscale=1,
@@ -62,6 +91,19 @@
 % Document
 \begin{document}
 
+% Prevent whitespace when excluding title
+\makeatletter
+    \setlength{\TP@blocktop}{.47\textheight}
+\makeatother
+
+{
+    \useblockstyle{titleblock}
+    \colorlet{blockbodybgcolor}{middlecolour}
+    \colorlet{blocktitlebgcolor}{middlecolour}
+    % \begin{columns}
+    \block{Latent Mappings for Engineering Optimisation}{Alexander Atack - 27745449 \hfill supervised by Dr. David Toal}
+}
+
 \node [
     below right,
     outer sep=0pt,
@@ -75,10 +117,6 @@
     \fullpagespan{aa7g15@soton.ac.uk \hfill \url{www.github.com/aatack}}
 };
 
-% Prevent whitespace when excluding title
-\makeatletter
-    \setlength{\TP@blocktop}{.47\textheight}
-\makeatother
 
 \begin{columns}
     \column{0.4}
