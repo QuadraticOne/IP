@@ -99,8 +99,16 @@ def get_control_points():
     Generate a number of control points used for calculating the
     latent representations of the viable spaces.
     """
+    inner_boundary = 0.3
+    outer_boundary = 1.2
     quadrants = [(1, 1), (-1, 1), (-1, -1), (1, -1)]
-    inners = [(uniform(0.1, x * 0.8), uniform(0.1, y * 0.8)) for x, y in quadrants]
+    inners = [
+        (
+            uniform(x * inner_boundary, x * outer_boundary),
+            uniform(y * inner_boundary, y * outer_boundary),
+        )
+        for x, y in quadrants
+    ]
     outers = [(uniform(12, 36) * x, uniform(12, 36) * y) for x, y in inners]
     return [(inner, outer) for inner, outer in zip(inners, outers)]
 
@@ -124,6 +132,23 @@ def cycle(values):
     return values[1:] + [values[0]]
 
 
+def get_splines():
+    """
+    () -> [Spline]
+    Get a number of splines to be used for the latent space plot.
+    """
+    quadrilaterals = extract_quadrilaterals(get_control_points())
+    return [
+        Spline(
+            [
+                SplinePoint(i / len(quadrilateral), xy)
+                for i, xy in enumerate(quadrilateral)
+            ]
+        )
+        for quadrilateral in quadrilaterals
+    ]
+
+
 class SplinePoint:
     def __init__(self, radial_position, global_position):
         """
@@ -141,6 +166,13 @@ class SplinePoint:
         """
         d = abs(t - self.radial_position)
         return min(d, 1 - d)
+
+    def __str__(self):
+        """
+        () -> String
+        Return a string representation of the spline point.
+        """
+        return "({}, {}) @ {}".format(self.x, self.y, self.radial_position)
 
 
 class Spline:
@@ -164,14 +196,39 @@ class Spline:
             y_total += y
         return x_total / n, y_total / n
 
+    def get_point_weights(self, t):
+        """
+        Float -> ([Float], [SplinePoint])
+        Pair each point with a calculated weight.
+        """
+        return (
+            softmax(
+                [1 / (0.1 + p.radial_distance_to(t) ** 3) for p in self.spline_points]
+            ),
+            self.spline_points,
+        )
+
     def weights_at(self, t):
         """
         Float -> [(Float, Float)]
         Calculate the weighted position of each spline at the given
         parametric value.
         """
-        weights = softmax([p.radial_distance_to(t) for p in self.spline_points])
-        return [(p.x * w, p.y * w) for p, w in zip(self.spline_points, weights)]
+        weights, points = self.get_point_weights(t)
+        return [(p.x * w, p.y * w) for p, w in zip(points, weights)]
+
+    def plot(self, segments=100, alpha=0.4):
+        """
+        Int? -> Float? -> ()
+        Plot the spline but do not show the plot.
+        """
+        points = [self.position_at(t) for t in linspace(0, 1, segments)]
+        xs, ys = zip(*points)
+        xs = list(xs)
+        ys = list(ys)
+
+        plt.fill(xs, ys, alpha=alpha)
+        plt.plot(xs + [xs[0]], ys + [ys[0]])
 
 
 def softmax(xs):
@@ -182,3 +239,18 @@ def softmax(xs):
     exponentials = [exp(x) for x in xs]
     total = sum(exponentials)
     return [x / total for x in exponentials]
+
+
+def create_latent_plot():
+    """
+    () -> ()
+    Create a plot of the viable set in the latent space.
+    """
+    for spline in get_splines():
+        spline.plot()
+    plt.xlim(-1, 1)
+    plt.ylim(-1, 1)
+    plt.xticks([])
+    plt.yticks([])
+    plt.gca().set_aspect("equal")
+    plt.show()
