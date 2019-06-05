@@ -433,7 +433,7 @@ class UniformVectorEnvironment(VectorEnvironment):
 
     def satisfaction(self, solution_constraint_pair):
         """
-        (np.array -> np.array) -> Bool
+        (np.array, np.array) -> Bool
         Determine whether a solution satisfies the constraint.
         """
         return self._satisfaction(solution_constraint_pair)

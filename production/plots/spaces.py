@@ -262,6 +262,104 @@ def plot_latent_contours(
     plt.show()
 
 
+def plot_latent_contours_in_latent_space(
+    export,
+    constraint,
+    mesh,
+    dimensions=(0, 1),
+    thinning_factor=5,
+    environment=None,
+    legend=True,
+):
+    """
+    ExportedParametricGenerator -> [Float] -> Mesh -> (Int, Int)?
+        -> Int -> VectorEnvironment? -> Bool? -> ()
+    Plot lines for which l_1 and l_2 are held constant in the
+    latent space.
+    """
+    set_latex_font()
+
+    mapper = export.map_to_solution(constraint)
+
+    def latent_point_satisfies_constraint(p):
+        _p = mapper(p)
+        return environment.satisfaction(
+            (np.array([_p[0], _p[1]]), np.array(constraint))
+        )
+
+    if environment is not None:
+        draw_truth_regions(latent_point_satisfies_constraint, "grey", 0.2, mesh)
+
+    x_contours = mesh.x_contours[::thinning_factor]
+    y_contours = mesh.y_contours[::thinning_factor]
+
+    x_contour_coords = [[[x, y] for x, y in contour] for contour in x_contours]
+    y_contour_coords = [[[x, y] for x, y in contour] for contour in y_contours]
+
+    for contour in x_contour_coords[1:]:
+        xs, ys = zip(*contour)
+        plt.plot(xs, ys, "blue", alpha=0.4)
+
+    for contour in y_contour_coords[1:]:
+        xs, ys = zip(*contour)
+        plt.plot(xs, ys, "red", alpha=0.4)
+
+    left, right = x_contour_coords[0], x_contour_coords[-1]
+
+    def clip(a, b):
+        return lambda x: a if x < a else (b if x > b else x)
+
+    def plot_text(x, y, text):
+        text_border_x = 0.1
+        text_border_y = 0.05
+        plt.text(
+            clip(mesh.x_min + text_border_x, mesh.x_max - text_border_x)(x),
+            clip(mesh.y_min + text_border_y, mesh.y_max - text_border_y)(y),
+            text,
+            ha="center",
+            bbox={"facecolor": "white", "edgecolor": "none", "pad": 1, "alpha": 0.6},
+        )
+
+    if legend:
+        legend = []
+        legend.append(
+            mlines.Line2D(
+                [],
+                [],
+                color="blue",
+                marker="None",
+                alpha=0.4,
+                markersize=10,
+                label="$l_1=\\mathrm{const}$",
+            )
+        )
+        legend.append(
+            mlines.Line2D(
+                [],
+                [],
+                color="red",
+                marker="None",
+                alpha=0.4,
+                markersize=10,
+                label="$l_2=\\mathrm{const}$",
+            )
+        )
+        if environment is not None:
+            legend.append(
+                mpatches.Patch(
+                    color="grey",
+                    label="$h(c, [s_1, s_2])=\\mathrm{satisfied}$",
+                    alpha=0.2,
+                )
+            )
+        plt.legend(handles=legend)
+
+    mesh.bound_pyplot()
+    plt.xlabel("$l_1$")
+    plt.ylabel("$l_2$")
+    plt.show()
+
+
 def set_latex_font():
     """
     () -> ()
