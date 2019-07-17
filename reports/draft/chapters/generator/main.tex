@@ -24,7 +24,7 @@ An estimation of the KL-divergence can then be calculated:
 \end{equation}
 The term before the logarithm disappears in the summation equation because each sample is weighted by the inverse of its probability density under $\hat{V'_c}$.
 
-Since all operations in this equation are differentiable, the partial derivative of the KL-divergence with respect to the weights of the generator can be found by a library with automatic differentiation such a Tensorflow.
+Since all operations in this equation are differentiable, the partial derivative of the KL-divergence with respect to the weights of the generator can be found by a library with automatic differentiation such as Tensorflow.
 Then $g'$ training is simply a matter of minimising $D_\text{KL}$.
 
 \subsection{Potential issues} \label{subsection:potentialIssues}

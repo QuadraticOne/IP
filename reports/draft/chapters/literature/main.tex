@@ -44,7 +44,7 @@ This can be used to extract the more important latent features of the feature sp
 When used for pretraining, the decoder is normally discarded; but if the encoding function $f(x)$ is already known, the autoencoder architecture can be used to learn its inverse.
 
 Other architectures have been proposed which perform the same task as a traditional autoencoder using a generative model.
-Variational autoencoders (VAEs) allow sampling from the latent space by parameterising a probability distribution over the it \cite{kingma14}, predicting the latent variables most likely to explain the visible data.
+Variational autoencoders (VAEs) allow sampling from the latent space by parameterising a probability distribution over it \cite{kingma14}, predicting the latent variables most likely to explain the visible data.
 The most common use for this is learning a robust latent mapping for a dataset, but the method could be adapted to create a generative model that inverts a many-to-one function such as $h$.
 
 A common problem faced by traditional autoencoders is that not every point in the latent space has a meaningful equivalent in the feature space.
@@ -58,7 +58,7 @@ The most common adversarial networks, generative adversarial networks (GANs), ca
 These have been applied to a range of problems, including image resolution upscaling \cite{ledig17} and creating cross-domain transfer functions \cite{zhu18}.
 GANs may therefore be adapted to sample from a distribution modelling $V_c$, if a parameterisation of the distribution by the relevant constraint can be learned.
 
-Some research has been done into the using GANs to invert functions \cite{anirudh18}; while autoencoders can also accomplish this task and are generally considered to be easier to train \cite{bang18}, the generative nature of GANs is appealing considering that $V_c$ contains more than one point.
+Some research has been done into using GANs to invert functions \cite{anirudh18}; while autoencoders can also accomplish this task and are generally considered to be easier to train \cite{bang18}, the generative nature of GANs is appealing considering that $V_c$ contains more than one point.
 Sampling from it is therefore a necessity.
 
 \section{Representation learning} \label{section:representationLearning}
